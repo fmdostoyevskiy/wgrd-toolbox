@@ -1,0 +1,97 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Armory Browser</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  html, body { margin: 0; padding: 0; height: 100%;
+    background: #0a0c10;
+    font-family: "JetBrains Mono", ui-monospace, Menlo, monospace;
+  }
+  :root {
+    --wrd-mono: "JetBrains Mono", "IBM Plex Mono", ui-monospace, Menlo, monospace;
+  }
+  .sr > .dr:last-child { border-bottom: none !important; }
+  /* Scrollbar styling for dark UI */
+  ::-webkit-scrollbar { width: 8px; height: 8px; }
+  ::-webkit-scrollbar-track { background: transparent; }
+  ::-webkit-scrollbar-thumb { background: #2a3040; border-radius: 4px; }
+  ::-webkit-scrollbar-thumb:hover { background: #3a4050; }
+</style>
+</head>
+<body>
+<div id="root"></div>
+
+<script src="https://unpkg.com/react@18.3.1/umd/react.development.js" integrity="sha384-hD6/rw4ppMLGNu3tX5cjIb+uRZ7UkRJ6BPkLpg4hAu/6onKUg4lLsHAs9EBPT82L" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.development.js" integrity="sha384-u6aeetuaXnQ38mYT8rp6sbXaQe3NL9t+IBXmnYxwkUI2Hw4bsp2Wvmx4yRQF1uAm" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/@babel/standalone@7.29.0/babel.min.js" integrity="sha384-m08KidiNqLdpJqLq95G/LEi8Qvjl/xUYll3QILypMoQ65QorJ9Lvtp2RXYGBFj1y" crossorigin="anonymous"></script>
+
+<script type="text/babel" src="design-canvas.jsx"></script>
+<script type="text/babel" src="data.jsx"></script>
+<script type="text/babel" src="browser-data.jsx"></script>
+<script type="text/babel" src="v2-blueprint.jsx"></script>
+<script type="text/babel" src="browser-shared.jsx"></script>
+<script type="text/babel" src="browser-a.jsx"></script>
+<script type="text/babel" src="browser-b.jsx"></script>
+<script type="text/babel" src="browser-c.jsx"></script>
+<script type="text/babel" src="browser-d.jsx"></script>
+
+<script type="text/babel">
+// Viewport size — realistic desktop browser at 16:10.
+const BW = 1600, BH = 1000;
+
+function App() {
+  return (
+    <DesignCanvas>
+      <DCSection id="a" title="A · Schematic"
+        subtitle="Full chip rows for every filter, dense mono list, card pane on the right. Closest to the original mockup, just cleaned up on palette + rhythm.">
+        <DCArtboard id="a-1" label="Selected: PACT Hind" width={BW} height={BH}>
+          <BrowserA initialUnit="mi24v" />
+        </DCArtboard>
+        <DCArtboard id="a-2" label="Selected: NATO Strv" width={BW} height={BH}>
+          <BrowserA initialUnit="strv103c" />
+        </DCArtboard>
+      </DCSection>
+
+      <DCSection id="b" title="B · Compact Bar"
+        subtitle="Filters collapse into 5 dropdown buttons in a single top row, with an active-chip strip under. Unit list + cards get maximum vertical space.">
+        <DCArtboard id="b-1" label="Selected: PACT Hind" width={BW} height={BH}>
+          <BrowserB initialUnit="mi24v" />
+        </DCArtboard>
+        <DCArtboard id="b-2" label="Selected: NATO Strv" width={BW} height={BH}>
+          <BrowserB initialUnit="strv103c" />
+        </DCArtboard>
+      </DCSection>
+
+      <DCSection id="c" title="C · Command Deck"
+        subtitle="Filters live in a collapsible left rail. Three-column layout (filters / list / cards). Cards sit over a subtle grid, feels like a mission console.">
+        <DCArtboard id="c-1" label="Selected: PACT Hind" width={BW} height={BH}>
+          <BrowserC initialUnit="mi24v" />
+        </DCArtboard>
+        <DCArtboard id="c-2" label="Selected: NATO Strv" width={BW} height={BH}>
+          <BrowserC initialUnit="strv103c" />
+        </DCArtboard>
+      </DCSection>
+
+      <DCSection id="d" title="D · HUD"
+        subtitle="Filters as stacked segmented rows with left-aligned labels and underline ticks. Cards sit inside a crosshair-marked workspace — most 'fire-control terminal' of the four.">
+        <DCArtboard id="d-1" label="Selected: PACT Hind" width={BW} height={BH}>
+          <BrowserD initialUnit="mi24v" />
+        </DCArtboard>
+        <DCArtboard id="d-2" label="Selected: NATO Strv" width={BW} height={BH}>
+          <BrowserD initialUnit="strv103c" />
+        </DCArtboard>
+      </DCSection>
+    </DesignCanvas>
+  );
+}
+
+const root = ReactDOM.createRoot(document.getElementById('root'));
+root.render(<App />);
+</script>
+</body>
+</html>

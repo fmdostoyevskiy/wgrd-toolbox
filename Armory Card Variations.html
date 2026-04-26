@@ -1,0 +1,221 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Armory Card Variations</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500;600&family=Space+Mono:wght@400;700&family=DM+Mono:wght@400;500&family=Fira+Code:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  html, body { margin: 0; padding: 0; height: 100%; background: #f0eee9; }
+  body { font-family: "JetBrains Mono", ui-monospace, Menlo, monospace; }
+  :root {
+    --wrd-mono: "JetBrains Mono", "IBM Plex Mono", ui-monospace, Menlo, monospace;
+  }
+
+  .sr > .dr:last-child { border-bottom: none !important; }
+
+  /* Tweaks panel */
+  #tweaks {
+    position: fixed; bottom: 16px; right: 16px; z-index: 1000;
+    background: #14181c; color: #e8eef5; padding: 14px 16px;
+    border-radius: 6px; border: 1px solid #2a2f36;
+    box-shadow: 0 10px 40px rgba(0,0,0,0.3);
+    font-family: var(--wrd-mono); font-size: 12px;
+    min-width: 240px; display: none;
+  }
+  #tweaks.on { display: block; }
+  #tweaks h4 { margin: 0 0 10px; font-size: 10px;
+    letter-spacing: 0.22em; color: #8a93a0; text-transform: uppercase; }
+  #tweaks .row { display: flex; justify-content: space-between;
+    align-items: center; margin-bottom: 10px; gap: 8px; }
+  #tweaks label { color: #b3bac3; font-size: 11px; letter-spacing: 0.05em; }
+  #tweaks select, #tweaks button.seg {
+    background: #1c232c; color: #e8eef5; border: 1px solid #2a323c;
+    font-family: inherit; font-size: 11px; padding: 5px 8px; border-radius: 3px;
+    cursor: pointer;
+  }
+  #tweaks .seggroup { display: flex; gap: 0; }
+  #tweaks .seggroup .seg { border-radius: 0; }
+  #tweaks .seggroup .seg:first-child { border-top-left-radius: 3px; border-bottom-left-radius: 3px; }
+  #tweaks .seggroup .seg:last-child { border-top-right-radius: 3px; border-bottom-right-radius: 3px; }
+  #tweaks .seggroup .seg.active { background: #e8644a; color: #14181c;
+    border-color: #e8644a; }
+</style>
+</head>
+<body>
+<div id="root"></div>
+
+<div id="tweaks">
+  <h4>Tweaks</h4>
+  <div class="row">
+    <label>Mono font</label>
+    <select id="font-select">
+      <option value='"JetBrains Mono", ui-monospace, Menlo, monospace'>JetBrains Mono</option>
+      <option value='"IBM Plex Mono", ui-monospace, Menlo, monospace'>IBM Plex Mono</option>
+      <option value='"Space Mono", ui-monospace, Menlo, monospace'>Space Mono</option>
+      <option value='"DM Mono", ui-monospace, Menlo, monospace'>DM Mono</option>
+      <option value='"Fira Code", ui-monospace, Menlo, monospace'>Fira Code</option>
+      <option value='ui-monospace, Menlo, "Courier New", monospace'>System mono</option>
+    </select>
+  </div>
+  <div class="row">
+    <label>Density</label>
+    <div class="seggroup">
+      <button class="seg" data-density="compact">Compact</button>
+      <button class="seg active" data-density="comfortable">Comfort</button>
+    </div>
+  </div>
+</div>
+
+<script>
+const TWEAK_DEFAULTS = /*EDITMODE-BEGIN*/{
+  "fontFamily": "\"JetBrains Mono\", ui-monospace, Menlo, monospace",
+  "density": "comfortable"
+}/*EDITMODE-END*/;
+</script>
+
+<script src="https://unpkg.com/react@18.3.1/umd/react.development.js" integrity="sha384-hD6/rw4ppMLGNu3tX5cjIb+uRZ7UkRJ6BPkLpg4hAu/6onKUg4lLsHAs9EBPT82L" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.development.js" integrity="sha384-u6aeetuaXnQ38mYT8rp6sbXaQe3NL9t+IBXmnYxwkUI2Hw4bsp2Wvmx4yRQF1uAm" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/@babel/standalone@7.29.0/babel.min.js" integrity="sha384-m08KidiNqLdpJqLq95G/LEi8Qvjl/xUYll3QILypMoQ65QorJ9Lvtp2RXYGBFj1y" crossorigin="anonymous"></script>
+
+<script type="text/babel" src="design-canvas.jsx"></script>
+<script type="text/babel" src="data.jsx"></script>
+<script type="text/babel" src="v2-blueprint.jsx"></script>
+
+<script type="text/babel">
+const DensityCtx = React.createContext('comfortable');
+
+function applyFont(f) {
+  document.documentElement.style.setProperty('--wrd-mono', f);
+}
+applyFont(TWEAK_DEFAULTS.fontFamily);
+
+// ─── Card host: unit picker strip + theme passthrough ────────
+const UNIT_ORDER = ['mi24v', 'strv103c', 'motostrelki', 'su25'];
+
+function CardHost({ initialUnit = 'mi24v', theme = 'graphite' }) {
+  const [unitId, setUnitId] = React.useState(initialUnit);
+  const [vetIdx, setVetIdx] = React.useState(1);
+  const density = React.useContext(DensityCtx);
+  const unit = UNITS[unitId];
+  const s = V2_THEMES[theme];
+
+  React.useEffect(() => { setVetIdx(1); }, [unitId]);
+
+  return (
+    <div style={{ width: '100%', height: '100%', display: 'flex',
+      flexDirection: 'column', background: s.bg }}>
+      <div style={{ display: 'flex', borderBottom: `1px solid ${s.rule}`,
+        fontFamily: 'var(--wrd-mono)', flexShrink: 0,
+        background: `color-mix(in srgb, ${s.bg} 92%, black)` }}>
+        {UNIT_ORDER.map(id => {
+          const active = id === unitId;
+          return (
+            <button key={id} onClick={() => setUnitId(id)} style={{
+              flex: 1, padding: '8px 0', border: 'none',
+              background: active
+                ? `color-mix(in srgb, ${s.accent} 14%, transparent)`
+                : 'transparent',
+              color: active ? s.accent : s.dim,
+              borderRight: `1px solid ${s.rule}`,
+              fontFamily: 'inherit', fontSize: 10, letterSpacing: '0.18em',
+              cursor: 'pointer', textTransform: 'uppercase',
+            }}>{UNITS[id].name.split(' ')[0]}</button>
+          );
+        })}
+      </div>
+      <div style={{ flex: 1, minHeight: 0 }}>
+        <V2Card unit={unit} vetIdx={vetIdx} setVetIdx={setVetIdx}
+          density={density} theme={theme} />
+      </div>
+    </div>
+  );
+}
+
+function App() {
+  const [density, setDensity] = React.useState(TWEAK_DEFAULTS.density);
+
+  React.useEffect(() => {
+    const panel = document.getElementById('tweaks');
+    const fontSel = document.getElementById('font-select');
+    fontSel.value = TWEAK_DEFAULTS.fontFamily;
+    fontSel.addEventListener('change', (e) => {
+      applyFont(e.target.value);
+      window.parent.postMessage({ type: '__edit_mode_set_keys',
+        edits: { fontFamily: e.target.value } }, '*');
+    });
+    document.querySelectorAll('#tweaks .seg').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const d = btn.dataset.density;
+        setDensity(d);
+        document.querySelectorAll('#tweaks .seg').forEach(b =>
+          b.classList.toggle('active', b.dataset.density === d));
+        window.parent.postMessage({ type: '__edit_mode_set_keys',
+          edits: { density: d } }, '*');
+      });
+      btn.classList.toggle('active', btn.dataset.density === TWEAK_DEFAULTS.density);
+    });
+
+    const onMsg = (e) => {
+      if (!e.data || typeof e.data !== 'object') return;
+      if (e.data.type === '__activate_edit_mode') panel.classList.add('on');
+      else if (e.data.type === '__deactivate_edit_mode') panel.classList.remove('on');
+    };
+    window.addEventListener('message', onMsg);
+    window.parent.postMessage({ type: '__edit_mode_available' }, '*');
+    return () => window.removeEventListener('message', onMsg);
+  }, []);
+
+  // Card dimensions — 3.2 : 4.5 ratio as specified.
+  // Picking ~400 wide gives 400 × 562 (card body), plus the unit strip.
+  const CARD_W = 400;
+  const CARD_H = Math.round(CARD_W * 4.5 / 3.2); // 562
+  // Artboard is card + unit strip (~34px) at the top, so a little taller.
+  const W = CARD_W, H = CARD_H + 34;
+
+  return (
+    <DensityCtx.Provider value={density}>
+      <DesignCanvas>
+        <DCSection id="signal" title="Signal Red"
+          subtitle={`Ratio 3.2 : 4.5 (${CARD_W}×${CARD_H}). Flip unit with the top strip.`}>
+          <DCArtboard id="s-hel" label="Helicopter · Mi-24V" width={W} height={H}>
+            <CardHost theme="signal" initialUnit="mi24v" />
+          </DCArtboard>
+          <DCArtboard id="s-tnk" label="Vehicle · Strv 103C" width={W} height={H}>
+            <CardHost theme="signal" initialUnit="strv103c" />
+          </DCArtboard>
+          <DCArtboard id="s-inf" label="Infantry · Motostrelki" width={W} height={H}>
+            <CardHost theme="signal" initialUnit="motostrelki" />
+          </DCArtboard>
+          <DCArtboard id="s-pla" label="Plane · Su-25" width={W} height={H}>
+            <CardHost theme="signal" initialUnit="su25" />
+          </DCArtboard>
+        </DCSection>
+
+        <DCSection id="tactical" title="Tactical Blue"
+          subtitle="Same layout, blue palette.">
+          <DCArtboard id="t-hel" label="Helicopter · Mi-24V" width={W} height={H}>
+            <CardHost theme="tactical" initialUnit="mi24v" />
+          </DCArtboard>
+          <DCArtboard id="t-tnk" label="Vehicle · Strv 103C" width={W} height={H}>
+            <CardHost theme="tactical" initialUnit="strv103c" />
+          </DCArtboard>
+          <DCArtboard id="t-inf" label="Infantry · Motostrelki" width={W} height={H}>
+            <CardHost theme="tactical" initialUnit="motostrelki" />
+          </DCArtboard>
+          <DCArtboard id="t-pla" label="Plane · Su-25" width={W} height={H}>
+            <CardHost theme="tactical" initialUnit="su25" />
+          </DCArtboard>
+        </DCSection>
+      </DesignCanvas>
+    </DensityCtx.Provider>
+  );
+}
+
+const root = ReactDOM.createRoot(document.getElementById('root'));
+root.render(<App />);
+</script>
+</body>
+</html>
