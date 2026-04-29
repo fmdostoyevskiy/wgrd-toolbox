@@ -217,14 +217,17 @@ function effectiveAvail(unit, selectedSpec) {
 export function CardPane({ selectedId, pinnedIds, onTogglePin, units, slots = 2, selectedSpec = null, noPins = false }) {
   const pinned   = pinnedIds.filter(id => id !== selectedId);
   const hasPinned = pinned.length > 0;
-  // Selected on right unless a pinned unit exists; then selected left, pinned right
-  const slotsArr = hasPinned
-    ? [selectedId, pinned[0]]
-    : [null, selectedId];
+  // On mobile (noPins) show only the selected unit; otherwise selected+pinned pair
+  const slotsArr = noPins
+    ? [selectedId]
+    : hasPinned
+      ? [selectedId, pinned[0]]
+      : [null, selectedId];
+  const colCount = noPins ? 1 : slots;
 
   return (
     <div style={{
-      display: 'grid', gridTemplateColumns: `repeat(${slots}, 1fr)`,
+      display: 'grid', gridTemplateColumns: `repeat(${colCount}, 1fr)`,
       gap: 14, height: '100%', minHeight: 0,
     }}>
       {slotsArr.map((id, i) => {
