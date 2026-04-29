@@ -214,17 +214,20 @@ function effectiveAvail(unit, selectedSpec) {
   return shift > 0 ? shiftAvail(unit.avail, shift) : unit.avail;
 }
 
-export function CardPane({ selectedId, pinnedIds, onTogglePin, units, slots = 2, selectedSpec = null }) {
+export function CardPane({ selectedId, pinnedIds, onTogglePin, units, slots = 2, selectedSpec = null, noPins = false }) {
   const pinned   = pinnedIds.filter(id => id !== selectedId);
   const hasPinned = pinned.length > 0;
-  // Selected on right unless a pinned unit exists; then selected left, pinned right
-  const slotsArr = hasPinned
-    ? [selectedId, pinned[0]]
-    : [null, selectedId];
+  // On mobile (noPins) show only the selected unit; otherwise selected+pinned pair
+  const slotsArr = noPins
+    ? [selectedId]
+    : hasPinned
+      ? [selectedId, pinned[0]]
+      : [null, selectedId];
+  const colCount = noPins ? 1 : slots;
 
   return (
     <div style={{
-      display: 'grid', gridTemplateColumns: `repeat(${slots}, 1fr)`,
+      display: 'grid', gridTemplateColumns: `repeat(${colCount}, 1fr)`,
       gap: 14, height: '100%', minHeight: 0,
     }}>
       {slotsArr.map((id, i) => {
@@ -233,7 +236,8 @@ export function CardPane({ selectedId, pinnedIds, onTogglePin, units, slots = 2,
           <CardSlot key={i} unitId={id} units={units}
             isPinned={isPinned}
             selectedSpec={selectedSpec}
-            onTogglePin={id ? () => onTogglePin(id) : null} />
+            noPins={noPins}
+            onTogglePin={!noPins && id ? () => onTogglePin(id) : null} />
         );
       })}
     </div>
@@ -245,7 +249,7 @@ function lowestAvailVet(avail) {
   return idx >= 0 ? idx : 0;
 }
 
-function CardSlot({ unitId, units, isPinned, onTogglePin, selectedSpec }) {
+function CardSlot({ unitId, units, isPinned, onTogglePin, selectedSpec, noPins = false }) {
   const t = BROWSER_TOKENS;
   const unit = units?.[unitId];
   const avail = effectiveAvail(unit, selectedSpec);

@@ -224,7 +224,7 @@ function WeaponBlock({ w, vetMul, s }) {
         {w.category !== 'Bomb' && (<>
           {w.aimTime != null && <Row label="Aim Time" value={`${w.aimTime} s`} />}
           <Row
-            label={isLongRof ? 'Rate of Fire' : 'Reload'}
+            label={isLongRof ? 'RoF' : 'Reload'}
             value={`${rofStr()}${hasAuto ? '  [AL]' : ''}`}
             tooltip={rofTooltip}
           />
@@ -511,7 +511,7 @@ export function V2Card({ unit, avail: availProp, vetIdx, setVetIdx, theme = 'tac
               {unit.tab} ·
               <img src={NATION_FLAG_MAP[unit.nation]} alt={unit.nationName ?? unit.nation}
                    style={{ height: 14, width: 'auto' }} />
-              {unit.nationName ?? unit.nation}
+              {unit.nation}
             </div>
           </div>
           <div style={{
