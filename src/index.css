@@ -1,0 +1,40 @@
+/* Theme variables and global styles. Per-component layout still lives in JSX
+   (inline styles); this file owns:
+   • document chrome (html/body/scrollbars)
+   • monospace font alias
+   • the `.sr > .dr:last-child` border tweak that the card sections rely on
+*/
+
+:root {
+  --wrd-mono: "JetBrains Mono", "IBM Plex Mono", ui-monospace, Menlo, monospace;
+
+  /* Browser chrome tokens (mirror BROWSER_TOKENS in src/constants/theme.js) */
+  --wrd-bg:           #0f1115;
+  --wrd-surface:      #151922;
+  --wrd-surface2:     #1c2230;
+  --wrd-rule:         #252b38;
+  --wrd-rule-strong:  #343c4e;
+  --wrd-ink:          #d8dde6;
+  --wrd-dim:          #7a8296;
+  --wrd-dimmer:       #525a6c;
+  --wrd-accent:       #e8a852;
+  --wrd-accent-2:     #8fb4d8;
+  --wrd-ok:           #72d6a8;
+  --wrd-nato:         #7fb4d8;
+  --wrd-pact:         #e07a6c;
+}
+
+html, body {
+  margin: 0;
+  padding: 0;
+  height: 100%;
+  background: #0a0c10;
+}
+
+::-webkit-scrollbar         { width: 8px; height: 8px; }
+::-webkit-scrollbar-track   { background: transparent; }
+::-webkit-scrollbar-thumb   { background: #2a3040; border-radius: 4px; }
+::-webkit-scrollbar-thumb:hover { background: #3a4050; }
+
+/* Cards drop the trailing border on the last DotRow of each section. */
+.sr > .dr:last-child { border-bottom: none !important; }
