@@ -214,7 +214,7 @@ function effectiveAvail(unit, selectedSpec) {
   return shift > 0 ? shiftAvail(unit.avail, shift) : unit.avail;
 }
 
-export function CardPane({ selectedId, pinnedIds, onTogglePin, units, slots = 2, selectedSpec = null }) {
+export function CardPane({ selectedId, pinnedIds, onTogglePin, units, slots = 2, selectedSpec = null, noPins = false }) {
   const pinned   = pinnedIds.filter(id => id !== selectedId);
   const hasPinned = pinned.length > 0;
   // Selected on right unless a pinned unit exists; then selected left, pinned right
@@ -233,7 +233,8 @@ export function CardPane({ selectedId, pinnedIds, onTogglePin, units, slots = 2,
           <CardSlot key={i} unitId={id} units={units}
             isPinned={isPinned}
             selectedSpec={selectedSpec}
-            onTogglePin={id ? () => onTogglePin(id) : null} />
+            noPins={noPins}
+            onTogglePin={!noPins && id ? () => onTogglePin(id) : null} />
         );
       })}
     </div>
@@ -245,7 +246,7 @@ function lowestAvailVet(avail) {
   return idx >= 0 ? idx : 0;
 }
 
-function CardSlot({ unitId, units, isPinned, onTogglePin, selectedSpec }) {
+function CardSlot({ unitId, units, isPinned, onTogglePin, selectedSpec, noPins = false }) {
   const t = BROWSER_TOKENS;
   const unit = units?.[unitId];
   const avail = effectiveAvail(unit, selectedSpec);
