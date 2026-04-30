@@ -20,6 +20,20 @@ export const ARMOR = [
   [-Infinity, RED],
 ];
 
+export const ARMOR_TOP = [
+  [4, TEAL],
+  [3, GREEN],
+  [2, ORANGE],
+  [-Infinity, RED],
+];
+
+export const ARMOR_SIDE_REAR = [
+  [11, TEAL],
+  [7,  GREEN],
+  [4,  ORANGE],
+  [-Infinity, RED],
+];
+
 export const ACCURACY = [
   [60, TEAL],
   [50, GREEN],
@@ -132,7 +146,9 @@ export function sizeInfo(size) {
   return                   { color: RED,    label: 'Big' };
 }
 
-export const armorColor       = v => byTier(v, ARMOR)?.color ?? null;
+export const armorColor         = v => byTier(v, ARMOR)?.color           ?? null;
+export const armorTopColor      = v => byTier(v, ARMOR_TOP)?.color       ?? null;
+export const armorSideRearColor = v => byTier(v, ARMOR_SIDE_REAR)?.color ?? null;
 export const accuracyColor    = v => byTier(v, ACCURACY)?.color ?? null;
 export const missileSpeedColor = v => byTier(v, MISSILE_SPEED)?.color ?? null;
 export const ecmColor         = v => byTier(v, ECM, { strict: true })?.color ?? null;
