@@ -1,0 +1,16 @@
+/* Armory layout: 8.5:10 card aspect-ratio cap.
+   The 133% UI scale is set globally on #root in src/index.css.
+
+   Each card slot is constrained to an 8.5:10 (W:H) box so cards never get
+   wider than 0.85 × their height. height: 100% makes the slot fill its grid
+   cell vertically; width is derived from aspect-ratio and clamped by
+   max-width so wide layouts let card pairs sit side-by-side comfortably. */
+.armory-card-frame {
+  height: 100%;
+  aspect-ratio: 8.5 / 10;
+  max-width: 100%;
+  margin: 0 auto;
+  min-height: 0;
+  min-width: 0;
+  position: relative;
+}
