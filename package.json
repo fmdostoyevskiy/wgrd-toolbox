@@ -3,6 +3,7 @@
   "version": "1.0.0",
   "private": true,
   "scripts": {
+    "generate": "python scripts/enrich.py --out-dir public",
     "dev": "vite",
     "build": "vite build",
     "preview": "vite preview"

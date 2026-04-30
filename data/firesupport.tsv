@@ -1,0 +1,62 @@
+Name	Unit	HE	AP	Range	Acc.	Stab.	Salvo	Shot Reload	Salvo Reload	Turret
+OTO Melara 76	Otomatic	2.5	12	2100	50%	0%	6	0.6	3	-
+RH-503	Marder 2	1.5	6	1925	70%	50%	2	2	2.4	-
+HVMS	Fiat 6616, HVMS, C-13/60	1.5	11	1925	60%	0%	6	2	2.2	-
+COMVAT	COMVAT	1	5	1925	70%	40%	2	2	2.4	-
+Bofors L/70	STRF 9040	1	4	1925	60%	35%	2	1.4	1.8	-
+L70B	LVKV 90	1.5	3	1925	60%	35%	11	1	3.8	-
+KDE 35	Hachi-Kyu Shiki	1	3	1925	50%	30%	2	1.4	1.8	-
+Bushmaster II	CV9030N	1	4	1750	60%	30%	2	1	1.4	-
+Bushmaster (Late)	Bradleys, XA-185 KT, BMP-1 KT	1	3	1750	60%	30%	2	1.3	1.7	-
+Bushmaster (Early)	LAV-25, ASLAV	1	3	1750	50%	25%	2	1.3	1.7	-
+L21A1 Rarden	Warriors	1	3	1750	50%	0%	2	1.8	2	-
+2A72	BTR-90, BMPT, BTR-80A, BMP-3	1	3	1750	40%	30%	2	1	1.4	-
+M-89	BVP M-96 Vidra	1	4	1750	30%	20%	2	0.6	1	-
+M-86	BVP-M-80A1 Vidra	1	3	1750	30%	20%	2	0.8	1.2	-
+2A42 (Late)	T-72M2 Moderna	1	2	1750	30%	20%	2	0.6	1	
+KBA 25 (Late)	KAFV 25, TH-495, Hachi-Nana Shiki, BMP-2 Obr. 1986, BMP-2 (FIN)	1	2	1750	30%	10%	2	0.6	1	-
+KBA 25 (Early)|2A42 (Early)	YPR-765-25, OT-62 VYDRA-II, BMP-2 (USSR), SPz BMP-2	1	2	1750	25%	10%	2	0.6	1	-
+ZPT 90	ZSD-90, WZ-551	1	2	1750	25%	10%	2	0.8	1.2	-
+S-68A	Fla SFL 57-2, ZSU-57-2	2	3	1750	20%	0%	2	1.2	3	-
+2A42 (Helo)	Ka-52, Mi-28, Ka-50 Akula, Puma 330H Cassiopee, Tigres	1	3	1575	60%	50%	2	0.6	1	Y
+M230	All AH-64s	1	2	1575	60%	50%	2	0.8	1.2	Y
+Gsh-23L	Mi-8T KT	1	2	1575	50%	25%	10	0.2	0.6	N
+Twin M230	MH-60L DAP	1	2	1575	50%	5%	4	0.4	0.8	Y
+Rh 202 (Late)	Marder 1a2	1	2	1575	30%	15%	2	0.4	0.8	-
+Twin M621	Lynx AH.7 20mm, Fennec 20mm	1	2	1575	30%	5%	4	0.4	0.8	N
+Gsh-30k	Mi-24VP	1	2	1575	25%	15%	4	0.2	0.6	Y
+Gsh-30k	Mi-24P	1	2	1575	25%	15%	4	0.2	0.6	N
+M197 Vulcan	Tzefa B, Tzefa E, Most AH-series helicopters	1	2	1575	20%	10%	6	0.4	0.6	Y
+Rh 202 (Early)|GI-2|M693 F1|M-55	Marder 1, VAB T20/13, AMX 10P, BVP M-80A	1	2	1575	20%	10%	2	0.4	0.8	-
+GSz-23	W-3 Series	1	2	1575	15%	5%	4	0.2	0.6	N
+HS.820 (Late)	MBT-70, KPz 70 Keiler, Casspir K-Car, YP-104	1	2	1575	15%	10%	2	0.4	0.8	-
+HS.820 (Early)	M60A2E2 Starship, M114A2, SPz 11-2 Kurz, V-150 20mm, YP-104	1	2	1575	15%	5%	2	0.4	0.8	-
+M621	Gazelle 341F Canon	1	2	1575	15%	5%	2	0.6	1	N
+AZP-23|NS-23|Akan m/47D	MT-LB 23M Krak, OT-62 VYDRA-I, PBV 302A, Mi-2s, OT-62-Vydra-I	1	2	1575	15%	5%	2	0.8	1.2	N
+AZP-23 Amur	ZSU-23-4 Afganskiy	1	0	1575	20%	5%	10	0.2	3	-
+M6	M8 Panserbil, M-8 Grejhaund	2	2	1575	30%	5%	1	3	3	-
+M2A1	Flakpz. M42A1	1.5	2	1400	20%	0%	4	1.6	1.6	-
+KPVT (Late)	BTR-80, Chonma-Ho V, Topas-2AP	1	1	1400	20%	10%	6	0.8	3	-
+PLDvK vz. 53/59	Past Praga	1	2	1400	15%	0%	11	0.6	5	
+KPVT (Early)	BTR-60PB, BTR-70, SU-122-54, Type 59	1	1	1400	10%	5%	6	0.8	3	-
+ZPTU-2	VTT-323	1	1	1400	10%	5%	12	0.4	5	-
+ZPTU-2	BTR-152E ZPTU-2, Fla-MG SPW-152E	1	1	1400	10%	5%	24	0.4	5	-
+ZPTU-4	BTR-152E ZPTU-4	1	1	1400	10%	5%	24	0.2	8	-
+T63	PGZ-63	1	2	1400	15%	5%	4	2	2	-
+Mk19	LVTP-7A1, Merkava IIA, Merkava IIIB, BTR-T, BMPT	2	0	1225	15%	10%	11	0.8	8	-
+K4	KAFV 40/50	2	0	1225	15%	10%	10	1.2	10	-
+FN HMP 400 LCC	A.109EOA-2	0.75	0	1225	30%	15%	20	0.4	2	N
+M2 Browning (Double)	Hi-45 Hera 2, Ho-42 Gazela	0.75	0	1225	20%	10%	20	0.4	2	N
+Quad M2 Browning	Quadrinata ACM-52, Seung-Gong-Po, GMC M450	0.75	0	1225	10%	5%	40	0.2	8	-
+Yak-B	Mi-24 Series	1	0	1225	20%	10%	8	0.2	2	Y
+GShG-7,62	Ka-29TB	1	0	1050	20%	10%	10	0.6	6	N
+M2 Browning|NSVT|NSV|T54	Many	0.75	0	1050	15%	5%	10	0.8	2	-
+DShK	Many	0.75	0	1050	10%	5%	10	0.8	2	-
+M60	K200, M113 Acav, 15-point Hueys	0.5	0	1050	10%	0%	10	0.8	2	N
+Twin M134 Minigun	UH-60A Blackhawk, AH-1S Cobra, MH-60L DAP	1	0	1050	20%	10%	10	0.3	6	N
+M134 Minigun	M113A1 Minigun, 20-point transport helos	1	0	1050	20%	10%	10	0.6	6	N
+MG3|M53 Šarac|MG-42/59	M113A1G, NM135, Leopards, Ot-M60s	0.5	0	875	30%	20%	10	0.8	2	-
+Twin MG4	M113A1 30/30, Buffel, Casspir Mk. 2	0.5	0	875	20%	5%	20	0.4	4	-
+Mag 7,62|GPMG|62 Shiki|NF-1|L37|M240|KSP m/58	Many	0.5	0	875	20%	10%	10	0.8	2	-
+PKT|M1919|MG4	MT-LBV, MZMT MT-LB, FV603 Saracen, M113A1 30/50, M113A1 LRV, Promet	0.5	0	875	15%	5%	10	0.8	2	-
+Quad PKT	BTR-D, BTR-RD Robot, BTR-ZD Skrezhet	0.5	0	875	10%	5%	40	0.2	8	-
