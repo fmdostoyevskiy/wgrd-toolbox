@@ -1,6 +1,7 @@
 /* Theme variables and global styles. Per-component layout still lives in JSX
    (inline styles); this file owns:
    • document chrome (html/body/scrollbars)
+   • the global 133% UI scale (applies to both armory and homepage)
    • monospace font alias
    • the `.sr > .dr:last-child` border tweak that the card sections rely on
 */
@@ -8,7 +9,7 @@
 :root {
   --wrd-mono: "JetBrains Mono", "IBM Plex Mono", ui-monospace, Menlo, monospace;
 
-  /* Browser chrome tokens (mirror BROWSER_TOKENS in src/constants/theme.js) */
+  /* Browser chrome tokens (mirror BROWSER_TOKENS in src/units-core/constants/theme.js) */
   --wrd-bg:           #0f1115;
   --wrd-surface:      #151922;
   --wrd-surface2:     #1c2230;
@@ -28,7 +29,27 @@ html, body {
   margin: 0;
   padding: 0;
   height: 100%;
+  width: 100%;
   background: #0a0c10;
+  overflow: hidden;
+}
+
+/* Global 133% UI scale.
+   We pre-shrink the layout box to 1/1.33 of the viewport, then scale it back
+   up with transform. That way descendants using `width: 100%` / `height: 100%`
+   (or measuring 100vw/100vh as ratios of the wrapper) stay inside the visible
+   viewport instead of overflowing by 33%.
+
+   transform-origin top-left keeps the scaled content anchored against the
+   viewport edges (no centering offset). */
+#root {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: calc(100vw / 1.33);
+  height: calc(100vh / 1.33);
+  transform: scale(1.33);
+  transform-origin: top left;
 }
 
 ::-webkit-scrollbar         { width: 8px; height: 8px; }
