@@ -735,6 +735,28 @@ def handle_atgmplane(units, rows, data_dir):
 
 
 # ---------------------------------------------------------------------------
+# Handler 19 — SEAD  (auto-detect: Plane or Helicopter + Missile with SEAD tag)
+# ---------------------------------------------------------------------------
+
+def handle_sead(units, rows, out_dir):
+    dump, seen = [], set()
+    for unit in units:
+        if unit.get('type') not in ('Plane', 'Helicopter'):
+            continue
+        if not any(w.get('category') == 'Missile' and 'SEAD' in w.get('tag', [])
+                   for w in unit.get('weapons', [])):
+            continue
+        add_to_spreadsheet(unit, 'SEAD')
+        uid = unit['id']
+        if uid not in seen:
+            dump.append(unit)
+            seen.add(uid)
+    save_json(os.path.join(out_dir, 'sead.json'), dump)
+    print(f'  [H19] SEAD: found {len(dump)} units')
+    return []
+
+
+# ---------------------------------------------------------------------------
 # Handler registry
 # Each entry: (display_name, handler_fn, input_file_or_None)
 #   input_file: filename relative to data_dir; None = auto-detect (no file needed)
@@ -759,6 +781,7 @@ HANDLERS = [
     ('Rocket Pod Helo', handle_rocketpodhelo, None),
     ('ASF',             handle_asf,           'asfs.txt'),
     ('ATGM Plane',      handle_atgmplane,     'atgmplanes.txt'),
+    ('SEAD',            handle_sead,           None),
 ]
 
 
