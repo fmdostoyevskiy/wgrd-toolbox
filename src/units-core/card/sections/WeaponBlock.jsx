@@ -103,6 +103,10 @@ export function WeaponBlock({ w, vetMul, s }) {
             s={s} dense />
         )}
 
+        {hide.field('weaponTurreted') && w.turreted && (
+          <DotRow label="Turreted" value="YES" accent={s.ok} s={s} dense />
+        )}
+
         {hide.field('weaponAp') && w.ap != null && w.category !== 'Artillery' && (
           <DotRow label="AP Power" value={`${w.ap}${apInlineTag}`} accent={apColor(w.ap, hasKE)} s={s} dense />
         )}
