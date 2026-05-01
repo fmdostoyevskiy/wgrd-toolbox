@@ -651,8 +651,10 @@ def handle_missileaa(units, rows, data_dir):
     for unit in units:
         if unit.get('type') != 'Vehicle':
             continue
+        # Exclude SPAAG weapons — radar autocannons are stored as category
+        # "Missile" in the JSON but are not SAMs and should not count here.
         missiles = [w for w in unit.get('weapons', [])
-                    if w.get('category') == 'Missile']
+                    if w.get('category') == 'Missile' and not _is_spaag_weapon(w)]
         if not missiles:
             continue
 
