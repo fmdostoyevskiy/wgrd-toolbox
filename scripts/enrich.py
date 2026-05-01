@@ -278,16 +278,35 @@ def handle_firesupport(units, rows, data_dir):
 
 
 # ---------------------------------------------------------------------------
-# Handler 2 — SPAAG  (auto-detect: Vehicle + Gun with rng_a > 0)
+# Handler 2 — SPAAG  (auto-detect: Vehicle + AA-capable gun weapon)
+#
+# Two weapon types qualify:
+#   1. category == "Gun" with rng_a > 0  — basic non-radar AA guns (ZSU-23-4, etc.)
+#   2. category == "Missile" with RAD tag, no GUID, no FnF, rng_a > 0
+#      — radar-guided autocannons (Gepard, Marksman, Tunguska, etc.)
+#      The game stores these under "Missile" because radar tracking is a
+#      missile-engine feature, but they are physically gun systems.
+#      Excluding GUID filters out SAMs; excluding FnF filters out NASAMS.
 # ---------------------------------------------------------------------------
+
+def _is_spaag_weapon(w):
+    if not has_plane_range(w):
+        return False
+    if w.get('category') == 'Gun':
+        return True
+    tags = w.get('tag', [])
+    return (w.get('category') == 'Missile'
+            and 'RAD' in tags
+            and 'GUID' not in tags
+            and 'FnF' not in tags)
+
 
 def handle_spaag(units, rows, data_dir):
     dump, seen = [], set()
     for unit in units:
         if unit.get('type') != 'Vehicle':
             continue
-        if not any(w.get('category') == 'Gun' and has_plane_range(w)
-                   for w in unit.get('weapons', [])):
+        if not any(_is_spaag_weapon(w) for w in unit.get('weapons', [])):
             continue
         add_to_spreadsheet(unit, 'SPAAG')
         uid = unit['id']
