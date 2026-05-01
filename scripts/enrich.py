@@ -332,7 +332,7 @@ def handle_hemlrs(units, rows, data_dir):
 
 
 # ---------------------------------------------------------------------------
-# Handler 4 — Cluster MLRS  (auto-detect: Vehicle + Artillery with AP)
+# Handler 4 — Cluster MLRS  (auto-detect: Vehicle + weapon with CLUS tag)
 # ---------------------------------------------------------------------------
 
 def handle_clustermlrs(units, rows, data_dir):
@@ -340,7 +340,7 @@ def handle_clustermlrs(units, rows, data_dir):
     for unit in units:
         if unit.get('type') != 'Vehicle':
             continue
-        if not any(w.get('category') == 'Artillery' and w.get('ap', 0) > 0
+        if not any('CLUS' in w.get('tag', [])
                    for w in unit.get('weapons', [])):
             continue
         add_to_spreadsheet(unit, 'Cluster MLRS')
@@ -573,7 +573,7 @@ def handle_easter_eggs(units, rows, data_dir):
 
 
 # ---------------------------------------------------------------------------
-# Handler 13 — Cluster Bomber  (auto-detect: Plane + AP bomb-type weapon)
+# Handler 13 — Cluster Bomber  (auto-detect: Plane + weapon with CLUS tag)
 # ---------------------------------------------------------------------------
 
 def handle_clusterbomber(units, rows, data_dir):
@@ -581,7 +581,8 @@ def handle_clusterbomber(units, rows, data_dir):
     for unit in units:
         if unit.get('type') != 'Plane':
             continue
-        if not any(has_ap_bomb(w) for w in unit.get('weapons', [])):
+        if not any('CLUS' in w.get('tag', [])
+                   for w in unit.get('weapons', [])):
             continue
         add_to_spreadsheet(unit, 'Cluster Bomber')
         uid = unit['id']
