@@ -16,8 +16,9 @@ export default defineConfig({
   build: {
     rollupOptions: {
       input: {
-        home:   path.resolve(__dirname, 'index.html'),
-        armory: path.resolve(__dirname, 'armory/index.html'),
+        home:        path.resolve(__dirname, 'index.html'),
+        armory:      path.resolve(__dirname, 'armory/index.html'),
+        spreadsheet: path.resolve(__dirname, 'spreadsheet/index.html'),
       },
     },
   },
