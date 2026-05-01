@@ -1,7 +1,9 @@
 M752 Lance
 MAR-290
-BM-27 Uragan|Rakh 91
-M270 LRM|M270 MLRS
+BM-27 Uragan
+Rakh 91
+M270 LRM
+M270 MLRS
 TOS-1 Buratino
 BM-24
 Firos-30
@@ -13,3 +15,6 @@ K136 Kooryong
 75 MSSR
 Valkiri
 LARS
+MFRW BM-21
+BM-21
+MFRW RM-70
