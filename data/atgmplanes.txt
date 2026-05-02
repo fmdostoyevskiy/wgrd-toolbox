@@ -30,3 +30,7 @@ MiG-21Bis
 A-4K SKYHAWK
 MiG-21PFM
 CM.170
+Buccaneer S.Mk.50
+Mirage IIIEZ
+AV-8B Harrier
+G.91Y
