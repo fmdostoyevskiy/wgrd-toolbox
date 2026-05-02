@@ -130,7 +130,7 @@ export function V2Card({ unit, avail: availProp, vetIdx, setVetIdx, theme = 'tac
           {hideCtx.section('mobility') && !isFob && hasMobility(unit) && <MobilitySection unit={unit} s={s} />}
           {hideCtx.section('optics')   && !isFob && hasOptics(unit)   && <OpticsSection   unit={unit} s={s} />}
           {hideCtx.section('armor')    && showArmor   && <ArmorSection    armor={unit.armor} s={s} />}
-          {hideCtx.section('armament') && showWeapons && <ArmamentSection weapons={unit.weapons} vetMul={vet.accMul} s={s} />}
+          {hideCtx.section('armament') && showWeapons && <ArmamentSection weapons={unit.weapons} vet={vet} s={s} />}
         </div>
       </div>
     </HideContext.Provider>

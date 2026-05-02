@@ -1,9 +1,9 @@
 export const VET_TIERS = [
   { id: 'RKI', label: 'RKI', accMul: 1.00 },
-  { id: 'TRN', label: 'TRN', accMul: 1.08 },
-  { id: 'HRD', label: 'HRD', accMul: 1.16 },
-  { id: 'VET', label: 'VET', accMul: 1.24 },
-  { id: 'ELI', label: 'ELI', accMul: 1.32 },
+  { id: 'TRN', label: 'TRN', accMul: 1.1 },
+  { id: 'HRD', label: 'HRD', accMul: 1.2 },
+  { id: 'VET', label: 'VET', accMul: 1.4 },
+  { id: 'ELI', label: 'ELI', accMul: 1.6 },
 ];
 
 export const VET_TOOLTIPS = [

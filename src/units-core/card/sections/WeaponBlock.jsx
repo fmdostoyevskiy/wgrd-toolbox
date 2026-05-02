@@ -37,7 +37,15 @@ function rangeRows(w, s) {
   }
 }
 
-export function WeaponBlock({ w, vetMul, s }) {
+function vet_accuracy(base, level) {
+  const M = { RKI: 1.0, TRN: 1.1, HRD: 1.2, VET: 1.4, ELI: 1.6 }[level];
+  if (M == null) return base;
+  const decimal = base / 100;
+  const result = decimal * (1 + (M - 1) * (1 - decimal * decimal));
+  return Math.ceil(result * 100);
+}
+
+export function WeaponBlock({ w, vet, s }) {
   const hide = useHide();
   const tags    = w.tag ?? [];
   const hasKE   = tags.includes('KE');
@@ -46,8 +54,8 @@ export function WeaponBlock({ w, vetMul, s }) {
   const apInlineTag = hasKE ? ' KE' : hasHEAT ? ' HEAT' : '';
   const headerTags  = tags.filter(t => !HEADER_TAG_BLACKLIST.has(t));
 
-  const modAcc  = w.acc  != null ? Math.floor(w.acc  * vetMul) : null;
-  const modStab = w.stab != null ? Math.floor(w.stab * vetMul) : null;
+  const modAcc  = w.acc  != null ? vet_accuracy(w.acc, vet.label) : null;
+  const modStab = w.stab != null ? vet_accuracy(w.stab, vet.label) : null;
   const longRof = isLongRof(w);
 
   const accValue = w.acc != null && (

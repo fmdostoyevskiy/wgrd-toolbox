@@ -2,12 +2,12 @@ import React from 'react';
 import { SectionHeader } from '../primitives/SectionHeader.jsx';
 import { WeaponBlock } from './WeaponBlock.jsx';
 
-export function ArmamentSection({ weapons, vetMul, s }) {
+export function ArmamentSection({ weapons, vet, s }) {
   return (
     <>
       <SectionHeader title="Armament" s={s} />
       {weapons.slice(0, 3).map((w, i) => (
-        <WeaponBlock key={i} w={w} vetMul={vetMul} s={s} />
+        <WeaponBlock key={i} w={w} vet={vet} s={s} />
       ))}
     </>
   );
