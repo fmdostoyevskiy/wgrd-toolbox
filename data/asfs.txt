@@ -50,3 +50,12 @@ MiG-21Bis LAZUR
 MiG-23MF
 F-4J Phantom II
 J 35J Draken
+Mig-29 9.13
+F-104S
+F-104S-ASA-1
+F-104S-ASA-2
+Tornado ADV
+Carver
+Mirage IIICZ
+Mirage F1CZ
+Cheetah C
