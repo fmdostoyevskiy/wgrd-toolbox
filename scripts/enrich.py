@@ -198,6 +198,22 @@ def has_napalm(w):
 
 
 # ---------------------------------------------------------------------------
+# Handler -1 — Exclude  (exclude.txt: unit IDs to remove entirely)
+# ---------------------------------------------------------------------------
+
+def handle_exclude(units, rows, data_dir):
+    exclude_ids = {row[0].strip() for row in rows if row and row[0].strip()}
+    original_ids = {u.get('id') for u in units}
+    unmatched = [uid for uid in exclude_ids if uid not in original_ids]
+    for uid in unmatched:
+        print(f'  [H-1] WARNING: unit ID "{uid}" not found in JSON')
+    units[:] = [u for u in units if u.get('id') not in exclude_ids]
+    removed = len(exclude_ids) - len(unmatched)
+    print(f'  [H-1] Exclude: removed {removed} unit(s)')
+    return unmatched
+
+
+# ---------------------------------------------------------------------------
 # Handler 0 — Trailing Spaces  (auto: strip trailing spaces from all names)
 # ---------------------------------------------------------------------------
 
@@ -961,9 +977,10 @@ def handle_merge_duplicate_weapons(units, rows, data_dir):
 # ---------------------------------------------------------------------------
 
 HANDLERS = [
-    ('Trailing Spaces',        handle_trailing_spaces,        None),
+    ('Exclude',         handle_exclude,          'exclude.txt'),
+    ('Trailing Spaces', handle_trailing_spaces,  None),
     ('Merge Duplicate Weapons', handle_merge_duplicate_weapons, None),
-    ('Fire Support',           handle_firesupport,            'firesupport.tsv'),
+    ('Fire Support',    handle_firesupport,  'firesupport.tsv'),
     ('SPAAG',           handle_spaag,         None),
     ('HE MLRS',         handle_hemlrs,        'hemlrs.txt'),
     ('Cluster MLRS',    handle_clustermlrs,   None),
