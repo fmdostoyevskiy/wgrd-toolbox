@@ -1,6 +1,6 @@
 import React from 'react';
 import { DotRow } from '../primitives/DotRow.jsx';
-import { accuracyColor, apColor, heColor, missileSpeedColor } from '../../format/tiers.js';
+import { GREEN, RED, accuracyColor, apColor, heColor, missileSpeedColor } from '../../format/tiers.js';
 import {
   rofString, isLongRof, formatRearm, formatSupply, heMissileTooltip,
 } from '../../format/weapon.js';
@@ -111,8 +111,11 @@ export function WeaponBlock({ w, vet, s }) {
             s={s} dense />
         )}
 
-        {hide.field('weaponTurreted') && w.turreted && (
-          <DotRow label="Turreted" value="YES" accent={s.ok} s={s} dense />
+        {hide.field('weaponTurreted') && w.turreted === true && (
+          <DotRow label="Turreted" value="YES" accent={GREEN} tooltip="This gun can fire without rotating the hull." s={s} dense />
+        )}
+        {hide.field('weaponTurreted') && w.turreted === false && (
+          <DotRow label="Turreted" value="NO" accent={RED} tooltip="This gun can't fire without rotating the hull." s={s} dense />
         )}
 
         {hide.field('weaponAp') && w.ap != null && w.category !== 'Artillery' && (
