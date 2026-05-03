@@ -198,6 +198,28 @@ def has_napalm(w):
 
 
 # ---------------------------------------------------------------------------
+# Handler 0 — Trailing Spaces  (auto: strip trailing spaces from all names)
+# ---------------------------------------------------------------------------
+
+def handle_trailing_spaces(units, rows, data_dir):
+    count = 0
+    for unit in units:
+        orig = unit.get('name') or ''
+        stripped = orig.rstrip(' ')
+        if stripped != orig:
+            unit['name'] = stripped
+            count += 1
+        for w in unit.get('weapons', []):
+            wo = w.get('name') or ''
+            ws = wo.rstrip(' ')
+            if ws != wo:
+                w['name'] = ws
+                count += 1
+    print(f'  [H0] Trailing Spaces: fixed {count} name(s)')
+    return []
+
+
+# ---------------------------------------------------------------------------
 # Handler 1 — Fire Support  (weapons, firesupport.tsv)
 # ---------------------------------------------------------------------------
 # firesupport.tsv columns (0-indexed, header row skipped):
@@ -779,12 +801,101 @@ def handle_sead(units, rows, out_dir):
 
 
 # ---------------------------------------------------------------------------
+# Handler 20 — ASM  (asm.tsv: Name, AP, Range)
+# Matches weapons by name + rng_s, updates ap, and adds SHIP tag.
+# ---------------------------------------------------------------------------
+
+def handle_asm(units, rows, data_dir):
+    dump_dict = {}
+    unmatched = []
+    for row in rows:
+        if not row or len(row) < 3:
+            continue
+        name = row[0].strip()
+        try:
+            ap = int(row[1].strip())
+        except ValueError:
+            print(f'  [H20] WARNING: invalid AP "{row[1]}" for weapon "{name}"')
+            continue
+        try:
+            rng_s = int(row[2].strip())
+        except ValueError:
+            print(f'  [H20] WARNING: invalid range "{row[2]}" for weapon "{name}"')
+            continue
+
+        nl = _strip_diacritics(name).lower()
+        matches = [
+            (u, w)
+            for u in units
+            for w in u.get('weapons', [])
+            if (w.get('name') or '').lower() == nl and w.get('rng_s') == rng_s
+        ]
+
+        if not matches:
+            print(f'  [H20] WARNING: weapon "{name}" with rng_s={rng_s} not found in JSON')
+            unmatched.append(f'{name} (rng_s={rng_s})')
+            continue
+
+        for _, w in matches:
+            w['ap'] = ap
+            if 'SHIP' not in w.get('tag', []):
+                w.setdefault('tag', []).append('SHIP')
+            key = w.get('nameId') or w.get('name')
+            if key not in dump_dict:
+                dump_dict[key] = w
+
+    save_json(os.path.join(data_dir, 'asm.json'), list(dump_dict.values()))
+    print(f'  [H20] ASM: patched {len(dump_dict)} unique weapons')
+    return unmatched
+
+
+# ---------------------------------------------------------------------------
+# Handler 21 — Turret  (turrets.tsv: UnitName, Turreted, WeaponNumber)
+# Sets the turreted boolean on the nth weapon (1-indexed) for each unit.
+# Overrides any existing turreted value.
+# ---------------------------------------------------------------------------
+
+def handle_turret(units, rows, data_dir):
+    unmatched = []
+    count = 0
+    for row in rows:
+        if not row or len(row) < 3:
+            continue
+        unit_name = row[0].strip()
+        turret_val = row[1].strip().lower() == 'true'
+        try:
+            weapon_num = int(row[2].strip())
+        except ValueError:
+            print(f'  [H21] WARNING: invalid weapon number "{row[2]}" for unit "{unit_name}"')
+            continue
+
+        matched = find_units_by_name(units, unit_name)
+        if not matched:
+            print(f'  [H21] WARNING: unit "{unit_name}" not found in JSON')
+            unmatched.append(unit_name)
+            continue
+
+        for unit in matched:
+            weapons = unit.get('weapons', [])
+            idx = weapon_num - 1
+            if idx < 0 or idx >= len(weapons):
+                print(f'  [H21] WARNING: unit "{unit.get("name")}" has no weapon #{weapon_num}')
+                continue
+            weapons[idx]['turreted'] = turret_val
+            count += 1
+
+    print(f'  [H21] Turret: set turreted on {count} weapon(s)')
+    return unmatched
+
+
+# ---------------------------------------------------------------------------
 # Handler registry
 # Each entry: (display_name, handler_fn, input_file_or_None)
 #   input_file: filename relative to data_dir; None = auto-detect (no file needed)
 # ---------------------------------------------------------------------------
 
 HANDLERS = [
+    ('Trailing Spaces', handle_trailing_spaces, None),
     ('Fire Support',    handle_firesupport,  'firesupport.tsv'),
     ('SPAAG',           handle_spaag,         None),
     ('HE MLRS',         handle_hemlrs,        'hemlrs.txt'),
@@ -804,6 +915,8 @@ HANDLERS = [
     ('ASF',             handle_asf,           'asfs.txt'),
     ('ATGM Plane',      handle_atgmplane,     'atgmplanes.txt'),
     ('SEAD',            handle_sead,           None),
+    ('ASM',             handle_asm,            'asm.tsv'),
+    ('Turret',          handle_turret,         'turrets.tsv'),
 ]
 
 

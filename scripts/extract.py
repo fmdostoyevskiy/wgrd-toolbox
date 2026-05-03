@@ -716,13 +716,11 @@ def extract_weapon(mw_obj: dict, instances: dict, turret_class: str, dic: dict =
     if rng_s:
         v = to_meters_range(rng_s)
         if v and v > 0:
-            # Only write ship range (and SHIP tag) if it differs from ground range,
+            # Only write ship range if it differs from ground range,
             # or if there is no ground range at all.
             ground_v = weapon.get("rng_g")
             if ground_v is None or v != ground_v:
                 weapon["rng_s"] = v
-                if "SHIP" not in weapon.get("tag", []):
-                    weapon.setdefault("tag", []).append("SHIP")
 
     min_raw = min_g or min_h or min_a or min_s
     if min_raw:
