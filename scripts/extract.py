@@ -793,62 +793,6 @@ def extract_weapon(mw_obj: dict, instances: dict, turret_class: str, dic: dict =
     return weapon
 
 
-def merge_duplicate_weapons(weapons: list) -> list:
-    """
-    Merge weapons that share the same nameId into one entry.
-    This handles guns defined twice (once for KE/AP, once for HE) which is
-    common in WRD — e.g. the Marder 1's 20mm appears as two TAmmunition
-    objects with the same Name hash but different Arme values and range sets.
-
-    Merge strategy:
-    - tags: union (deduplicated, order preserved)
-    - ap: take whichever weapon has it (they won't both have it — that's the
-      whole reason the gun is split: one entry is the AP round, one the HE)
-    - all range fields: union (take any that exist from either weapon)
-    - all other fields: first-seen value wins (they are identical across
-      the duplicate entries)
-    """
-    RANGE_FIELDS = {"rng_g", "rng_h", "rng_a", "rng_s", "minRange", "maxRange"}
-    # These fields take the higher value across duplicate entries.
-    # AP guns are split into two TAmmunition objects: the AP entry has dmg=1
-    # (placeholder) and the real HE entry has the actual damage value.
-    # First-seen wins would silently keep the placeholder.
-    MAX_FIELDS = {"dmg", "suppress"}
-
-    seen = {}   # nameId -> merged weapon dict
-    order = []  # preserve insertion order
-
-    for w in weapons:
-        nid = w.get("nameId", "")
-        if nid not in seen:
-            seen[nid] = dict(w)
-            order.append(nid)
-        else:
-            base = seen[nid]
-            for k, v in w.items():
-                if k == "tag":
-                    # Union tags, preserve order, deduplicate
-                    existing = base.get("tag", [])
-                    for t in v:
-                        if t not in existing:
-                            existing.append(t)
-                    base["tag"] = existing
-                elif k in RANGE_FIELDS:
-                    # Always take the range if it isn't already set
-                    if k not in base or base[k] is None:
-                        base[k] = v
-                elif k in MAX_FIELDS:
-                    # Higher value wins — the HE entry has the real damage;
-                    # the AP entry carries a placeholder of 1
-                    if v is not None and (base.get(k) is None or v > base[k]):
-                        base[k] = v
-                else:
-                    # First-seen wins for everything else
-                    if k not in base or base[k] is None:
-                        base[k] = v
-
-    return [seen[nid] for nid in order]
-
 
 def extract_weapons(unit_obj: dict, instances: dict, dic: dict = {}, is_plane: bool = False) -> list:
     """
@@ -912,7 +856,7 @@ def extract_weapons(unit_obj: dict, instances: dict, dic: dict = {}, is_plane: b
 
             weapons.append(weapon)
 
-    return merge_duplicate_weapons(weapons)
+    return weapons
 
 
 # ---------------------------------------------------------------------------

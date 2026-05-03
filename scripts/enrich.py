@@ -889,14 +889,81 @@ def handle_turret(units, rows, data_dir):
 
 
 # ---------------------------------------------------------------------------
+# Handler 22 — Merge Duplicate Weapons  (auto: collapse AP+HE split guns)
+# ---------------------------------------------------------------------------
+
+def handle_merge_duplicate_weapons(units, rows, data_dir):
+    """
+    Merge weapons on the same unit that share a nameId but differ in at least
+    one of ap or any range field.  Weapons that are truly identical (e.g. two
+    copies of the same MG) are left as separate entries.
+    """
+    RANGE_FIELDS = {"rng_g", "rng_h", "rng_a", "rng_s", "minRange", "maxRange"}
+    MAX_FIELDS   = {"dmg", "suppress"}
+    DIFF_FIELDS  = {"ap"} | RANGE_FIELDS
+
+    def differs(a, b):
+        for f in DIFF_FIELDS:
+            if a.get(f) != b.get(f):
+                return True
+        return False
+
+    total_merged = 0
+
+    for unit in units:
+        weapons = unit.get('weapons', [])
+        seen  = {}  # key -> weapon dict (merge target)
+        order = []  # keys in insertion order
+
+        for w in weapons:
+            nid = w.get('nameId', '')
+            if nid not in seen:
+                seen[nid] = w
+                order.append(nid)
+            else:
+                base = seen[nid]
+                if not differs(base, w):
+                    # Genuinely identical — keep as a separate entry
+                    unique_key = f'{nid}_{id(w)}'
+                    seen[unique_key] = w
+                    order.append(unique_key)
+                    continue
+
+                # Merge w into base
+                for k, v in w.items():
+                    if k == 'tag':
+                        existing = base.get('tag', [])
+                        for t in v:
+                            if t not in existing:
+                                existing.append(t)
+                        base['tag'] = existing
+                    elif k in RANGE_FIELDS:
+                        if k not in base or base[k] is None:
+                            base[k] = v
+                    elif k in MAX_FIELDS:
+                        if v is not None and (base.get(k) is None or v > base[k]):
+                            base[k] = v
+                    else:
+                        if k not in base or base[k] is None:
+                            base[k] = v
+                total_merged += 1
+
+        unit['weapons'] = [seen[k] for k in order]
+
+    print(f'  [H22] Merge Duplicate Weapons: merged {total_merged} weapon pair(s)')
+    return []
+
+
+# ---------------------------------------------------------------------------
 # Handler registry
 # Each entry: (display_name, handler_fn, input_file_or_None)
 #   input_file: filename relative to data_dir; None = auto-detect (no file needed)
 # ---------------------------------------------------------------------------
 
 HANDLERS = [
-    ('Trailing Spaces', handle_trailing_spaces, None),
-    ('Fire Support',    handle_firesupport,  'firesupport.tsv'),
+    ('Trailing Spaces',        handle_trailing_spaces,        None),
+    ('Merge Duplicate Weapons', handle_merge_duplicate_weapons, None),
+    ('Fire Support',           handle_firesupport,            'firesupport.tsv'),
     ('SPAAG',           handle_spaag,         None),
     ('HE MLRS',         handle_hemlrs,        'hemlrs.txt'),
     ('Cluster MLRS',    handle_clustermlrs,   None),
