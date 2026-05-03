@@ -639,6 +639,7 @@ export const DATASETS = {
       { key: 'rearm',    label: 'REARM',     type: 'num', width: 70,  heat: 'low'  },
       { key: 'speed',    label: 'SPEED',     type: 'num', width: 70,  heat: 'high' },
       { key: 'autonomy', label: 'AUTONOMY',  type: 'num', width: 85,  heat: 'high' },
+      { key: 'stealth',  label: 'STEALTH',   type: 'num', width: 75,  heat: 'high' },
     ],
     transform(u) {
       const m = top(u, w => w.category === 'Missile' && w.tag?.includes('SEAD'), 'rng_g');
@@ -656,6 +657,7 @@ export const DATASETS = {
         rearm:    rearmTime != null ? Math.round(rearmTime * (salvoLen ?? 1)) : wf(m, 'salvoReload'),
         speed:    u.speed ?? null,
         autonomy: u.autonomy ?? null,
+        stealth:  u.airStealth ?? null,
       };
     },
   },
