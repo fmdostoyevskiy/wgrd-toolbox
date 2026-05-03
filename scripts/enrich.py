@@ -801,7 +801,7 @@ def handle_atgmplane(units, rows, data_dir):
 def handle_sead(units, rows, out_dir):
     dump, seen = [], set()
     for unit in units:
-        if unit.get('type') not in ('Plane', 'Helicopter'):
+        if unit.get('type') != 'Plane':
             continue
         if not any(w.get('category') == 'Missile' and 'SEAD' in w.get('tag', [])
                    for w in unit.get('weapons', [])):
