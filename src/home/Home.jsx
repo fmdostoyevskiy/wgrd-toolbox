@@ -99,6 +99,12 @@ export function Home() {
         <span style={{ color: t.dimmer, fontSize: 10, letterSpacing: '0.18em' }}>unit reference</span>
       </a>
 
+      {/* AP Damage Calculator */}
+      <a href={`${BASE}apdamage/`} style={{ ...rowBase, minWidth: 280 }}>
+        <span style={{ color: t.accent }}>AP Damage</span>
+        <span style={{ color: t.dimmer, fontSize: 10, letterSpacing: '0.18em' }}>damage calculator</span>
+      </a>
+
       {/* Spreadsheets dropdown */}
       <div ref={wrapRef} style={{ position: 'relative', minWidth: 280 }}>
         <div

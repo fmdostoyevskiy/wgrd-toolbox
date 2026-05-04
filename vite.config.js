@@ -19,6 +19,7 @@ export default defineConfig({
         home:        path.resolve(__dirname, 'index.html'),
         armory:      path.resolve(__dirname, 'armory/index.html'),
         spreadsheet: path.resolve(__dirname, 'spreadsheet/index.html'),
+        apdamage:    path.resolve(__dirname, 'apdamage/index.html'),
       },
     },
   },
