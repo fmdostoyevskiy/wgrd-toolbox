@@ -28,7 +28,7 @@ function VetSelector({ vetIdx, setVetIdx, avail, s }) {
             <button
               key={t.id}
               title={VET_TOOLTIPS[i]}
-              onClick={unavailable ? undefined : () => setVetIdx(i)}
+              onClick={() => setVetIdx(i)}
               style={{
                 background: active ? s.accent : 'transparent',
                 border: 'none',
