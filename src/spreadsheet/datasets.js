@@ -652,6 +652,80 @@ export const DATASETS = {
     },
   },
 
+  // ── ATGM Vehicle ───────────────────────────────────────────────────────────
+  atgmvehicles: {
+    label: 'ATGM Vehicle',
+    file: 'atgmvehicles.json',
+    isWeapon: false,
+    defaultSort: 'cost',
+    columns: [
+      ...N,
+      { key: 'armorF', label: 'F ARM',   type: 'num',       width: 65,  heat: 'high' },
+      { key: 'ap',     label: 'AP',      type: 'num',       width: 65,  heat: 'high' },
+      { key: 'rng',    label: 'GND RNG', type: 'num',       width: 85,  heat: 'high' },
+      { key: 'acc',    label: 'ACC',     type: 'pct',       width: 65,  heat: 'high' },
+      { key: 'stab',   label: 'STAB',    type: 'pct',       width: 65,  heat: 'high' },
+      { key: 'fnf',    label: 'F&F',     type: 'bool-good', width: 55,  heat: null   },
+      { key: 'ammo',   label: 'AMMO',    type: 'num',       width: 65,  heat: 'high' },
+      { key: 'rearm',  label: 'REARM',   type: 'num',       width: 70,  heat: 'low'  },
+      { key: 'speed',  label: 'SPEED',   type: 'num',       width: 70,  heat: 'high' },
+    ],
+    transform(u) {
+      const m = top(u, w => w.category === 'Missile' && (w.ap ?? 0) > 0 && !w.tag?.includes('SHIP') && !w.tag?.includes('RAD'), 'ap');
+      const rearmTime = wf(m, 'rearmTime');
+      const salvoLen  = wf(m, 'salvoLen');
+      return {
+        id: u.id, name: u.name, nation: u.nation, cost: u.cost,
+        armorF: u.armor?.F ?? null,
+        ap:     wf(m, 'ap'),
+        rng:    wf(m, 'rng_g'),
+        acc:    wf(m, 'acc'),
+        stab:   wf(m, 'stab'),
+        fnf:    m?.tag?.includes('FnF') ?? false,
+        ammo:   wf(m, 'ammo'),
+        rearm:  (rearmTime != null && salvoLen != null) ? Math.round(rearmTime * salvoLen) : null,
+        speed:  u.speed ?? null,
+      };
+    },
+  },
+
+  // ── ATGM Helo ──────────────────────────────────────────────────────────────
+  atgmhelos: {
+    label: 'ATGM Helo',
+    file: 'atgmhelos.json',
+    isWeapon: false,
+    defaultSort: 'cost',
+    columns: [
+      ...N,
+      { key: 'health',  label: 'HP',      type: 'num',       width: 55,  heat: 'high' },
+      { key: 'ap',      label: 'AP',      type: 'num',       width: 65,  heat: 'high' },
+      { key: 'rng',     label: 'GND RNG', type: 'num',       width: 85,  heat: 'high' },
+      { key: 'acc',     label: 'ACC',     type: 'pct',       width: 65,  heat: 'high' },
+      { key: 'fnf',     label: 'F&F',     type: 'bool-good', width: 55,  heat: null   },
+      { key: 'ammo',    label: 'AMMO',    type: 'num',       width: 65,  heat: 'high' },
+      { key: 'rearm',   label: 'REARM',   type: 'num',       width: 70,  heat: 'low'  },
+      { key: 'speed',   label: 'SPEED',   type: 'num',       width: 70,  heat: 'high' },
+      { key: 'stealth', label: 'STEALTH', type: 'num',       width: 75,  heat: 'high' },
+    ],
+    transform(u) {
+      const m = top(u, w => w.category === 'Missile' && (w.ap ?? 0) > 0 && !w.tag?.includes('SHIP') && !w.tag?.includes('RAD'), 'ap');
+      const rearmTime = wf(m, 'rearmTime');
+      const salvoLen  = wf(m, 'salvoLen');
+      return {
+        id: u.id, name: u.name, nation: u.nation, cost: u.cost,
+        health:  u.health ?? null,
+        ap:      wf(m, 'ap'),
+        rng:     wf(m, 'rng_g'),
+        acc:     wf(m, 'acc'),
+        fnf:     m?.tag?.includes('FnF') ?? false,
+        ammo:    wf(m, 'ammo'),
+        rearm:   (rearmTime != null && salvoLen != null) ? Math.round(rearmTime * salvoLen) : null,
+        speed:   u.speed ?? null,
+        stealth: u.stealth ?? null,
+      };
+    },
+  },
+
   // ── SEAD ───────────────────────────────────────────────────────────────────
   sead: {
     label: 'SEAD',

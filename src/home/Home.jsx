@@ -35,6 +35,13 @@ const CATEGORIES = [
     ],
   },
   {
+    label: 'Ground Attack',
+    items: [
+      { key: 'atgmvehicles', label: 'ATGM Vehicle' },
+      { key: 'atgmhelos',    label: 'ATGM Helo'    },
+    ],
+  },
+  {
     label: 'Ground Attack - INCOMPLETE',
     items: [
       { key: 'superheavies',   label: 'Superheavy - INCOMPLETE'      },

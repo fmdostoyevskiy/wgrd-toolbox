@@ -829,6 +829,58 @@ def handle_atgmplane(units, rows, data_dir):
 
 
 # ---------------------------------------------------------------------------
+# Handler 18a — ATGM Vehicle  (auto-detect: Vehicle + Missile with ap > 0)
+# ---------------------------------------------------------------------------
+
+def handle_atgmvehicle(units, rows, data_dir):
+    dump, seen = [], set()
+    for unit in units:
+        if unit.get('type') != 'Vehicle':
+            continue
+        if unit.get('command'):
+            continue
+        if not any(w.get('category') == 'Missile' and w.get('ap', 0)
+                   and 'SHIP' not in w.get('tag', [])
+                   and 'RAD' not in w.get('tag', [])
+                   for w in unit.get('weapons', [])):
+            continue
+        add_to_spreadsheet(unit, 'ATGM Vehicle')
+        uid = unit['id']
+        if uid not in seen:
+            dump.append(unit)
+            seen.add(uid)
+    save_json(os.path.join(data_dir, 'atgmvehicles.json'), dump)
+    print(f'  [H18a] ATGM Vehicle: found {len(dump)} units')
+    return []
+
+
+# ---------------------------------------------------------------------------
+# Handler 18b — ATGM Helo  (auto-detect: Helicopter + Missile with ap > 0)
+# ---------------------------------------------------------------------------
+
+def handle_atgmhelo(units, rows, data_dir):
+    dump, seen = [], set()
+    for unit in units:
+        if unit.get('type') != 'Helicopter':
+            continue
+        if unit.get('command'):
+            continue
+        if not any(w.get('category') == 'Missile' and w.get('ap', 0)
+                   and 'SHIP' not in w.get('tag', [])
+                   and 'RAD' not in w.get('tag', [])
+                   for w in unit.get('weapons', [])):
+            continue
+        add_to_spreadsheet(unit, 'ATGM Helo')
+        uid = unit['id']
+        if uid not in seen:
+            dump.append(unit)
+            seen.add(uid)
+    save_json(os.path.join(data_dir, 'atgmhelos.json'), dump)
+    print(f'  [H18b] ATGM Helo: found {len(dump)} units')
+    return []
+
+
+# ---------------------------------------------------------------------------
 # Handler 19 — SEAD  (auto-detect: Plane or Helicopter + Missile with SEAD tag)
 # ---------------------------------------------------------------------------
 
@@ -1035,6 +1087,8 @@ HANDLERS = [
     ('ATGM Plane',      handle_atgmplane,     'atgmplanes.txt'),
     ('SEAD',            handle_sead,           None),
     ('ASM',             handle_asm,            'asm.tsv'),
+    ('ATGM Vehicle',    handle_atgmvehicle,   None),
+    ('ATGM Helo',       handle_atgmhelo,      None),
     ('Turret',          handle_turret,         'turrets.tsv'),
 ]
 
