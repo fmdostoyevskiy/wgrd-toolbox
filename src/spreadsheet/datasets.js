@@ -671,7 +671,7 @@ export const DATASETS = {
       { key: 'speed',  label: 'SPEED',   type: 'num',       width: 70,  heat: 'high' },
     ],
     transform(u) {
-      const m = top(u, w => w.category === 'Missile' && (w.ap ?? 0) > 0 && !w.tag?.includes('SHIP') && !w.tag?.includes('RAD'), 'ap');
+      const m = top(u, w => w.category === 'Missile' && (w.ap ?? 0) > 0 && !w.tag?.includes('SHIP') && !w.tag?.includes('RAD') && !w.tag?.includes('SEAD'), 'ap');
       const rearmTime = wf(m, 'rearmTime');
       const salvoLen  = wf(m, 'salvoLen');
       return {
@@ -708,7 +708,7 @@ export const DATASETS = {
       { key: 'stealth', label: 'STEALTH', type: 'num',       width: 75,  heat: 'high' },
     ],
     transform(u) {
-      const m = top(u, w => w.category === 'Missile' && (w.ap ?? 0) > 0 && !w.tag?.includes('SHIP') && !w.tag?.includes('RAD'), 'ap');
+      const m = top(u, w => w.category === 'Missile' && (w.ap ?? 0) > 0 && !w.tag?.includes('SHIP') && !w.tag?.includes('RAD') && !w.tag?.includes('SEAD'), 'ap');
       const rearmTime = wf(m, 'rearmTime');
       const salvoLen  = wf(m, 'salvoLen');
       return {
