@@ -1,4 +1,4 @@
-import { useState, useMemo, useCallback } from 'react';
+import { useState, useMemo, useCallback, useEffect } from 'react';
 import {
   calcHeatDamage, calcKeDamage,
   tierColor, fmtDmg, shotsToKill,
@@ -10,14 +10,37 @@ const B_ARMOR   = Array.from({ length: 24 }, (_, i) => i);
 const B_AP_HEAT = Array.from({ length: 30 }, (_, i) => i + 1);
 const B_AP_KE   = Array.from({ length: 24 }, (_, i) => i + 1);
 
+function parseUrlParams() {
+  const p = new URLSearchParams(window.location.search);
+  const mode = p.get('mode') === 'KE' ? 'KE' : 'HEAT';
+  const aps = p.get('aps')
+    ? new Set(p.get('aps').split(',').map(Number).filter(n => !isNaN(n)))
+    : new Set();
+  const armors = p.get('armors')
+    ? new Set(p.get('armors').split(',').map(Number).filter(n => !isNaN(n)))
+    : new Set();
+  return { mode, aps, armors };
+}
+
+const initial = parseUrlParams();
+
 export function OptionB() {
-  const [mode, setMode] = useState('HEAT');
+  const [mode, setMode] = useState(initial.mode);
   const [maxRange, setMaxRange] = useState(2275);
   const [distance, setDistance] = useState(2275);
   const [hover, setHover] = useState(null);
   const [pinned, setPinned] = useState(null);
-  const [selectedAPs, setSelectedAPs] = useState(new Set());
-  const [selectedArmors, setSelectedArmors] = useState(new Set());
+  const [selectedAPs, setSelectedAPs] = useState(initial.aps);
+  const [selectedArmors, setSelectedArmors] = useState(initial.armors);
+
+  useEffect(() => {
+    const p = new URLSearchParams();
+    if (mode !== 'HEAT') p.set('mode', mode);
+    if (selectedAPs.size)    p.set('aps',    [...selectedAPs].sort((a, b) => a - b).join(','));
+    if (selectedArmors.size) p.set('armors', [...selectedArmors].sort((a, b) => a - b).join(','));
+    const qs = p.toString();
+    history.replaceState(null, '', qs ? `?${qs}` : location.pathname);
+  }, [mode, selectedAPs, selectedArmors]);
 
   const calc = useCallback((ap, armor) => {
     if (mode === 'HEAT') return calcHeatDamage(ap, armor);
@@ -47,7 +70,6 @@ export function OptionB() {
     setPinned(null);
     setHover(null);
     setSelectedAPs(new Set());
-    setSelectedArmors(new Set());
   };
 
   return (

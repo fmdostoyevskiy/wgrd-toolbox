@@ -119,7 +119,13 @@ export function WeaponBlock({ w, vet, s }) {
         )}
 
         {hide.field('weaponAp') && w.ap != null && w.category !== 'Artillery' && (
-          <DotRow label="AP Power" value={`${w.ap}${apInlineTag}`} accent={apColor(w.ap, hasKE)} s={s} dense />
+          <DotRow label="AP Power" value={(() => {
+            if (!hasKE && !hasHEAT) return `${w.ap}${apInlineTag}`;
+            const params = new URLSearchParams({ aps: w.ap });
+            if (hasKE) params.set('mode', 'KE');
+            const href = `${import.meta.env.BASE_URL}apdamage/?${params}`;
+            return <><a href={href} style={{ color: 'inherit', textDecoration: 'underline dotted', textUnderlineOffset: 3 }}>{w.ap}</a>{apInlineTag}</>;
+          })()} accent={apColor(w.ap, hasKE)} s={s} dense />
         )}
 
         {hide.field('weaponHe') && w.dmg > 0 && !(w.category === 'Missile' && w.dmg === 1) && (

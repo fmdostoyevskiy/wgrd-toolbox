@@ -3,17 +3,21 @@ import { SectionHeader } from '../primitives/SectionHeader.jsx';
 import { armorColor, armorTopColor, armorSideRearColor } from '../../format/tiers.js';
 import { useHide } from '../HideContext.js';
 
+const AP_DAMAGE_URL = `${import.meta.env.BASE_URL}apdamage/`;
+
 function ArmorCell({ label, v, s, colorFn = armorColor }) {
   const c = colorFn(v) ?? s.accent;
+  const href = `${AP_DAMAGE_URL}?armors=${v}`;
   return (
     <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 3 }}>
       <div style={{ fontSize: 9.5, color: s.dim, letterSpacing: '0.1em' }}>{label}</div>
-      <div style={{
+      <a href={href} style={{
         border: `1.5px solid ${c}`,
         background: `color-mix(in srgb, ${c} 6%, transparent)`,
         padding: '4px 12px', minWidth: 40, textAlign: 'center',
         fontSize: 16, color: c, fontVariantNumeric: 'tabular-nums',
-      }}>{v}</div>
+        textDecoration: 'none', display: 'block',
+      }}>{v}</a>
     </div>
   );
 }
