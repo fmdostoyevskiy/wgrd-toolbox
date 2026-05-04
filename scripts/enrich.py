@@ -467,7 +467,7 @@ def handle_hebomber(units, rows, data_dir):
     for unit in units:
         if unit.get('type') != 'Plane':
             continue
-        if not any(has_he_bomb(w) for w in unit.get('weapons', [])):
+        if not any(has_he_bomb(w) and (w.get('dmg') or 0) >= 10 for w in unit.get('weapons', [])):
             continue
         add_to_spreadsheet(unit, 'HE Bomber')
         uid = unit['id']
@@ -652,6 +652,27 @@ def handle_clusterbomber(units, rows, data_dir):
 
 
 # ---------------------------------------------------------------------------
+# Handler 13b — Napalm Bomber  (auto-detect: Plane + weapon with NPLM tag)
+# ---------------------------------------------------------------------------
+
+def handle_naplmbomber(units, rows, data_dir):
+    dump, seen = [], set()
+    for unit in units:
+        if unit.get('type') != 'Plane':
+            continue
+        if not any(has_napalm(w) for w in unit.get('weapons', [])):
+            continue
+        add_to_spreadsheet(unit, 'Napalm Bomber')
+        uid = unit['id']
+        if uid not in seen:
+            dump.append(unit)
+            seen.add(uid)
+    save_json(os.path.join(data_dir, 'naplmbombers.json'), dump)
+    print(f'  [H13b] Napalm Bomber: found {len(dump)} units')
+    return []
+
+
+# ---------------------------------------------------------------------------
 # Handler 14 — Manpad  (auto-detect: Infantry + Missile with rng_a > 0)
 # ---------------------------------------------------------------------------
 
@@ -784,6 +805,13 @@ def handle_atgmplane(units, rows, data_dir):
                 unmatched.append(base_name)
                 continue
             for unit in matched:
+                has_atgm = any(
+                    w.get('category') == 'Missile' and w.get('ap', 0)
+                    for w in unit.get('weapons', [])
+                )
+                if not has_atgm:
+                    print(f'  [H18] SKIP: "{unit.get("name")}" matched by name but has no AP missile')
+                    continue
                 add_to_spreadsheet(unit, 'ATGM Plane')
                 uid = unit['id']
                 if uid not in seen:
@@ -993,6 +1021,7 @@ HANDLERS = [
     ('Ship',            handle_ship,          'ships.tsv'),
     ('Easter Eggs',     handle_easter_eggs,   'eastereggs.tsv'),
     ('Cluster Bomber',  handle_clusterbomber, None),
+    ('Napalm Bomber',   handle_naplmbomber,   None),
     ('Manpad',          handle_manpad,        None),
     ('Missile AA',      handle_missileaa,     None),
     ('Rocket Pod Helo', handle_rocketpodhelo, None),

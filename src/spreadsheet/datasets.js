@@ -444,13 +444,12 @@ export const DATASETS = {
       { key: 'dmg',       label: 'HE',        type: 'num',       width: 65,  heat: 'high' },
       { key: 'dmgRadius', label: 'DMG RAD',   type: 'num',       width: 85,  heat: 'high' },
       { key: 'acc',       label: 'ACC',       type: 'pct',       width: 65,  heat: 'high' },
-      { key: 'salvoLen',  label: 'SALVO LEN', type: 'num',       width: 90,  heat: 'high' },
-      { key: 'ammo',      label: 'AMMO',      type: 'num',       width: 65,  heat: 'high' },
-      { key: 'nplm',      label: 'NPLM',      type: 'bool-plain',width: 60,  heat: null   },
-      { key: 'lgb',       label: 'LGB',       type: 'bool-plain',width: 55,  heat: null   },
-      { key: 'rearm',     label: 'REARM',     type: 'num',       width: 70,  heat: 'low'  },
-      { key: 'speed',     label: 'SPEED',     type: 'num',       width: 70,  heat: 'high' },
-      { key: 'autonomy',  label: 'AUTONOMY',  type: 'num',       width: 85,  heat: 'high' },
+      { key: 'ammo',      label: 'AMMO',      type: 'num',      width: 65,  heat: 'high' },
+      { key: 'nplm',      label: 'NPLM',      type: 'bool-good',width: 60,  heat: null   },
+      { key: 'lgb',       label: 'LGB',       type: 'bool-good',width: 55,  heat: null   },
+      { key: 'rearm',     label: 'REARM',     type: 'num',      width: 70,  heat: 'low'  },
+      { key: 'speed',     label: 'SPEED',     type: 'num',      width: 70,  heat: 'high' },
+      { key: 'autonomy',  label: 'AUTONOMY',  type: 'num',      width: 85,  heat: 'high' },
     ],
     transform(u) {
       const bomb = top(u, w => w.category === 'Bomb' && !(w.ap ?? 0), 'dmg');
@@ -464,7 +463,6 @@ export const DATASETS = {
         dmg:       wf(bomb, 'dmg'),
         dmgRadius: wf(bomb, 'dmgRadius'),
         acc:       wf(bomb, 'acc'),
-        salvoLen,
         ammo:      wf(bomb, 'ammo'),
         nplm:      bomb?.tag?.includes('NPLM') ?? false,
         lgb:       bomb?.tag?.includes('LGB')  ?? false,
@@ -488,8 +486,6 @@ export const DATASETS = {
       { key: 'dmgRadius', label: 'DMG RAD',   type: 'num',       width: 85,  heat: 'high' },
       { key: 'acc',       label: 'ACC',       type: 'pct',       width: 65,  heat: 'high' },
       { key: 'salvoLen',  label: 'SALVO LEN', type: 'num',       width: 90,  heat: 'high' },
-      { key: 'nplm',      label: 'NPLM',      type: 'bool-plain',width: 60,  heat: null   },
-      { key: 'lgb',       label: 'LGB',       type: 'bool-plain',width: 55,  heat: null   },
       { key: 'rearm',     label: 'REARM',     type: 'num',       width: 70,  heat: 'low'  },
       { key: 'speed',     label: 'SPEED',     type: 'num',       width: 70,  heat: 'high' },
       { key: 'autonomy',  label: 'AUTONOMY',  type: 'num',       width: 85,  heat: 'high' },
@@ -505,8 +501,43 @@ export const DATASETS = {
         dmgRadius: wf(bomb, 'dmgRadius'),
         acc:       wf(bomb, 'acc'),
         salvoLen,
-        nplm:      bomb?.tag?.includes('NPLM') ?? false,
-        lgb:       bomb?.tag?.includes('LGB')  ?? false,
+        rearm:     (rearmTime != null && salvoLen != null) ? Math.round(rearmTime * salvoLen) : null,
+        speed:     u.speed ?? null,
+        autonomy:  u.autonomy ?? null,
+      };
+    },
+  },
+
+  // ── Napalm Bomber ──────────────────────────────────────────────────────────
+  naplmbombers: {
+    label: 'Napalm Bomber',
+    file: 'naplmbombers.json',
+    isWeapon: false,
+    defaultSort: 'cost',
+    columns: [
+      ...N,
+      { key: 'ecm',       label: 'ECM',       type: 'pct',        width: 65,  heat: 'high' },
+      { key: 'dmg',       label: 'HE',        type: 'num',        width: 65,  heat: 'high' },
+      { key: 'dmgRadius', label: 'DMG RAD',   type: 'num',        width: 85,  heat: 'high' },
+      { key: 'acc',       label: 'ACC',       type: 'pct',        width: 65,  heat: 'high' },
+      { key: 'salvoLen',  label: 'SALVO LEN', type: 'num',        width: 90,  heat: 'high' },
+      { key: 'ammo',      label: 'AMMO',      type: 'num',        width: 65,  heat: 'high' },
+      { key: 'rearm',     label: 'REARM',     type: 'num',        width: 70,  heat: 'low'  },
+      { key: 'speed',     label: 'SPEED',     type: 'num',        width: 70,  heat: 'high' },
+      { key: 'autonomy',  label: 'AUTONOMY',  type: 'num',        width: 85,  heat: 'high' },
+    ],
+    transform(u) {
+      const bomb = top(u, w => w.tag?.includes('NPLM'), 'dmg');
+      const rearmTime = wf(bomb, 'rearmTime');
+      const salvoLen  = wf(bomb, 'salvoLen');
+      return {
+        id: u.id, name: u.name, nation: u.nation, cost: u.cost,
+        ecm:       u.ecm ?? 0,
+        dmg:       wf(bomb, 'dmg'),
+        dmgRadius: wf(bomb, 'dmgRadius'),
+        acc:       wf(bomb, 'acc'),
+        salvoLen,
+        ammo:      wf(bomb, 'ammo'),
         rearm:     (rearmTime != null && salvoLen != null) ? Math.round(rearmTime * salvoLen) : null,
         speed:     u.speed ?? null,
         autonomy:  u.autonomy ?? null,

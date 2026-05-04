@@ -30,6 +30,7 @@ const CATEGORIES = [
       { key: 'atgmplanes',     label: 'ATGM Plane'     },
       { key: 'hebomber',       label: 'HE Bomber'      },
       { key: 'clusterbombers', label: 'Cluster Bomber' },
+      { key: 'naplmbombers',   label: 'Napalm Bomber'  },
       { key: 'sead',           label: 'SEAD'           },
     ],
   },
