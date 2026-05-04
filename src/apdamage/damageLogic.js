@@ -71,11 +71,8 @@ export function shotsToKill(dmg) {
 }
 
 export function fmtDmg(d) {
-  if (d <= 0) return '0';
-  if (d >= 10) return d % 1 === 0 ? String(d) : d.toFixed(1);
-  if (d % 1 === 0) return String(d);
-  const r = Math.round(d * 10) / 10;
-  return r % 1 === 0 ? String(r) : r.toFixed(1);
+  if (d <= 0) return '0.0';
+  return (Math.round(d * 10) / 10).toFixed(1);
 }
 
 export const AP_RANGE = Array.from({ length: 30 }, (_, i) => i + 1);

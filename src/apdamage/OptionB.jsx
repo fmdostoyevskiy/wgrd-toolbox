@@ -29,7 +29,7 @@ export function OptionB() {
   const [maxRange, setMaxRange] = useState(2275);
   const [distance, setDistance] = useState(2275);
   const [hover, setHover] = useState(null);
-  const [pinned, setPinned] = useState(null);
+  const [pinned, setPinned] = useState([]);
   const [selectedAPs, setSelectedAPs] = useState(initial.aps);
   const [selectedArmors, setSelectedArmors] = useState(initial.armors);
 
@@ -60,17 +60,16 @@ export function OptionB() {
   }), []);
 
   const apRange = mode === 'KE' ? B_AP_KE : B_AP_HEAT;
-  const active = pinned || hover || { ap: 18, armor: 8 };
-  const dmg = calc(active.ap, active.armor);
-  const shots = shotsToKill(dmg);
   const bonus = mode === 'KE' ? Math.floor((maxRange - distance) / 175) : 0;
 
   const handleModeSwitch = (m) => {
     setMode(m);
-    setPinned(null);
+    setPinned([]);
     setHover(null);
     setSelectedAPs(new Set());
   };
+
+  const hasTwoPins = pinned.length === 2;
 
   return (
     <div className="optB">
@@ -104,9 +103,10 @@ export function OptionB() {
         <div className="optB-right">
           {mode === 'KE' && (
             <div className="optB-card optB-card-ke">
-              <div className="optB-card-h">RANGE PARAMETERS</div>
-              <BSlider label="DISTANCE"  min={175} max={2275} step={175} value={distance} onChange={setDistance} />
-              <BSlider label="MAX RANGE" min={175} max={2275} step={175} value={maxRange} onChange={setMaxRange} />
+              <div className="optB-ke-sliders">
+                <BSlider label="DISTANCE"  min={175} max={maxRange} step={175} value={distance} onChange={setDistance} />
+                <BSlider label="MAX RANGE" min={1400} max={2275} step={175} value={maxRange} onChange={v => { setMaxRange(v); setDistance(prev => Math.min(prev, v)); }} />
+              </div>
               <div className="optB-bonus-row">
                 <span>RANGE BONUS</span>
                 <span className="optB-bonus-num">+{bonus}<em> AP</em></span>
@@ -114,45 +114,103 @@ export function OptionB() {
             </div>
           )}
 
-          <div className="optB-card optB-readout">
-            <div className="optB-card-h">
-              {pinned ? 'PINNED' : (hover ? 'HOVER' : 'PREVIEW')}
-              <span className="optB-coords">AP {active.ap} · ARMOR {active.armor}</span>
-            </div>
-            <div className="optB-bigdmg" style={{ color: tierColor(dmg, 'tactical') }}>
-              <span className="optB-bigdmg-num">{fmtDmg(dmg)}</span>
-              <span className="optB-bigdmg-label">DAMAGE</span>
-            </div>
-            <div className="optB-stats">
-              {mode === 'KE' && (
-                <div className="optB-stat">
-                  <span>EFFECTIVE AP</span>
-                  <span className="v">{Math.min(active.ap + bonus, 30)}</span>
-                </div>
-              )}
-              <div className="optB-stat">
-                <span>RESULT</span>
-                <span className="v">{dmg <= 0 ? 'NO PENETRATION' : `${fmtDmg(dmg)} HP/SHOT`}</span>
-              </div>
-              <div className="optB-stat">
-                <span>SHOTS · 10 HP</span>
-                <span className="v">{Number.isFinite(shots) ? shots : '—'}</span>
-              </div>
-            </div>
-            <ShotsBar dmg={dmg} />
-          </div>
+          {hasTwoPins ? (
+            <>
+              <ReadoutCard
+                label="PINNED 1"
+                active={pinned[0]}
+                calc={calc}
+                bonus={bonus}
+                mode={mode}
+              />
+              <ComparisonBand
+                dmg1={calc(pinned[0].ap, pinned[0].armor)}
+                dmg2={calc(pinned[1].ap, pinned[1].armor)}
+              />
+              <ReadoutCard
+                label="PINNED 2"
+                active={pinned[1]}
+                calc={calc}
+                bonus={bonus}
+                mode={mode}
+              />
+            </>
+          ) : (
+            <ReadoutCard
+              label={pinned.length === 1 ? 'PINNED' : (hover ? 'HOVER' : 'PREVIEW')}
+              active={pinned[0] || hover || { ap: 18, armor: 8 }}
+              calc={calc}
+              bonus={bonus}
+              mode={mode}
+            />
+          )}
 
           <div className="optB-card optB-tip">
-            <div className="optB-card-h">USAGE</div>
             <ul>
               <li>Hover any cell to inspect.</li>
-              <li>Click to pin; click again to unpin.</li>
+              <li>Click to pin (up to 2).</li>
               <li>Row + column highlight on hover.</li>
-              <li>Click AP/Armor header to filter columns/rows.</li>
+              <li>Click header to filter columns/rows.</li>
             </ul>
           </div>
         </div>
       </div>
+    </div>
+  );
+}
+
+function ReadoutCard({ label, active, calc, bonus, mode }) {
+  const dmg = calc(active.ap, active.armor);
+  const shots = shotsToKill(dmg);
+  return (
+    <div className="optB-card optB-readout">
+      <div className="optB-card-h">
+        {label}
+        <span className="optB-coords">AP {active.ap} · ARMOR {active.armor}</span>
+      </div>
+      <div className="optB-dmg-row">
+        <div className="optB-bigdmg" style={{ color: tierColor(dmg, 'tactical') }}>
+          <span className="optB-bigdmg-num">{fmtDmg(dmg)}</span>
+        </div>
+        <div className="optB-stats">
+          {mode === 'KE' && (
+            <div className="optB-stat">
+              <span>EFFECTIVE AP</span>
+              <span className="v">{Math.min(active.ap + bonus, 30)}</span>
+            </div>
+          )}
+          <div className="optB-stat">
+            <span>SHOTS</span>
+            <span className="v">{Number.isFinite(shots) ? shots : '—'}</span>
+          </div>
+        </div>
+      </div>
+      <ShotsBar dmg={dmg} />
+    </div>
+  );
+}
+
+function ComparisonBand({ dmg1, dmg2 }) {
+  const pen1 = dmg1 > 0;
+  const pen2 = dmg2 > 0;
+  let text;
+  if (!pen1 && !pen2) {
+    text = 'BOTH: NO PENETRATION';
+  } else if (!pen1) {
+    text = 'PIN 2 PENETRATES · PIN 1 DOES NOT';
+  } else if (!pen2) {
+    text = 'PIN 1 PENETRATES · PIN 2 DOES NOT';
+  } else {
+    const s1 = shotsToKill(dmg1);
+    const s2 = shotsToKill(dmg2);
+    const diff = Math.abs(s1 - s2);
+    if (s1 < s2) text = `PIN 1 KILLS ${diff} SHOT${diff !== 1 ? 'S' : ''} FASTER`;
+    else if (s2 < s1) text = `PIN 2 KILLS ${diff} SHOT${diff !== 1 ? 'S' : ''} FASTER`;
+    else text = 'EQUAL KILL SPEED';
+  }
+  return (
+    <div className="optB-compare">
+      {text}
     </div>
   );
 }
@@ -199,7 +257,7 @@ function BGrid({ calc, apRange, hover, setHover, pinned, setPinned, selectedAPs,
           return (
             <div
               key={ap}
-              className={`optB-h ${hover && hover.ap === ap ? 'hi' : ''} ${pinned && pinned.ap === ap ? 'pin' : ''} ${isSel ? 'sel' : ''} ${isDim ? 'dim' : ''}`}
+              className={`optB-h ${hover && hover.ap === ap ? 'hi' : ''} ${pinned.some(p => p.ap === ap) ? 'pin' : ''} ${isSel ? 'sel' : ''} ${isDim ? 'dim' : ''}`}
               onClick={() => toggleAP(ap)}
             >
               {ap}
@@ -214,15 +272,15 @@ function BGrid({ calc, apRange, hover, setHover, pinned, setPinned, selectedAPs,
           return (
             <div key={armor} className="optB-row">
               <div
-                className={`optB-h optB-h-row ${hover && hover.armor === armor ? 'hi' : ''} ${pinned && pinned.armor === armor ? 'pin' : ''} ${isArmorSel ? 'sel' : ''} ${isArmorDim ? 'dim' : ''}`}
+                className={`optB-h optB-h-row ${hover && hover.armor === armor ? 'hi' : ''} ${pinned.some(p => p.armor === armor) ? 'pin' : ''} ${isArmorSel ? 'sel' : ''} ${isArmorDim ? 'dim' : ''}`}
                 onClick={() => toggleArmor(armor)}
               >
                 {armor}
               </div>
               {cells.map(({ ap, dmg }) => {
-                const a = pinned || hover;
-                const hi = a && (a.ap === ap || a.armor === armor);
-                const exact = a && a.ap === ap && a.armor === armor;
+                const allActive = pinned.length > 0 ? pinned : (hover ? [hover] : []);
+                const hi = allActive.some(p => p.ap === ap || p.armor === armor);
+                const exact = allActive.some(p => p.ap === ap && p.armor === armor);
                 const isDim = (hasAPSel && !selectedAPs.has(ap)) || (hasArmorSel && !selectedArmors.has(armor));
                 return (
                   <div
@@ -232,8 +290,14 @@ function BGrid({ calc, apRange, hover, setHover, pinned, setPinned, selectedAPs,
                     onMouseEnter={() => setHover({ ap, armor })}
                     onMouseLeave={() => setHover(null)}
                     onClick={() => {
-                      if (pinned && pinned.ap === ap && pinned.armor === armor) setPinned(null);
-                      else setPinned({ ap, armor });
+                      const idx = pinned.findIndex(p => p.ap === ap && p.armor === armor);
+                      if (idx !== -1) {
+                        setPinned(prev => prev.filter((_, i) => i !== idx));
+                      } else if (pinned.length < 2) {
+                        setPinned(prev => [...prev, { ap, armor }]);
+                      } else {
+                        setPinned(prev => [prev[1], { ap, armor }]);
+                      }
                     }}
                   />
                 );
