@@ -191,10 +191,14 @@ body { margin: 0; background: #050810; color: var(--ink-0); font-family: var(--s
   background: var(--bg-2); color: var(--ink-2);
   font-family: var(--mono); font-size: 10px;
   display: flex; align-items: center; justify-content: center; height: 22px;
+  cursor: pointer;
 }
 .optB-h-row { font-size: 10px; }
 .optB-h.hi { background: #1c2c46; color: var(--accent); }
 .optB-h.pin { background: #3a230e; color: var(--accent-2); }
+.optB-h.sel { background: #0d2210; color: #5ecb7a; }
+.optB-h.dim { opacity: 0.25; }
+.optB-cell.dim { opacity: 0.15; filter: saturate(0.2); }
 .optB-h.oor { background: transparent; color: var(--ink-4); border: none; }
 .optB-cell.oor { cursor: default; background: transparent !important; }
 .optB-cell.oor::after { display: none; }
