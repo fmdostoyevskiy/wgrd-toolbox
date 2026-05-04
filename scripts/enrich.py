@@ -538,23 +538,34 @@ def handle_aahelo(units, rows, data_dir):
 
 
 # ---------------------------------------------------------------------------
-# Handler 10 — Superheavy  (auto-detect: tab=TNK, cost >= 155)
+# Handler 10 — Tank  (auto-detect: Vehicle + Gun with rng_g >= 1925, no helo range, dmg >= 2, ap >= 6)
 # ---------------------------------------------------------------------------
 
-def handle_superheavy(units, rows, data_dir):
+def handle_tank(units, rows, data_dir):
     dump, seen = [], set()
     for unit in units:
-        if unit.get('tab') != 'TNK':
+        if unit.get('type') != 'Vehicle':
             continue
-        if unit.get('cost', 0) < 155:
+        if unit.get('command'):
             continue
-        add_to_spreadsheet(unit, 'Superheavy')
+        if (unit.get('health') or 0) < 5:
+            continue
+        if (unit.get('armor', {}).get('S') or 0) < 2:
+            continue
+        if not any(w.get('category') == 'Gun'
+                   and (w.get('rng_g') or 0) >= 1925
+                   and not (w.get('rng_h') or 0)
+                   and (w.get('dmg') or 0) >= 2
+                   and (w.get('ap') or 0) >= 6
+                   for w in unit.get('weapons', [])):
+            continue
+        add_to_spreadsheet(unit, 'Tank')
         uid = unit['id']
         if uid not in seen:
             dump.append(unit)
             seen.add(uid)
-    save_json(os.path.join(data_dir, 'superheavies.json'), dump)
-    print(f'  [H10] Superheavy: found {len(dump)} units')
+    save_json(os.path.join(data_dir, 'tanks.json'), dump)
+    print(f'  [H10] Tank: found {len(dump)} units')
     return []
 
 
@@ -883,6 +894,33 @@ def handle_atgmhelo(units, rows, data_dir):
 
 
 # ---------------------------------------------------------------------------
+# Handler 18c — ATGM Infantry  (auto-detect: Infantry + Missile with ap > 0)
+# ---------------------------------------------------------------------------
+
+def handle_atgminfantry(units, rows, data_dir):
+    dump, seen = [], set()
+    for unit in units:
+        if unit.get('type') != 'Infantry':
+            continue
+        if unit.get('command'):
+            continue
+        if not any(w.get('category') == 'Missile' and w.get('ap', 0)
+                   and 'SHIP' not in w.get('tag', [])
+                   and 'RAD' not in w.get('tag', [])
+                   and 'SEAD' not in w.get('tag', [])
+                   for w in unit.get('weapons', [])):
+            continue
+        add_to_spreadsheet(unit, 'ATGM Infantry')
+        uid = unit['id']
+        if uid not in seen:
+            dump.append(unit)
+            seen.add(uid)
+    save_json(os.path.join(data_dir, 'atgminfantry.json'), dump)
+    print(f'  [H18c] ATGM Infantry: found {len(dump)} units')
+    return []
+
+
+# ---------------------------------------------------------------------------
 # Handler 19 — SEAD  (auto-detect: Plane or Helicopter + Missile with SEAD tag)
 # ---------------------------------------------------------------------------
 
@@ -1077,7 +1115,7 @@ HANDLERS = [
     ('HE Bomber',       handle_hebomber,      None),
     ('Tube Arty',       handle_tubearty,      'hemlrs.txt'),   # used as exclusion list
     ('AA Helo',         handle_aahelo,        None),
-    ('Superheavy',      handle_superheavy,    None),
+    ('Tank',            handle_tank,          None),
     ('Ship',            handle_ship,          'ships.tsv'),
     ('Easter Eggs',     handle_easter_eggs,   'eastereggs.tsv'),
     ('Cluster Bomber',  handle_clusterbomber, None),
@@ -1090,6 +1128,7 @@ HANDLERS = [
     ('SEAD',            handle_sead,           None),
     ('ASM',             handle_asm,            'asm.tsv'),
     ('ATGM Vehicle',    handle_atgmvehicle,   None),
+    ('ATGM Infantry',   handle_atgminfantry,  None),
     ('ATGM Helo',       handle_atgmhelo,      None),
     ('Turret',          handle_turret,         'turrets.tsv'),
 ]
