@@ -8,10 +8,8 @@ const CATEGORIES = [
     label: 'AA',
     items: [
       { key: 'planemissileaa', label: 'Plane Missile AA' },
-      { key: 'helomissileaa',  label: 'Helo Missile AA'  },
       { key: 'spaags',         label: 'SPAAG'            },
       { key: 'manpads',        label: 'Manpad'           },
-      { key: 'aahelos',        label: 'AA Helo'          },
     ],
   },
   {
@@ -35,19 +33,26 @@ const CATEGORIES = [
     ],
   },
   {
+    label: 'Helicopter',
+    items: [
+      { key: 'helomissileaa',  label: 'Helo Missile AA'            },
+      { key: 'aahelos',        label: 'AA Helo'                    },
+      { key: 'atgmhelos',      label: 'ATGM Helo'                  },
+      { key: 'rocketpodhelos', label: 'Rocket Pod Helo - INCOMPLETE' },
+    ],
+  },
+  {
     label: 'Ground Attack',
     items: [
-      { key: 'atgmvehicles', label: 'ATGM Vehicle' },
-      { key: 'atgmhelos',    label: 'ATGM Helo'    },
+      { key: 'tanks',         label: 'Tank'          },
+      { key: 'atgmvehicles',  label: 'ATGM Vehicle'  },
+      { key: 'atgminfantry',  label: 'ATGM Infantry' },
     ],
   },
   {
     label: 'Ground Attack - INCOMPLETE',
     items: [
-      { key: 'superheavies',   label: 'Superheavy - INCOMPLETE'      },
-      { key: 'firesupport',    label: 'Fire Support - INCOMPLETE'    },
-      { key: 'atgm',           label: 'ATGM - INCOMPLETE'            },
-      { key: 'rocketpodhelos', label: 'Rocket Pod Helo - INCOMPLETE' },
+      { key: 'firesupport',    label: 'Fire Support - INCOMPLETE' },
     ],
   },
 ];
