@@ -293,7 +293,7 @@ export const DATASETS = {
         heloRng:  wf(m, 'rng_h'),
         dmg:      wf(m, 'dmg'),
         salvoLen: wf(m, 'salvoLen'),
-        radar:    u.weapons?.some(w => w.tag?.includes('RAD')) ?? false,
+        radar:    m?.tag?.includes('RAD') ?? false,
         acc:      wf(m, 'acc'),
         speed:    u.speed ?? null,
         armorT:   u.armor?.T ?? null,
@@ -333,7 +333,7 @@ export const DATASETS = {
         stab:     wf(m, 'stab'),
         mspd:     wf(m, 'missileSpeed'),
         ammo:     wf(m, 'ammo'),
-        radar:    u.weapons?.some(w => w.tag?.includes('RAD')) ?? false,
+        radar:    m?.tag?.includes('RAD') ?? false,
         speed:    u.speed ?? null,
         size:     u.size ?? 0,
       };
