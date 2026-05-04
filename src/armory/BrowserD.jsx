@@ -236,14 +236,6 @@ function ListPane({
             <TagDropdown allTags={allTags} selected={tag} onToggle={onTag} />
           </div>
 
-          <div style={{
-            padding: '8px 12px', borderBottom: `1px solid ${t.rule}`,
-            fontSize: 10, letterSpacing: '0.22em', color: t.dimmer,
-            display: 'flex', justifyContent: 'space-between', flexShrink: 0,
-          }}>
-            <span>▸ TARGETS</span>
-            <span style={{ color: t.accent }}>{filtered.length} / {rosterCount}</span>
-          </div>
 
           <div style={{ flex: 1, minHeight: 0 }}>
             {filtered.length === 0 ? (
