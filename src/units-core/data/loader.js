@@ -99,6 +99,7 @@ export async function loadData(opts = {}) {
       name:   units[tid]?.name   ?? tid,
       nation: units[tid]?.nation ?? '',
       tab:    units[tid]?.tab    ?? '',
+      cost:   units[tid]?.cost   ?? '',
     }));
   }
 
