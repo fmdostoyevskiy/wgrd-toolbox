@@ -842,6 +842,7 @@ def handle_atgmvehicle(units, rows, data_dir):
         if not any(w.get('category') == 'Missile' and w.get('ap', 0)
                    and 'SHIP' not in w.get('tag', [])
                    and 'RAD' not in w.get('tag', [])
+                   and 'SEAD' not in w.get('tag', [])
                    for w in unit.get('weapons', [])):
             continue
         add_to_spreadsheet(unit, 'ATGM Vehicle')
@@ -868,6 +869,7 @@ def handle_atgmhelo(units, rows, data_dir):
         if not any(w.get('category') == 'Missile' and w.get('ap', 0)
                    and 'SHIP' not in w.get('tag', [])
                    and 'RAD' not in w.get('tag', [])
+                   and 'SEAD' not in w.get('tag', [])
                    for w in unit.get('weapons', [])):
             continue
         add_to_spreadsheet(unit, 'ATGM Helo')
