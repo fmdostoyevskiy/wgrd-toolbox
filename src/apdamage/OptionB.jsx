@@ -16,11 +16,25 @@ export function OptionB() {
   const [distance, setDistance] = useState(2275);
   const [hover, setHover] = useState(null);
   const [pinned, setPinned] = useState(null);
+  const [selectedAPs, setSelectedAPs] = useState(new Set());
+  const [selectedArmors, setSelectedArmors] = useState(new Set());
 
   const calc = useCallback((ap, armor) => {
     if (mode === 'HEAT') return calcHeatDamage(ap, armor);
     return calcKeDamage(ap, armor, maxRange, distance);
   }, [mode, maxRange, distance]);
+
+  const toggleAP = useCallback((ap) => setSelectedAPs(prev => {
+    const next = new Set(prev);
+    if (next.has(ap)) next.delete(ap); else next.add(ap);
+    return next;
+  }), []);
+
+  const toggleArmor = useCallback((armor) => setSelectedArmors(prev => {
+    const next = new Set(prev);
+    if (next.has(armor)) next.delete(armor); else next.add(armor);
+    return next;
+  }), []);
 
   const apRange = mode === 'KE' ? B_AP_KE : B_AP_HEAT;
   const active = pinned || hover || { ap: 18, armor: 8 };
@@ -32,6 +46,8 @@ export function OptionB() {
     setMode(m);
     setPinned(null);
     setHover(null);
+    setSelectedAPs(new Set());
+    setSelectedArmors(new Set());
   };
 
   return (
@@ -57,6 +73,8 @@ export function OptionB() {
             apRange={apRange}
             hover={hover} setHover={setHover}
             pinned={pinned} setPinned={setPinned}
+            selectedAPs={selectedAPs} toggleAP={toggleAP}
+            selectedArmors={selectedArmors} toggleArmor={toggleArmor}
           />
           <BLegend />
         </div>
@@ -108,6 +126,7 @@ export function OptionB() {
               <li>Hover any cell to inspect.</li>
               <li>Click to pin; click again to unpin.</li>
               <li>Row + column highlight on hover.</li>
+              <li>Click AP/Armor header to filter columns/rows.</li>
             </ul>
           </div>
         </div>
@@ -132,8 +151,10 @@ function BSlider({ label, min, max, step, value, onChange }) {
   );
 }
 
-function BGrid({ calc, apRange, hover, setHover, pinned, setPinned }) {
+function BGrid({ calc, apRange, hover, setHover, pinned, setPinned, selectedAPs, toggleAP, selectedArmors, toggleArmor }) {
   const colCount = apRange.length;
+  const hasAPSel = selectedAPs.size > 0;
+  const hasArmorSel = selectedArmors.size > 0;
 
   const rows = useMemo(() =>
     B_ARMOR.map(armor => ({
@@ -150,41 +171,54 @@ function BGrid({ calc, apRange, hover, setHover, pinned, setPinned }) {
       </div>
       <div className="optB-grid-header">
         <div className="optB-grid-corner"></div>
-        {apRange.map(ap => (
-          <div
-            key={ap}
-            className={`optB-h ${hover && hover.ap === ap ? 'hi' : ''} ${pinned && pinned.ap === ap ? 'pin' : ''}`}
-          >
-            {ap}
-          </div>
-        ))}
+        {apRange.map(ap => {
+          const isSel = selectedAPs.has(ap);
+          const isDim = hasAPSel && !isSel;
+          return (
+            <div
+              key={ap}
+              className={`optB-h ${hover && hover.ap === ap ? 'hi' : ''} ${pinned && pinned.ap === ap ? 'pin' : ''} ${isSel ? 'sel' : ''} ${isDim ? 'dim' : ''}`}
+              onClick={() => toggleAP(ap)}
+            >
+              {ap}
+            </div>
+          );
+        })}
       </div>
       <div className="optB-grid-body">
-        {rows.map(({ armor, cells }) => (
-          <div key={armor} className="optB-row">
-            <div className={`optB-h optB-h-row ${hover && hover.armor === armor ? 'hi' : ''} ${pinned && pinned.armor === armor ? 'pin' : ''}`}>
-              {armor}
+        {rows.map(({ armor, cells }) => {
+          const isArmorSel = selectedArmors.has(armor);
+          const isArmorDim = hasArmorSel && !isArmorSel;
+          return (
+            <div key={armor} className="optB-row">
+              <div
+                className={`optB-h optB-h-row ${hover && hover.armor === armor ? 'hi' : ''} ${pinned && pinned.armor === armor ? 'pin' : ''} ${isArmorSel ? 'sel' : ''} ${isArmorDim ? 'dim' : ''}`}
+                onClick={() => toggleArmor(armor)}
+              >
+                {armor}
+              </div>
+              {cells.map(({ ap, dmg }) => {
+                const a = pinned || hover;
+                const hi = a && (a.ap === ap || a.armor === armor);
+                const exact = a && a.ap === ap && a.armor === armor;
+                const isDim = (hasAPSel && !selectedAPs.has(ap)) || (hasArmorSel && !selectedArmors.has(armor));
+                return (
+                  <div
+                    key={ap}
+                    className={`optB-cell ${hi ? 'hi' : ''} ${exact ? 'exact' : ''} ${isDim ? 'dim' : ''}`}
+                    style={{ background: tierColor(dmg, 'tactical') }}
+                    onMouseEnter={() => setHover({ ap, armor })}
+                    onMouseLeave={() => setHover(null)}
+                    onClick={() => {
+                      if (pinned && pinned.ap === ap && pinned.armor === armor) setPinned(null);
+                      else setPinned({ ap, armor });
+                    }}
+                  />
+                );
+              })}
             </div>
-            {cells.map(({ ap, dmg }) => {
-              const a = pinned || hover;
-              const hi = a && (a.ap === ap || a.armor === armor);
-              const exact = a && a.ap === ap && a.armor === armor;
-              return (
-                <div
-                  key={ap}
-                  className={`optB-cell ${hi ? 'hi' : ''} ${exact ? 'exact' : ''}`}
-                  style={{ background: tierColor(dmg, 'tactical') }}
-                  onMouseEnter={() => setHover({ ap, armor })}
-                  onMouseLeave={() => setHover(null)}
-                  onClick={() => {
-                    if (pinned && pinned.ap === ap && pinned.armor === armor) setPinned(null);
-                    else setPinned({ ap, armor });
-                  }}
-                />
-              );
-            })}
-          </div>
-        ))}
+          );
+        })}
       </div>
     </div>
   );
