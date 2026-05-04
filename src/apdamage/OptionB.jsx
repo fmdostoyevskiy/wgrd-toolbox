@@ -117,32 +117,37 @@ export function OptionB() {
           {hasTwoPins ? (
             <>
               <ReadoutCard
-                label="PINNED 1"
+                label="UNPIN 1"
                 active={pinned[0]}
                 calc={calc}
                 bonus={bonus}
                 mode={mode}
+                onUnpin={() => setPinned(prev => prev.filter((_, i) => i !== 0))}
               />
               <ComparisonBand
                 dmg1={calc(pinned[0].ap, pinned[0].armor)}
                 dmg2={calc(pinned[1].ap, pinned[1].armor)}
               />
               <ReadoutCard
-                label="PINNED 2"
+                label="UNPIN 2"
                 active={pinned[1]}
                 calc={calc}
                 bonus={bonus}
                 mode={mode}
+                onUnpin={() => setPinned(prev => prev.filter((_, i) => i !== 1))}
               />
             </>
           ) : (
-            <ReadoutCard
-              label={pinned.length === 1 ? 'PINNED' : (hover ? 'HOVER' : 'PREVIEW')}
-              active={pinned[0] || hover || { ap: 18, armor: 8 }}
-              calc={calc}
-              bonus={bonus}
-              mode={mode}
-            />
+            (pinned.length === 1 || hover) && (
+              <ReadoutCard
+                label={pinned.length === 1 ? 'UNPIN' : 'HOVER'}
+                active={pinned[0] || hover}
+                calc={calc}
+                bonus={bonus}
+                mode={mode}
+                onUnpin={pinned.length === 1 ? () => setPinned([]) : undefined}
+              />
+            )
           )}
 
           <div className="optB-card optB-tip">
@@ -159,13 +164,16 @@ export function OptionB() {
   );
 }
 
-function ReadoutCard({ label, active, calc, bonus, mode }) {
+function ReadoutCard({ label, active, calc, bonus, mode, onUnpin }) {
   const dmg = calc(active.ap, active.armor);
   const shots = shotsToKill(dmg);
   return (
     <div className="optB-card optB-readout">
       <div className="optB-card-h">
-        {label}
+        {onUnpin
+          ? <button className="optB-unpin-btn" onClick={onUnpin}>{label}</button>
+          : label
+        }
         <span className="optB-coords">AP {active.ap} · ARMOR {active.armor}</span>
       </div>
       <div className="optB-dmg-row">

@@ -265,6 +265,14 @@ body { margin: 0; background: #050810; color: var(--ink-0); font-family: var(--s
 .optB-bonus-num em { font-style: normal; color: var(--ink-3); font-size: 10px; margin-left: 2px; }
 
 .optB-readout .optB-card-h { margin-bottom: 4px; }
+.optB-unpin-btn {
+  background: none; border: none; padding: 0; cursor: pointer;
+  font: inherit; font-size: inherit; letter-spacing: inherit;
+  color: var(--ink-3);
+  text-decoration: underline; text-decoration-style: dotted;
+  text-underline-offset: 3px;
+}
+.optB-unpin-btn:hover { color: var(--accent-2); }
 .optB-dmg-row {
   display: flex; align-items: center; gap: 16px;
   border-top: 1px solid var(--line); border-bottom: 1px solid var(--line);
