@@ -767,26 +767,32 @@ def handle_rocketpodhelo(units, rows, data_dir):
 # Handler 17 — ASF  (asfs.txt)
 # ---------------------------------------------------------------------------
 
+def _has_ship_weapon(weapons):
+    return any('SHIP' in w.get('tag', []) for w in weapons)
+
+
+def _has_plane_range_3500(weapons):
+    return any(w.get('rng_a', 0) >= 3500 for w in weapons)
+
+
 def handle_asf(units, rows, data_dir):
-    dump, seen, unmatched = [], set(), []
-    for row in rows:
-        if not row:
+    dump, seen = [], set()
+    for unit in units:
+        if (unit.get('airOptics') or 0) < 300:
             continue
-        for base_name, _ in parse_names(row[0]):
-            matched = find_units_by_name(units, base_name)
-            if not matched:
-                print(f'  [H17] WARNING: unit "{base_name}" not found in JSON')
-                unmatched.append(base_name)
-                continue
-            for unit in matched:
-                add_to_spreadsheet(unit, 'ASF')
-                uid = unit['id']
-                if uid not in seen:
-                    dump.append(unit)
-                    seen.add(uid)
+        weapons = unit.get('weapons', [])
+        if _has_ship_weapon(weapons):
+            continue
+        if not _has_plane_range_3500(weapons):
+            continue
+        add_to_spreadsheet(unit, 'ASF')
+        uid = unit['id']
+        if uid not in seen:
+            dump.append(unit)
+            seen.add(uid)
     save_json(os.path.join(data_dir, 'asfs.json'), dump)
     print(f'  [H17] ASF: tagged {len(dump)} units')
-    return unmatched
+    return []
 
 
 # ---------------------------------------------------------------------------
@@ -1025,7 +1031,7 @@ HANDLERS = [
     ('Manpad',          handle_manpad,        None),
     ('Missile AA',      handle_missileaa,     None),
     ('Rocket Pod Helo', handle_rocketpodhelo, None),
-    ('ASF',             handle_asf,           'asfs.txt'),
+    ('ASF',             handle_asf,           None),
     ('ATGM Plane',      handle_atgmplane,     'atgmplanes.txt'),
     ('SEAD',            handle_sead,           None),
     ('ASM',             handle_asm,            'asm.tsv'),
