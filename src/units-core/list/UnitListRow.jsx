@@ -41,7 +41,7 @@ export const UnitListRow = React.memo(function UnitListRow({
       borderBottom: `1px solid ${t.rule}`,
     }}>
       <div onClick={handleClick} style={{
-        display: 'grid', gridTemplateColumns: '30px 1fr 46px 16px',
+        display: 'grid', gridTemplateColumns: '30px 1fr 46px 42px',
         alignItems: 'center', gap: 6,
         padding: compact ? '3px 10px' : '5px 10px',
         fontSize: 11.5,
@@ -56,16 +56,17 @@ export const UnitListRow = React.memo(function UnitListRow({
         <span style={{ display: 'flex', justifyContent: 'flex-end', alignItems: 'center' }}>
           <FlagImg src={NATION_FLAG_MAP[u.nation]} label={u.nation} h={13} />
         </span>
-        {hasTransports ? (
-          <span
-            onClick={handleChevron}
-            style={{ fontSize: 10, color: transportsOpen ? t.accent : t.dimmer, cursor: 'pointer', textAlign: 'center', userSelect: 'none', lineHeight: 1 }}
-          >
-            {transportsOpen ? '▴' : '▾'}
-          </span>
-        ) : (
-          <span />
-        )}
+        <span
+          onClick={hasTransports ? handleChevron : undefined}
+          style={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end', gap: 2, userSelect: 'none', cursor: hasTransports ? 'pointer' : 'default' }}
+        >
+          {hasTransports && (
+            <span style={{ fontSize: 10, color: transportsOpen ? t.accent : t.dimmer, lineHeight: 1 }}>
+              {transportsOpen ? '▴' : '▾'}
+            </span>
+          )}
+          <span style={{ fontSize: 9.5, color: t.accent, display: 'inline-block', width: 24, textAlign: 'right' }}>{u.cost}</span>
+        </span>
       </div>
       {transportsOpen && hasTransports && (
         <div style={{ borderLeft: `2px solid ${t.rule}`, marginLeft: 14, marginBottom: 4 }}>
@@ -92,7 +93,7 @@ function TransportRow({ tr, active, compact, onSelect }) {
 
   return (
     <div onClick={handleClick} style={{
-      display: 'grid', gridTemplateColumns: '24px 1fr 40px',
+      display: 'grid', gridTemplateColumns: '24px 1fr 40px 24px',
       alignItems: 'center', gap: 6,
       padding: compact ? '3px 8px' : '4px 8px',
       fontSize: 10.5,
@@ -110,6 +111,7 @@ function TransportRow({ tr, active, compact, onSelect }) {
       <span style={{ display: 'flex', justifyContent: 'flex-end', alignItems: 'center' }}>
         <FlagImg src={NATION_FLAG_MAP[tr.nation]} label={tr.nation} h={11} />
       </span>
+      <span style={{ fontSize: 8.5, color: t.accent, textAlign: 'right' }}>{tr.cost}</span>
     </div>
   );
 }
