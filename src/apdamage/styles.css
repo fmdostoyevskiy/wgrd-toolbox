@@ -235,6 +235,8 @@ body { margin: 0; background: #050810; color: var(--ink-0); font-family: var(--s
 }
 .optB-coords { color: var(--accent); }
 
+.optB-ke-sliders { display: flex; gap: 12px; margin-bottom: 10px; }
+.optB-ke-sliders .optB-slider { flex: 1; margin-bottom: 0; }
 .optB-slider { margin-bottom: 10px; }
 .optB-slider:last-child { margin-bottom: 0; }
 .optB-slider-row { display: flex; justify-content: space-between; font-family: var(--mono); font-size: 11px; margin-bottom: 4px; }
@@ -263,15 +265,19 @@ body { margin: 0; background: #050810; color: var(--ink-0); font-family: var(--s
 .optB-bonus-num em { font-style: normal; color: var(--ink-3); font-size: 10px; margin-left: 2px; }
 
 .optB-readout .optB-card-h { margin-bottom: 4px; }
+.optB-dmg-row {
+  display: flex; align-items: center; gap: 16px;
+  border-top: 1px solid var(--line); border-bottom: 1px solid var(--line);
+  padding: 8px 0; margin: 6px 0 10px;
+}
 .optB-bigdmg {
   display: flex; align-items: baseline; gap: 12px;
-  margin: 6px 0 14px;
-  font-family: var(--mono);
+  font-family: var(--mono); flex-shrink: 0;
 }
 .optB-bigdmg-num { font-size: 64px; line-height: 1; font-weight: 600; }
 .optB-bigdmg-label { font-size: 11px; letter-spacing: 0.22em; color: var(--ink-3); }
 
-.optB-stats { display: flex; flex-direction: column; gap: 6px; padding: 10px 0; border-top: 1px solid var(--line); border-bottom: 1px solid var(--line); }
+.optB-stats { display: flex; flex-direction: column; gap: 6px; flex: 1; min-width: 0; }
 .optB-stat { display: flex; justify-content: space-between; font-family: var(--mono); font-size: 11px; }
 .optB-stat span:first-child { color: var(--ink-3); letter-spacing: 0.18em; }
 .optB-stat .v { color: var(--ink-0); }
@@ -299,6 +305,13 @@ body { margin: 0; background: #050810; color: var(--ink-0); font-family: var(--s
 .optB-tip ul { margin: 0; padding: 0; list-style: none; font-family: var(--mono); font-size: 11px; color: var(--ink-2); }
 .optB-tip li { padding: 3px 0; letter-spacing: 0.05em; }
 .optB-tip li::before { content: '› '; color: var(--accent); }
+
+.optB-compare {
+  font-family: var(--mono); font-size: 10px; letter-spacing: 0.2em;
+  color: var(--accent-2); text-align: center;
+  padding: 6px 0;
+  border-top: 1px solid var(--line); border-bottom: 1px solid var(--line);
+}
 
 /* ============ OPTION C — FIRE CONTROL ============ */
 .optC {
