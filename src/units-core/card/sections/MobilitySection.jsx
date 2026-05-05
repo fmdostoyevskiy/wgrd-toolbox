@@ -6,12 +6,14 @@ import { useHide } from '../HideContext.js';
 
 const FOREST_TOOLTIPS = {
   wheeled: 'Wheeled units always travel at 50% speed in forests.',
-  tracked: 'Tracked units always travel at 70% speed in forests.',
+  tracked: 'Tracked units always travel at 60% speed in forests.',
+  truck:   'Trucks always travel at 30% speed in forests.',
 };
 
 const ROAD_TOOLTIPS = {
   wheeled: 'Wheeled units always move at 150 km/h on roads.',
   tracked: 'Tracked units always move at 110 km/h on roads.',
+  truck:   'Trucks always move at 150 km/h on roads.',
 };
 
 export function hasMobility(unit) {
@@ -31,7 +33,9 @@ export function hasMobility(unit) {
 
 export function MobilitySection({ unit, s }) {
   const hide = useHide();
-  const motion = unit.motionType === 'wheeled' ? 'wheeled' : 'tracked';
+  const motion = unit.motionType === 'wheeled' ? 'wheeled'
+               : unit.motionType === 'truck'   ? 'truck'
+               : 'tracked';
 
   const accelDecel = (() => {
     const a = unit.maxAcceleration;

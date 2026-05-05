@@ -102,6 +102,7 @@ export const SPEED = {
   Plane:          [[1000, TEAL], [900, GREEN], [750, ORANGE], [-Infinity, RED]],
   VehicleWheeled: [[90,   TEAL], [70,  GREEN], [55,  ORANGE], [-Infinity, RED]],
   VehicleTracked: [[75,   TEAL], [60,  GREEN], [50,  ORANGE], [-Infinity, RED]],
+  VehicleTruck:   [[90,   TEAL], [70,  GREEN], [55,  ORANGE], [-Infinity, RED]],
 };
 
 export const OPTICS = [
@@ -187,7 +188,9 @@ export function speedColor(unit, v = unit?.speed) {
     return RED;
   }
   if (unit.type === 'Vehicle') {
-    const table = unit.motionType === 'wheeled' ? SPEED.VehicleWheeled : SPEED.VehicleTracked;
+    const table = unit.motionType === 'wheeled' ? SPEED.VehicleWheeled
+                : unit.motionType === 'truck'   ? SPEED.VehicleTruck
+                : SPEED.VehicleTracked;
     return byTier(v, table)?.color ?? null;
   }
   return null;
