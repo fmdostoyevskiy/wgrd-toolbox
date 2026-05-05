@@ -13,6 +13,18 @@ async function fetchJson(url) {
   return JSON.parse(text);
 }
 
+// ---------- presets ----------
+function isPresetActive(preset, filters) {
+  return Object.entries(preset.filters).every(([key, val]) => {
+    const f = filters[key];
+    if (!f) return false;
+    if (val.text !== undefined) return f.text === val.text;
+    if (val.min !== undefined && f.min !== val.min) return false;
+    if (val.max !== undefined && f.max !== val.max) return false;
+    return true;
+  });
+}
+
 // ---------- heatmap ----------
 function buildHeatmap(rows, columns) {
   const map = {};
@@ -54,7 +66,7 @@ function fmt(val, col) {
 }
 
 // ---------- TopBar ----------
-function TopBar({ label, search, setSearch, total, shown, coalFilter, setCoalFilter, variant, setVariant, isWeapon }) {
+function TopBar({ label, search, setSearch, total, shown, coalFilter, setCoalFilter, variant, setVariant, isWeapon, presets, filters, onPreset }) {
   return (
     <div className="topbar">
       <div className="brand">{label} <span className="slash">/</span><span className="sub">WRD</span></div>
@@ -73,7 +85,19 @@ function TopBar({ label, search, setSearch, total, shown, coalFilter, setCoalFil
           >PACT</button>
         </>
       )}
-      <div className="topbar-count"><span className="num">{shown}</span> / <span>{total}</span></div>
+      {(presets ?? []).length > 0 && (
+        <div className="topbar-presets">
+          {presets.map(p => (
+            <button
+              key={p.label}
+              className={'preset-btn' + (isPresetActive(p, filters) ? ' active' : '')}
+              onClick={() => onPreset(p)}
+            >
+              {p.label}
+            </button>
+          ))}
+        </div>
+      )}
       <div className="topbar-search">
         <input
           type="text"
@@ -82,6 +106,7 @@ function TopBar({ label, search, setSearch, total, shown, coalFilter, setCoalFil
           onChange={e => setSearch(e.target.value)}
         />
       </div>
+      <div className="topbar-count"><span className="num">{shown}</span> / <span>{total}</span></div>
       <button
         className={'topbar-btn' + (variant === 'heatmap' ? ' active' : '')}
         onClick={() => setVariant(v => v === 'heatmap' ? 'minimal' : 'heatmap')}
@@ -249,6 +274,17 @@ export function SpreadsheetApp({ dataset }) {
     setFilters(f => ({ ...f, [key]: value }));
   }, []);
 
+  const applyPreset = useCallback((preset) => {
+    setFilters(f => {
+      if (isPresetActive(preset, f)) {
+        const next = { ...f };
+        Object.keys(preset.filters).forEach(key => delete next[key]);
+        return next;
+      }
+      return { ...f, ...preset.filters };
+    });
+  }, []);
+
   const filteredRows = useMemo(() => {
     if (!rows) return [];
     let r = rows;
@@ -269,7 +305,7 @@ export function SpreadsheetApp({ dataset }) {
       if (!f) return;
       const col = dataset.columns.find(c => c.key === key);
       if (!col) return;
-      if (col.type === 'text' || col.type === 'nation' || col.type === 'bool' || col.type === 'bool-plain') {
+      if (col.type === 'text' || col.type === 'nation' || col.type === 'bool' || col.type === 'bool-good' || col.type === 'bool-plain') {
         if (f.text?.trim()) {
           const q = f.text.toLowerCase();
           const isBoolCol = col.type === 'bool' || col.type === 'bool-good' || col.type === 'bool-plain';
@@ -325,7 +361,7 @@ export function SpreadsheetApp({ dataset }) {
       <>
         <TopBar label={dataset.label} search="" setSearch={() => {}} total={0} shown={0}
           coalFilter="all" setCoalFilter={() => {}} variant="heatmap" setVariant={() => {}}
-          isWeapon={dataset.isWeapon} />
+          isWeapon={dataset.isWeapon} presets={[]} filters={{}} onPreset={() => {}} />
         <div className="main">
           <div className="state-screen">
             <span className="glyph">◇ ✕ ◇</span>
@@ -342,7 +378,7 @@ export function SpreadsheetApp({ dataset }) {
       <>
         <TopBar label={dataset.label} search="" setSearch={() => {}} total={0} shown={0}
           coalFilter="all" setCoalFilter={() => {}} variant="heatmap" setVariant={() => {}}
-          isWeapon={dataset.isWeapon} />
+          isWeapon={dataset.isWeapon} presets={[]} filters={{}} onPreset={() => {}} />
         <div className="main">
           <div className="state-screen">
             <span className="glyph">◇ ◆ ◇</span>
@@ -362,6 +398,7 @@ export function SpreadsheetApp({ dataset }) {
         coalFilter={coalFilter} setCoalFilter={setCoalFilter}
         variant={variant} setVariant={setVariant}
         isWeapon={dataset.isWeapon}
+        presets={dataset.presets ?? []} filters={filters} onPreset={applyPreset}
       />
       <div className="main">
         <div className="spreadsheet-wrap">
