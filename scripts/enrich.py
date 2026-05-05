@@ -1048,6 +1048,8 @@ def handle_merge_duplicate_weapons(units, rows, data_dir):
         for f in DIFF_FIELDS:
             if a.get(f) != b.get(f):
                 return True
+        if set(a.get('tag', [])) != set(b.get('tag', [])):
+            return True
         return False
 
     total_merged = 0
