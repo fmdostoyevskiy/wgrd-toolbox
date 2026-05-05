@@ -132,6 +132,7 @@ export const DATASETS = {
       { key: 'salvoLen',    label: 'SALVO LEN',   type: 'num', width: 90,  heat: 'high' },
       { key: 'shot',        label: 'SHOT RLD',    type: 'num', width: 80,  heat: 'low'  },
       { key: 'salvo',       label: 'SALVO RLD',   type: 'num', width: 90,  heat: 'low'  },
+      { key: 'ammo',        label: 'AMMO',        type: 'num', width: 65,  heat: 'high' },
       { key: 'supplyShot',  label: 'SUP/SHOT',    type: 'num', width: 85,  heat: 'low'  },
       { key: 'supplySalvo', label: 'SUP/SALVO',   type: 'num', width: 95,  heat: 'low'  },
       { key: 'rng',         label: 'MAX RNG',     type: 'num', width: 90,  heat: 'high' },
@@ -149,6 +150,7 @@ export const DATASETS = {
         salvoLen,
         shot:        wf(art, 'shotReload'),
         salvo:       wf(art, 'salvoReload'),
+        ammo:        wf(art, 'ammo'),
         supplyShot:  supplyPerShot,
         supplySalvo: (supplyPerShot != null && salvoLen != null) ? Math.round(supplyPerShot * salvoLen) : null,
         rng:         wf(art, 'maxRange'),
@@ -163,6 +165,10 @@ export const DATASETS = {
     file: 'howitzers.json',
     isWeapon: false,
     defaultSort: 'cost',
+    presets: [
+      { label: 'FAST AIM',       filters: { aim: { max: '10' } } },
+      { label: 'BUNKER BUSTERS', filters: { dmg: { min: '9'  } } },
+    ],
     columns: [
       ...N,
       { key: 'dmg',         label: 'HE',         type: 'num', width: 65,  heat: 'high' },
