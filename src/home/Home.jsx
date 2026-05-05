@@ -15,7 +15,8 @@ const CATEGORIES = [
   {
     label: 'Artillery',
     items: [
-      { key: 'tubearty',    label: 'Tube Artillery' },
+      { key: 'mortar',      label: 'Mortars'        },
+      { key: 'howitzer',    label: 'Howitzers'      },
       { key: 'hemlrs',      label: 'HE MLRS'        },
       { key: 'clustermlrs', label: 'Cluster MLRS'   },
       { key: 'napalmmlrs',  label: 'Napalm MLRS'    },

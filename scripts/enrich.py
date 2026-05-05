@@ -480,38 +480,68 @@ def handle_hebomber(units, rows, data_dir):
 
 
 # ---------------------------------------------------------------------------
-# Handler 8 — Tube Arty  (auto-detect; hemlrs.txt used as exclusion list)
+# Handlers 8a/8b — Mortar / Howitzer  (auto-detect; hemlrs.txt as exclusion)
 # ---------------------------------------------------------------------------
 
-def handle_tubearty(units, rows, data_dir):
-    # Build HE MLRS name exclusion set from hemlrs.txt rows
-    he_mlrs_names = set()
+MORTAR_MAX_RANGE = 9100
+
+
+def _build_he_mlrs_names(rows):
+    names = set()
     for row in rows:
         if row:
             for name, _ in parse_names(row[0]):
-                he_mlrs_names.add(name.lower())
+                names.add(name.lower())
+    return names
 
-    dump, seen = [], set()
+
+def _tube_arty_units(units, he_mlrs_names):
+    """Yield (unit, max_art_rng_g) for all tube-arty vehicles."""
     for unit in units:
         if unit.get('type') != 'Vehicle':
             continue
         if (unit.get('name') or '').lower() in he_mlrs_names:
             continue
-        if not any(
-            w.get('category') == 'Artillery'
+        art_weapons = [
+            w for w in unit.get('weapons', [])
+            if w.get('category') == 'Artillery'
             and not w.get('ap', 0)
             and not has_napalm(w)
-            for w in unit.get('weapons', [])
-        ):
+        ]
+        if not art_weapons:
             continue
-        add_to_spreadsheet(unit, 'Tube Arty')
+        yield unit, max(w.get('rng_g', 0) for w in art_weapons)
+
+
+def handle_mortar(units, rows, data_dir):
+    he_mlrs_names = _build_he_mlrs_names(rows)
+    dump, seen = [], set()
+    for unit, max_rng in _tube_arty_units(units, he_mlrs_names):
+        if max_rng > MORTAR_MAX_RANGE:
+            continue
+        add_to_spreadsheet(unit, 'Mortar')
         uid = unit['id']
         if uid not in seen:
             dump.append(unit)
             seen.add(uid)
-    save_json(os.path.join(data_dir, 'tubearty.json'), dump)
-    print(f'  [H8] Tube Arty: found {len(dump)} units '
-          f'(excluded {len(he_mlrs_names)} HE MLRS names)')
+    save_json(os.path.join(data_dir, 'mortars.json'), dump)
+    print(f'  [H8a] Mortar: found {len(dump)} units')
+    return []
+
+
+def handle_howitzer(units, rows, data_dir):
+    he_mlrs_names = _build_he_mlrs_names(rows)
+    dump, seen = [], set()
+    for unit, max_rng in _tube_arty_units(units, he_mlrs_names):
+        if max_rng <= MORTAR_MAX_RANGE:
+            continue
+        add_to_spreadsheet(unit, 'Howitzer')
+        uid = unit['id']
+        if uid not in seen:
+            dump.append(unit)
+            seen.add(uid)
+    save_json(os.path.join(data_dir, 'howitzers.json'), dump)
+    print(f'  [H8b] Howitzer: found {len(dump)} units')
     return []
 
 
@@ -1149,7 +1179,8 @@ HANDLERS = [
     ('Napalm MLRS',     handle_napalmmlrs,    None),
     ('ATGM',            handle_atgm,          'atgms.txt'),
     ('HE Bomber',       handle_hebomber,      None),
-    ('Tube Arty',       handle_tubearty,      'hemlrs.txt'),   # used as exclusion list
+    ('Mortar',          handle_mortar,        'hemlrs.txt'),   # hemlrs.txt used as exclusion list
+    ('Howitzer',        handle_howitzer,      'hemlrs.txt'),   # hemlrs.txt used as exclusion list
     ('AA Helo',         handle_aahelo,        None),
     ('Tank',            handle_tank,          None),
     ('Ship',            handle_ship,          'ships.tsv'),

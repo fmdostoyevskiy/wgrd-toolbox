@@ -118,16 +118,12 @@ export const DATASETS = {
     },
   },
 
-  // ── Tube Artillery ─────────────────────────────────────────────────────────
-  tubearty: {
-    label: 'Tube Artillery',
-    file: 'tubearty.json',
+  // ── Mortars ────────────────────────────────────────────────────────────────
+  mortar: {
+    label: 'Mortars',
+    file: 'mortars.json',
     isWeapon: false,
     defaultSort: 'cost',
-    presets: [
-      { label: 'MORTAR',   filters: { rng: { max: '9100' } } },
-      { label: 'HOWITZER', filters: { rng: { min: '11200' } } },
-    ],
     columns: [
       ...N,
       { key: 'dmg',         label: 'HE',         type: 'num', width: 65,  heat: 'high' },
@@ -139,7 +135,6 @@ export const DATASETS = {
       { key: 'supplyShot',  label: 'SUP/SHOT',    type: 'num', width: 85,  heat: 'low'  },
       { key: 'supplySalvo', label: 'SUP/SALVO',   type: 'num', width: 95,  heat: 'low'  },
       { key: 'rng',         label: 'MAX RNG',     type: 'num', width: 90,  heat: 'high' },
-      { key: 'minDisp',     label: 'MIN DISP',    type: 'num', width: 85,  heat: 'low'  },
       { key: 'maxDisp',     label: 'MAX DISP',    type: 'num', width: 85,  heat: 'low'  },
     ],
     transform(u) {
@@ -157,7 +152,43 @@ export const DATASETS = {
         supplyShot:  supplyPerShot,
         supplySalvo: (supplyPerShot != null && salvoLen != null) ? Math.round(supplyPerShot * salvoLen) : null,
         rng:         wf(art, 'maxRange'),
-        minDisp:     wf(art, 'dispersionMin'),
+        maxDisp:     wf(art, 'dispersion'),
+      };
+    },
+  },
+
+  // ── Howitzers ──────────────────────────────────────────────────────────────
+  howitzer: {
+    label: 'Howitzers',
+    file: 'howitzers.json',
+    isWeapon: false,
+    defaultSort: 'cost',
+    columns: [
+      ...N,
+      { key: 'dmg',         label: 'HE',         type: 'num', width: 65,  heat: 'high' },
+      { key: 'suppress',    label: 'SUPP',        type: 'num', width: 65,  heat: 'high' },
+      { key: 'aim',         label: 'AIM',         type: 'num', width: 65,  heat: 'low'  },
+      { key: 'salvoLen',    label: 'SALVO LEN',   type: 'num', width: 90,  heat: 'high' },
+      { key: 'shot',        label: 'SHOT RLD',    type: 'num', width: 80,  heat: 'low'  },
+      { key: 'supplyShot',  label: 'SUP/SHOT',    type: 'num', width: 85,  heat: 'low'  },
+      { key: 'supplySalvo', label: 'SUP/SALVO',   type: 'num', width: 95,  heat: 'low'  },
+      { key: 'rng',         label: 'MAX RNG',     type: 'num', width: 90,  heat: 'high' },
+      { key: 'maxDisp',     label: 'MAX DISP',    type: 'num', width: 85,  heat: 'low'  },
+    ],
+    transform(u) {
+      const art = top(u, w => w.category === 'Artillery' && !(w.ap ?? 0) && !w.tag?.includes('NPLM'), 'rng_g');
+      const supplyPerShot = wf(art, 'supplyPerShot');
+      const salvoLen      = wf(art, 'salvoLen');
+      return {
+        id: u.id, name: u.name, nation: u.nation, cost: u.cost,
+        dmg:         wf(art, 'dmg'),
+        suppress:    wf(art, 'suppress'),
+        aim:         wf(art, 'aimTime'),
+        salvoLen,
+        shot:        wf(art, 'shotReload'),
+        supplyShot:  supplyPerShot,
+        supplySalvo: (supplyPerShot != null && salvoLen != null) ? Math.round(supplyPerShot * salvoLen) : null,
+        rng:         wf(art, 'maxRange'),
         maxDisp:     wf(art, 'dispersion'),
       };
     },
