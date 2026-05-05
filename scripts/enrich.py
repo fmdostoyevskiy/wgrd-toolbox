@@ -1129,8 +1129,8 @@ def handle_merge_duplicate_weapons(units, rows, data_dir):
                 order.append(nid)
             else:
                 base = seen[nid]
-                if not differs(base, w):
-                    # Genuinely identical — keep as a separate entry
+                if not differs(base, w) or base.get('category') != w.get('category'):
+                    # Genuinely identical or incompatible categories — keep as a separate entry
                     unique_key = f'{nid}_{id(w)}'
                     seen[unique_key] = w
                     order.append(unique_key)
