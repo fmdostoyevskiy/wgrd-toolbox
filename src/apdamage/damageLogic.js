@@ -3,7 +3,9 @@ export function calcHeatDamage(AP, armor) {
   if (armor === 0) return AP * 2;
   if (armor === 1) return AP;
   if (armor >= AP) return 1;
-  return (AP - armor) / 2 + 1;
+  const diff = AP - armor;
+  if (diff >= 10) return diff - 4; // reaches 6 at diff=10, then +1 per point
+  return diff * 0.5 + 1;
 }
 
 // KE damage: AP, armor, max range and distance
