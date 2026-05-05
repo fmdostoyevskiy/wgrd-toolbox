@@ -1,7 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { BROWSER_TOKENS, BMono } from '@units-core';
 
-export const TagDropdown = React.memo(function TagDropdown({ allTags, selected, onToggle }) {
+export const TagDropdown = React.memo(function TagDropdown({ allTags, selected, onToggle, tagMode, onTagMode }) {
   const t = BROWSER_TOKENS;
   const [open, setOpen] = useState(false);
   const ref = useRef(null);
@@ -43,16 +43,29 @@ export const TagDropdown = React.memo(function TagDropdown({ allTags, selected, 
           display: 'flex', flexDirection: 'column',
           minWidth: 130,
         }}>
-          <button onClick={() => onToggle(null)} style={{
-            ...BMono,
-            background: 'transparent',
-            color: selected.length === 0 ? t.accent : t.dim,
-            border: 'none',
-            borderBottom: `1px solid ${t.rule}`,
-            padding: '5px 12px',
-            fontSize: 10.5, letterSpacing: '0.14em',
-            textAlign: 'left', cursor: 'pointer',
-          }}>ALL</button>
+          <div style={{ display: 'flex', borderBottom: `1px solid ${t.rule}` }}>
+            <button onClick={() => onToggle(null)} style={{
+              ...BMono,
+              background: 'transparent',
+              color: selected.length === 0 ? t.accent : t.dim,
+              border: 'none',
+              padding: '5px 12px',
+              fontSize: 10.5, letterSpacing: '0.14em',
+              textAlign: 'left', cursor: 'pointer', flex: 1,
+            }}>ALL</button>
+            {selected.length > 1 && (
+              <button onClick={onTagMode} style={{
+                ...BMono,
+                background: 'transparent',
+                color: t.accent,
+                border: 'none',
+                borderLeft: `1px solid ${t.rule}`,
+                padding: '5px 10px',
+                fontSize: 10.5, letterSpacing: '0.14em',
+                cursor: 'pointer',
+              }}>{tagMode}</button>
+            )}
+          </div>
           {allTags.map(tag => {
             const on = selected.includes(tag);
             return (

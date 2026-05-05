@@ -1162,6 +1162,146 @@ def handle_merge_duplicate_weapons(units, rows, data_dir):
 
 
 # ---------------------------------------------------------------------------
+# Handler 23 — AC  (auto-detect: Gun, ap >= 1, dmg in [1, 1.5], rng_h > 0,
+#                   rng_g in [1400, 1925])
+# ---------------------------------------------------------------------------
+
+def handle_ac(units, rows, data_dir):
+    count = 0
+    for unit in units:
+        for w in unit.get('weapons', []):
+            if w.get('category') != 'Gun':
+                continue
+            if (w.get('ap') or 0) < 1:
+                continue
+            dmg = w.get('dmg') or 0
+            if not (1 <= dmg <= 1.5):
+                continue
+            if not (w.get('rng_h') or 0):
+                continue
+            rng_g = w.get('rng_g') or 0
+            if not (1400 <= rng_g <= 1925):
+                continue
+            tags = w.setdefault('tag', [])
+            if 'AC' not in tags:
+                tags.append('AC')
+                count += 1
+    save_json(os.path.join(data_dir, 'ac.json'),
+              [u for u in units if any('AC' in w.get('tag', []) for w in u.get('weapons', []))])
+    print(f'  [H23] AC: tagged {count} weapon(s)')
+    return []
+
+
+# ---------------------------------------------------------------------------
+# Handler 24 — MG  (auto-detect: non-Infantry, Gun, ap == 0, dmg in [0.5, 1],
+#                   rng_g <= 1225, no plane range)
+# ---------------------------------------------------------------------------
+
+def handle_mg(units, rows, data_dir):
+    count = 0
+    for unit in units:
+        if unit.get('type') == 'Infantry':
+            continue
+        for w in unit.get('weapons', []):
+            if w.get('category') != 'Gun':
+                continue
+            if (w.get('ap') or 0) != 0:
+                continue
+            dmg = w.get('dmg') or 0
+            if not (0.5 <= dmg <= 1):
+                continue
+            if (w.get('rng_g') or 0) > 1225:
+                continue
+            if (w.get('rng_a') or 0) > 0:
+                continue
+            tags = w.setdefault('tag', [])
+            if 'MG' not in tags:
+                tags.append('MG')
+                count += 1
+    save_json(os.path.join(data_dir, 'mg.json'),
+              [u for u in units if any('MG' in w.get('tag', []) for w in u.get('weapons', []))])
+    print(f'  [H24] MG: tagged {count} weapon(s)')
+    return []
+
+
+# ---------------------------------------------------------------------------
+# Handler 25 — GL  (auto-detect: Gun, ap == 0, dmg == 2, rng_g in [1225, 1750], no air range)
+# ---------------------------------------------------------------------------
+
+def handle_gl(units, rows, data_dir):
+    count = 0
+    for unit in units:
+        for w in unit.get('weapons', []):
+            if w.get('category') != 'Gun':
+                continue
+            if (w.get('dmg') or 0) != 2:
+                continue
+            if (w.get('ap') or 0) != 0:
+                continue
+            rng_g = w.get('rng_g') or 0
+            if not (1225 <= rng_g <= 1750):
+                continue
+            if (w.get('rng_a') or 0) > 0:
+                continue
+            if (w.get('rng_h') or 0) > 0:
+                continue
+            tags = w.setdefault('tag', [])
+            if 'GL' not in tags:
+                tags.append('GL')
+                count += 1
+    save_json(os.path.join(data_dir, 'gl.json'),
+              [u for u in units if any('GL' in w.get('tag', []) for w in u.get('weapons', []))])
+    print(f'  [H25] GL: tagged {count} weapon(s)')
+    return []
+
+
+# ---------------------------------------------------------------------------
+# Handler 26 — Autoloader  (auto-detect: Vehicle + Gun, salvoLen > 1, ammo <= salvoLen,
+#                            no helicopter range; plus optional autoloader.tsv overrides)
+# ---------------------------------------------------------------------------
+
+def handle_autoloader(units, rows, data_dir):
+    auto_count = 0
+    for unit in units:
+        if unit.get('type') != 'Vehicle':
+            continue
+        for w in unit.get('weapons', []):
+            if w.get('category') != 'Gun':
+                continue
+            salvo_len = w.get('salvoLen') or 1
+            ammo = w.get('ammo') or 0
+            if salvo_len > 1 and ammo <= salvo_len and not (w.get('rng_h') or 0):
+                tags = w.setdefault('tag', [])
+                if 'AL' not in tags:
+                    tags.append('AL')
+                    auto_count += 1
+
+    unmatched = []
+    tsv_count = 0
+    for row in rows:
+        if not row or not row[0].strip():
+            continue
+        unit_name = row[0].strip()
+        matched = find_units_by_name(units, unit_name)
+        if not matched:
+            print(f'  [H24] WARNING: unit "{unit_name}" not found in JSON')
+            unmatched.append(unit_name)
+            continue
+        for unit in matched:
+            weapons = unit.get('weapons', [])
+            if weapons:
+                tags = weapons[0].setdefault('tag', [])
+                if 'AL' not in tags:
+                    tags.append('AL')
+                    tsv_count += 1
+
+    dump = [u for u in units if any('AL' in w.get('tag', []) for w in u.get('weapons', []))]
+    save_json(os.path.join(data_dir, 'autoloaders.json'), dump)
+    print(f'  [H24] Autoloader: {auto_count} auto-detected, {tsv_count} from TSV, {len(dump)} total units')
+    return unmatched
+
+
+# ---------------------------------------------------------------------------
 # Handler registry
 # Each entry: (display_name, handler_fn, input_file_or_None)
 #   input_file: filename relative to data_dir; None = auto-detect (no file needed)
@@ -1197,6 +1337,10 @@ HANDLERS = [
     ('ATGM Vehicle',    handle_atgmvehicle,   None),
     ('ATGM Infantry',   handle_atgminfantry,  None),
     ('ATGM Helo',       handle_atgmhelo,      None),
+    ('AC',              handle_ac,             None),
+    ('MG',              handle_mg,             None),
+    ('GL',              handle_gl,             None),
+    ('Autoloader',      handle_autoloader,     'autoloader.tsv'),
     ('Turret',          handle_turret,         'turrets.tsv'),
 ]
 

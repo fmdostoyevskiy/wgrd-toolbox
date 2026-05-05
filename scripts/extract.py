@@ -840,20 +840,6 @@ def extract_weapons(unit_obj: dict, instances: dict, dic: dict = {}, is_plane: b
             # Populate display name from dic
             weapon["name"] = dic_lookup(dic, weapon.get("nameId", ""))
 
-            # BRST: guns only, salvoLen > 1, multiple salvos available
-            # AL: salvoLen > 1, only one salvo total (ammo <= salvoLen)
-            # Source: armory getTags()
-            salvo_len = weapon.get("salvoLen") or 1
-            ammo      = weapon.get("ammo") or 0
-            if salvo_len > 1:
-                tags = weapon.get("tag", [])
-                if ammo > salvo_len:
-                    if weapon.get("category") == "Gun" and "BRST" not in tags:
-                        tags.append("BRST")
-                else:
-                    if weapon.get("category") == "Gun" and "AL" not in tags:
-                        tags.append("AL")
-
             weapons.append(weapon)
 
     return weapons

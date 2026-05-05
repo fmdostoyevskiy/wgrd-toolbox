@@ -25,7 +25,7 @@ const MOBILE_BREAKPOINT = 900;
 
 export function BrowserD({ roster, units, initialUnit }) {
   const t = BROWSER_TOKENS;
-  const { f, setQ, toggle, select, solo, toggleCoalition, toggleSide, filtered } = useFilterState(roster);
+  const { f, setQ, toggle, select, solo, toggleCoalition, toggleSide, filtered, tagMode, toggleTagMode } = useFilterState(roster);
 
   const [selected, setSelected] = useState(initialUnit ?? null);
   const [pinned,   setPinned]   = useState([]);
@@ -110,6 +110,8 @@ export function BrowserD({ roster, units, initialUnit }) {
           tag={f.tag}
           onTag={toggle('tag')}
           allTags={allTags}
+          tagMode={tagMode}
+          onTagMode={toggleTagMode}
           filtered={filtered}
           rosterCount={roster.length}
           selected={selected}
@@ -174,7 +176,7 @@ const CoalBtn = React.memo(function CoalBtn({ label, flagSrc, onClick, active, c
 function ListPane({
   listOpen, setListOpen,
   q, setSearch,
-  spec, onSpec, era, onEra, tag, onTag, allTags,
+  spec, onSpec, era, onEra, tag, onTag, allTags, tagMode, onTagMode,
   filtered, rosterCount,
   selected, pinnedIds, expandedTransports,
   onSelect, onToggleTransports,
@@ -233,7 +235,7 @@ function ListPane({
               items={[['', 'SPEC: ALL'], ...SPECS.map(s => [s, s.toUpperCase()])]} />
             <FilterSelect value={era[0] ?? ''}  active={era.length > 0}  onChange={v => onEra(v || null)}
               items={[['', 'ERA: ALL'], ['PRE-85', 'PRE-85'], ['PRE-80', 'PRE-80']]} />
-            <TagDropdown allTags={allTags} selected={tag} onToggle={onTag} />
+            <TagDropdown allTags={allTags} selected={tag} onToggle={onTag} tagMode={tagMode} onTagMode={onTagMode} />
           </div>
 
 
