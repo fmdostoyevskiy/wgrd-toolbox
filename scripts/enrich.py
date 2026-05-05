@@ -1031,6 +1031,39 @@ def handle_turret(units, rows, data_dir):
 
 
 # ---------------------------------------------------------------------------
+# Handler 21b — Split-ID Weapons  (normalize mismatched nameIds before merge)
+# ---------------------------------------------------------------------------
+
+# Weapons that represent the same gun but were assigned different nameIds in
+# the source data.  Map each secondary ID to the canonical (KE) ID so that
+# handle_merge_duplicate_weapons can merge them normally.
+_SPLIT_ID_CANON = {
+    # C1 ARIETE — OTO Breda 120mm L/44
+    'd1034d580659d405': 'd2b74594342e5d05',
+    # OF-40 Mk.2A — OTO Melara 105mm M52
+    '9af3700e146edd04': 'dff8340db3381c03',
+    # OF-40 Mk.2 — OTO Melara 105mm M52
+    'd1f66c56d4601903': '4d177d5b38424c07',
+}
+
+def handle_split_id_weapons(units, rows, data_dir):
+    """
+    Canonicalize nameIds for guns whose KE and AoE ammo variants were given
+    different IDs in the source data, so handle_merge_duplicate_weapons can
+    merge them correctly.
+    """
+    total_fixed = 0
+    for unit in units:
+        for w in unit.get('weapons', []):
+            canon = _SPLIT_ID_CANON.get(w.get('nameId', ''))
+            if canon:
+                w['nameId'] = canon
+                total_fixed += 1
+    print(f'  [H21b] Split-ID Weapons: normalized {total_fixed} nameId(s)')
+    return []
+
+
+# ---------------------------------------------------------------------------
 # Handler 22 — Merge Duplicate Weapons  (auto: collapse AP+HE split guns)
 # ---------------------------------------------------------------------------
 
@@ -1107,7 +1140,8 @@ def handle_merge_duplicate_weapons(units, rows, data_dir):
 HANDLERS = [
     ('Exclude',         handle_exclude,          'exclude.txt'),
     ('Trailing Spaces', handle_trailing_spaces,  None),
-    ('Merge Duplicate Weapons', handle_merge_duplicate_weapons, None),
+    ('Split-ID Weapons',        handle_split_id_weapons,         None),
+    ('Merge Duplicate Weapons', handle_merge_duplicate_weapons,  None),
     ('Fire Support',    handle_firesupport,  'firesupport.tsv'),
     ('SPAAG',           handle_spaag,         None),
     ('HE MLRS',         handle_hemlrs,        'hemlrs.txt'),
