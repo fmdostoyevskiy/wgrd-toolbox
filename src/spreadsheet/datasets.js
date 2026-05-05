@@ -135,7 +135,6 @@ export const DATASETS = {
       { key: 'supplyShot',  label: 'SUP/SHOT',    type: 'num', width: 85,  heat: 'low'  },
       { key: 'supplySalvo', label: 'SUP/SALVO',   type: 'num', width: 95,  heat: 'low'  },
       { key: 'rng',         label: 'MAX RNG',     type: 'num', width: 90,  heat: 'high' },
-      { key: 'minDisp',     label: 'MIN DISP',    type: 'num', width: 85,  heat: 'low'  },
       { key: 'maxDisp',     label: 'MAX DISP',    type: 'num', width: 85,  heat: 'low'  },
     ],
     transform(u) {
@@ -153,7 +152,6 @@ export const DATASETS = {
         supplyShot:  supplyPerShot,
         supplySalvo: (supplyPerShot != null && salvoLen != null) ? Math.round(supplyPerShot * salvoLen) : null,
         rng:         wf(art, 'maxRange'),
-        minDisp:     wf(art, 'dispersionMin'),
         maxDisp:     wf(art, 'dispersion'),
       };
     },
@@ -172,11 +170,9 @@ export const DATASETS = {
       { key: 'aim',         label: 'AIM',         type: 'num', width: 65,  heat: 'low'  },
       { key: 'salvoLen',    label: 'SALVO LEN',   type: 'num', width: 90,  heat: 'high' },
       { key: 'shot',        label: 'SHOT RLD',    type: 'num', width: 80,  heat: 'low'  },
-      { key: 'salvo',       label: 'SALVO RLD',   type: 'num', width: 90,  heat: 'low'  },
       { key: 'supplyShot',  label: 'SUP/SHOT',    type: 'num', width: 85,  heat: 'low'  },
       { key: 'supplySalvo', label: 'SUP/SALVO',   type: 'num', width: 95,  heat: 'low'  },
       { key: 'rng',         label: 'MAX RNG',     type: 'num', width: 90,  heat: 'high' },
-      { key: 'minDisp',     label: 'MIN DISP',    type: 'num', width: 85,  heat: 'low'  },
       { key: 'maxDisp',     label: 'MAX DISP',    type: 'num', width: 85,  heat: 'low'  },
     ],
     transform(u) {
@@ -190,11 +186,9 @@ export const DATASETS = {
         aim:         wf(art, 'aimTime'),
         salvoLen,
         shot:        wf(art, 'shotReload'),
-        salvo:       wf(art, 'salvoReload'),
         supplyShot:  supplyPerShot,
         supplySalvo: (supplyPerShot != null && salvoLen != null) ? Math.round(supplyPerShot * salvoLen) : null,
         rng:         wf(art, 'maxRange'),
-        minDisp:     wf(art, 'dispersionMin'),
         maxDisp:     wf(art, 'dispersion'),
       };
     },
