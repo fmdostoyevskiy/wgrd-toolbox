@@ -1,24 +1,90 @@
 import React, { useState, useRef, useEffect } from 'react';
+import ReactDOM from 'react-dom';
 import { BROWSER_TOKENS, BMono } from '@units-core';
 
 export const TagDropdown = React.memo(function TagDropdown({ allTags, selected, onToggle, tagMode, onTagMode }) {
   const t = BROWSER_TOKENS;
   const [open, setOpen] = useState(false);
-  const ref = useRef(null);
+  const [btnRect, setBtnRect] = useState(null);
+  const btnRef = useRef(null);
+  const panelRef = useRef(null);
 
   useEffect(() => {
     if (!open) return;
-    const handler = (e) => { if (!ref.current?.contains(e.target)) setOpen(false); };
+    const handler = (e) => {
+      if (!panelRef.current?.contains(e.target) && !btnRef.current?.contains(e.target))
+        setOpen(false);
+    };
     document.addEventListener('mousedown', handler);
     return () => document.removeEventListener('mousedown', handler);
   }, [open]);
 
+  const handleToggle = () => {
+    if (!open) setBtnRect(btnRef.current?.getBoundingClientRect() ?? null);
+    setOpen(o => !o);
+  };
+
   const active = selected.length > 0;
   const label  = active ? `TAG: ${selected.length}` : 'TAG: ALL';
 
+  const panel = open && btnRect && ReactDOM.createPortal(
+    <div ref={panelRef} style={{
+      position: 'fixed',
+      top: btnRect.bottom,
+      right: window.innerWidth - btnRect.right,
+      background: t.surface,
+      border: `1px solid ${t.rule}`,
+      zIndex: 9999,
+      display: 'flex', flexDirection: 'column',
+      minWidth: 130,
+      maxHeight: window.innerHeight - btnRect.bottom - 8,
+      overflowY: 'auto',
+    }}>
+      <div style={{ display: 'flex', borderBottom: `1px solid ${t.rule}`, flexShrink: 0 }}>
+        <button onClick={() => onToggle(null)} style={{
+          ...BMono,
+          background: 'transparent',
+          color: selected.length === 0 ? t.accent : t.dim,
+          border: 'none',
+          padding: '5px 12px',
+          fontSize: 10.5, letterSpacing: '0.14em',
+          textAlign: 'left', cursor: 'pointer', flex: 1,
+        }}>ALL</button>
+        {selected.length > 1 && (
+          <button onClick={onTagMode} style={{
+            ...BMono,
+            background: 'transparent',
+            color: t.accent,
+            border: 'none',
+            borderLeft: `1px solid ${t.rule}`,
+            padding: '5px 10px',
+            fontSize: 10.5, letterSpacing: '0.14em',
+            cursor: 'pointer',
+          }}>{tagMode}</button>
+        )}
+      </div>
+      {allTags.map(tag => {
+        const on = selected.includes(tag);
+        return (
+          <button key={tag} onClick={() => onToggle(tag)} style={{
+            ...BMono,
+            background: 'transparent',
+            color: on ? t.accent : t.dim,
+            border: 'none',
+            padding: '5px 12px',
+            fontSize: 10.5, letterSpacing: '0.14em',
+            textAlign: 'left', cursor: 'pointer',
+            borderLeft: `2px solid ${on ? t.accent : 'transparent'}`,
+          }}>{tag}</button>
+        );
+      })}
+    </div>,
+    document.body
+  );
+
   return (
-    <div ref={ref} style={{ position: 'relative', alignSelf: 'stretch', display: 'flex', alignItems: 'stretch' }}>
-      <button onClick={() => setOpen(o => !o)} style={{
+    <div style={{ alignSelf: 'stretch', display: 'flex', alignItems: 'stretch' }}>
+      <button ref={btnRef} onClick={handleToggle} style={{
         ...BMono,
         background: 'transparent',
         color: active ? t.accent : t.dim,
@@ -34,55 +100,7 @@ export const TagDropdown = React.memo(function TagDropdown({ allTags, selected, 
         borderTop: '2px solid transparent',
         whiteSpace: 'nowrap',
       }}>{label}</button>
-      {open && (
-        <div style={{
-          position: 'absolute', top: '100%', right: 0,
-          background: t.surface,
-          border: `1px solid ${t.rule}`,
-          zIndex: 20,
-          display: 'flex', flexDirection: 'column',
-          minWidth: 130,
-        }}>
-          <div style={{ display: 'flex', borderBottom: `1px solid ${t.rule}` }}>
-            <button onClick={() => onToggle(null)} style={{
-              ...BMono,
-              background: 'transparent',
-              color: selected.length === 0 ? t.accent : t.dim,
-              border: 'none',
-              padding: '5px 12px',
-              fontSize: 10.5, letterSpacing: '0.14em',
-              textAlign: 'left', cursor: 'pointer', flex: 1,
-            }}>ALL</button>
-            {selected.length > 1 && (
-              <button onClick={onTagMode} style={{
-                ...BMono,
-                background: 'transparent',
-                color: t.accent,
-                border: 'none',
-                borderLeft: `1px solid ${t.rule}`,
-                padding: '5px 10px',
-                fontSize: 10.5, letterSpacing: '0.14em',
-                cursor: 'pointer',
-              }}>{tagMode}</button>
-            )}
-          </div>
-          {allTags.map(tag => {
-            const on = selected.includes(tag);
-            return (
-              <button key={tag} onClick={() => onToggle(tag)} style={{
-                ...BMono,
-                background: 'transparent',
-                color: on ? t.accent : t.dim,
-                border: 'none',
-                padding: '5px 12px',
-                fontSize: 10.5, letterSpacing: '0.14em',
-                textAlign: 'left', cursor: 'pointer',
-                borderLeft: `2px solid ${on ? t.accent : 'transparent'}`,
-              }}>{tag}</button>
-            );
-          })}
-        </div>
-      )}
+      {panel}
     </div>
   );
 });
