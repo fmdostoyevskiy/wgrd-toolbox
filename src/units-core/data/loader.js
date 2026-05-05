@@ -40,9 +40,14 @@ function transformUnit(unit) {
   }
 
   if (unit.type === 'Vehicle' && unit.speed != null && unit.motionType) {
-    const wheeled = unit.motionType === 'wheeled';
-    derived.roadSpeed   = wheeled ? 150 : 110;
-    derived.forestSpeed = Math.round(unit.speed * (wheeled ? 0.5 : 0.7));
+    if (unit.motionType === 'truck') {
+      derived.roadSpeed   = 150;
+      derived.forestSpeed = Math.round(unit.speed * 0.3);
+    } else {
+      const wheeled = unit.motionType === 'wheeled';
+      derived.roadSpeed   = wheeled ? 150 : 110;
+      derived.forestSpeed = Math.round(unit.speed * (wheeled ? 0.5 : 0.6));
+    }
     if (unit.amphibious) {
       derived.swimSpeed = Math.round(unit.speed * 0.5);
     }

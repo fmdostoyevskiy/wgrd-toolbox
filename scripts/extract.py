@@ -405,7 +405,7 @@ FACTORY_TO_TAB = {
 # Source: Wargame_Internal_Values_Manual §UnitMovingType
 UNIT_MOVING_TYPE = {
     1: ("foot",    False, True),
-    2: ("wheeled", False, False),
+    2: ("truck",   False, False),
     3: ("wheeled", False, False),
     5: ("tracked", False, False),
     6: ("air",     False, False),
