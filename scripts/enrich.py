@@ -341,18 +341,25 @@ def _is_spaag_weapon(w):
 
 def handle_spaag(units, rows, data_dir):
     dump, seen = [], set()
+    tag_count = 0
     for unit in units:
         if unit.get('type') != 'Vehicle':
             continue
         if not any(_is_spaag_weapon(w) for w in unit.get('weapons', [])):
             continue
         add_to_spreadsheet(unit, 'SPAAG')
+        for w in unit.get('weapons', []):
+            if _is_spaag_weapon(w):
+                tags = w.setdefault('tag', [])
+                if 'SPAAG' not in tags:
+                    tags.append('SPAAG')
+                    tag_count += 1
         uid = unit['id']
         if uid not in seen:
             dump.append(unit)
             seen.add(uid)
     save_json(os.path.join(data_dir, 'spaags.json'), dump)
-    print(f'  [H2] SPAAG: found {len(dump)} units')
+    print(f'  [H2] SPAAG: found {len(dump)} units, tagged {tag_count} weapon(s)')
     return []
 
 
@@ -379,6 +386,11 @@ def handle_hemlrs(units, rows, data_dir):
                 ):
                     continue
                 add_to_spreadsheet(unit, 'HE MLRS')
+                for w in unit.get('weapons', []):
+                    if w.get('category') == 'Artillery' and w.get('dmg', 0) >= 6:
+                        tags = w.setdefault('tag', [])
+                        if 'MLRS' not in tags:
+                            tags.append('MLRS')
                 uid = unit['id']
                 if uid not in seen:
                     dump.append(unit)
@@ -401,6 +413,11 @@ def handle_clustermlrs(units, rows, data_dir):
                    for w in unit.get('weapons', [])):
             continue
         add_to_spreadsheet(unit, 'Cluster MLRS')
+        for w in unit.get('weapons', []):
+            if 'CLUS' in w.get('tag', []):
+                tags = w.setdefault('tag', [])
+                if 'MLRS' not in tags:
+                    tags.append('MLRS')
         uid = unit['id']
         if uid not in seen:
             dump.append(unit)
@@ -423,6 +440,11 @@ def handle_napalmmlrs(units, rows, data_dir):
                    for w in unit.get('weapons', [])):
             continue
         add_to_spreadsheet(unit, 'Napalm MLRS')
+        for w in unit.get('weapons', []):
+            if w.get('category') == 'Artillery' and has_napalm(w):
+                tags = w.setdefault('tag', [])
+                if 'MLRS' not in tags:
+                    tags.append('MLRS')
         uid = unit['id']
         if uid not in seen:
             dump.append(unit)
@@ -520,6 +542,11 @@ def handle_mortar(units, rows, data_dir):
         if max_rng > MORTAR_MAX_RANGE:
             continue
         add_to_spreadsheet(unit, 'Mortar')
+        for w in unit.get('weapons', []):
+            if w.get('category') == 'Artillery' and not w.get('ap', 0) and not has_napalm(w):
+                tags = w.setdefault('tag', [])
+                if 'MOR' not in tags:
+                    tags.append('MOR')
         uid = unit['id']
         if uid not in seen:
             dump.append(unit)
@@ -536,6 +563,11 @@ def handle_howitzer(units, rows, data_dir):
         if max_rng <= MORTAR_MAX_RANGE:
             continue
         add_to_spreadsheet(unit, 'Howitzer')
+        for w in unit.get('weapons', []):
+            if w.get('category') == 'Artillery' and not w.get('ap', 0) and not has_napalm(w):
+                tags = w.setdefault('tag', [])
+                if 'HOW' not in tags:
+                    tags.append('HOW')
         uid = unit['id']
         if uid not in seen:
             dump.append(unit)
@@ -765,6 +797,12 @@ def handle_missileaa(units, rows, data_dir):
         )
 
         uid = unit['id']
+        if is_plane_aa or is_helo_aa:
+            for w in missiles:
+                if w.get('rng_a', 0) > 0:
+                    tags = w.setdefault('tag', [])
+                    if 'SAM' not in tags:
+                        tags.append('SAM')
         if is_plane_aa:
             add_to_spreadsheet(unit, 'Plane Missile AA')
             if uid not in plane_seen:
@@ -1302,6 +1340,47 @@ def handle_autoloader(units, rows, data_dir):
 
 
 # ---------------------------------------------------------------------------
+# Handler 27 — ATGM Tag  (auto-detect: Missile, ap > 0, not SHIP/SEAD/SPAAG)
+# ---------------------------------------------------------------------------
+
+def handle_atgm_tag(units, rows, data_dir):
+    count = 0
+    for unit in units:
+        for w in unit.get('weapons', []):
+            if w.get('category') != 'Missile':
+                continue
+            if not w.get('ap', 0):
+                continue
+            wtags = w.get('tag', [])
+            if 'SHIP' in wtags or 'SEAD' in wtags or _is_spaag_weapon(w):
+                continue
+            tags = w.setdefault('tag', [])
+            if 'ATGM' not in tags:
+                tags.append('ATGM')
+                count += 1
+    print(f'  [H27] ATGM Tag: tagged {count} weapon(s)')
+    return []
+
+
+# ---------------------------------------------------------------------------
+# Handler 28 — BOMB Tag  (auto-detect: category Bomb or LGB tag)
+# ---------------------------------------------------------------------------
+
+def handle_bomb_tag(units, rows, data_dir):
+    count = 0
+    for unit in units:
+        for w in unit.get('weapons', []):
+            if not is_bomb_type(w):
+                continue
+            tags = w.setdefault('tag', [])
+            if 'BOMB' not in tags:
+                tags.append('BOMB')
+                count += 1
+    print(f'  [H28] BOMB Tag: tagged {count} weapon(s)')
+    return []
+
+
+# ---------------------------------------------------------------------------
 # Handler registry
 # Each entry: (display_name, handler_fn, input_file_or_None)
 #   input_file: filename relative to data_dir; None = auto-detect (no file needed)
@@ -1341,6 +1420,8 @@ HANDLERS = [
     ('MG',              handle_mg,             None),
     ('GL',              handle_gl,             None),
     ('Autoloader',      handle_autoloader,     'autoloader.tsv'),
+    ('ATGM Tag',        handle_atgm_tag,       None),
+    ('BOMB Tag',        handle_bomb_tag,       None),
     ('Turret',          handle_turret,         'turrets.tsv'),
 ]
 
