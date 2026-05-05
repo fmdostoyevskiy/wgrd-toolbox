@@ -79,6 +79,32 @@ body {
 .topbar-btn:hover { color: var(--text); background: var(--bg-3); }
 .topbar-btn.active { color: var(--text); background: var(--bg-3); }
 
+.topbar-presets {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 0 10px;
+  border-left: 1px solid var(--line);
+  height: 44px;
+}
+.preset-btn {
+  height: 22px;
+  padding: 0 7px;
+  font-family: var(--mono);
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  color: var(--text-dim);
+  background: transparent;
+  border: 1px solid var(--line-2);
+  border-radius: 2px;
+  cursor: pointer;
+  white-space: nowrap;
+  text-transform: uppercase;
+}
+.preset-btn:hover { color: var(--text); border-color: var(--text-mute); }
+.preset-btn.active { color: var(--bg); background: var(--accent-amber); border-color: var(--accent-amber); }
+
 .topbar-search {
   margin-left: auto;
   height: 44px;

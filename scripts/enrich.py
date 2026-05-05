@@ -782,8 +782,8 @@ def _has_ship_weapon(weapons):
     return any('SHIP' in w.get('tag', []) for w in weapons)
 
 
-def _has_plane_range_3500(weapons):
-    return any(w.get('rng_a', 0) >= 3500 for w in weapons)
+def _has_plane_range_3150(weapons):
+    return any(w.get('rng_a', 0) >= 3150 for w in weapons)
 
 
 def handle_asf(units, rows, data_dir):
@@ -794,7 +794,7 @@ def handle_asf(units, rows, data_dir):
         weapons = unit.get('weapons', [])
         if _has_ship_weapon(weapons):
             continue
-        if not _has_plane_range_3500(weapons):
+        if not _has_plane_range_3150(weapons):
             continue
         add_to_spreadsheet(unit, 'ASF')
         uid = unit['id']

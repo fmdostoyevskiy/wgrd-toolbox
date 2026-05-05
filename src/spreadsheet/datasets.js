@@ -21,6 +21,10 @@ export const DATASETS = {
     file: 'spaags.json',
     isWeapon: false,
     defaultSort: 'cost',
+    presets: [
+      { label: 'RADAR',       filters: { radar: { text: 'Y' } } },
+      { label: 'FAST-FIRING', filters: { shot: { max: '0.4' } } },
+    ],
     columns: [
       ...N,
       { key: 'aim',      label: 'AIM',       type: 'num', width: 65,  heat: 'low'  },
@@ -72,6 +76,10 @@ export const DATASETS = {
     file: 'tanks.json',
     isWeapon: false,
     defaultSort: 'cost',
+    presets: [
+      { label: 'SUPERHEAVY', filters: { cost:       { min: '155' } } },
+      { label: 'WHEELED',    filters: { motionType: { text: 'wheeled' } } },
+    ],
     columns: [
       ...N,
       { key: 'armorF',     label: 'F',        type: 'num',       width: 55,  heat: 'high' },
@@ -116,6 +124,10 @@ export const DATASETS = {
     file: 'tubearty.json',
     isWeapon: false,
     defaultSort: 'cost',
+    presets: [
+      { label: 'MORTAR',   filters: { rng: { max: '9100' } } },
+      { label: 'HOWITZER', filters: { rng: { min: '11200' } } },
+    ],
     columns: [
       ...N,
       { key: 'dmg',         label: 'HE',         type: 'num', width: 65,  heat: 'high' },
@@ -273,12 +285,20 @@ export const DATASETS = {
     file: 'planemissileaa.json',
     isWeapon: false,
     defaultSort: 'cost',
+    presets: [
+      { label: 'ACCURATE',   filters: { acc:      { min: '60' } } },
+      { label: 'INSTASTUN',  filters: { dmg:      { min: '8' } } },
+      { label: 'HIGH SALVO', filters: { salvoLen: { min: '3' } } },
+      { label: 'MOBILE',     filters: { speed:    { min: '50' } } },
+    ],
     columns: [
       ...N,
       { key: 'planeRng', label: 'PLANE RNG', type: 'num',  width: 105, heat: 'high' },
       { key: 'heloRng',  label: 'HELO RNG',  type: 'num',  width: 100, heat: 'high' },
       { key: 'dmg',      label: 'DMG',       type: 'num',  width: 65,  heat: 'high' },
       { key: 'salvoLen', label: 'SALVO LEN', type: 'num',  width: 90,  heat: 'high' },
+      { key: 'ammo',     label: 'AMMO',      type: 'num',  width: 65,  heat: 'high' },
+      { key: 'fnf',      label: 'F&F',       type: 'bool-good',  width: 55,  heat: null   },
       { key: 'radar',    label: 'RADAR',     type: 'bool',       width: 65,  heat: null   },
       { key: 'acc',      label: 'ACC',       type: 'pct',        width: 65,  heat: 'high' },
       { key: 'speed',    label: 'SPEED',     type: 'num',        width: 70,  heat: 'high' },
@@ -293,6 +313,8 @@ export const DATASETS = {
         heloRng:  wf(m, 'rng_h'),
         dmg:      wf(m, 'dmg'),
         salvoLen: wf(m, 'salvoLen'),
+        ammo:     wf(m, 'ammo'),
+        fnf:      m?.tag?.includes('FnF') ?? false,
         radar:    m?.tag?.includes('RAD') ?? false,
         acc:      wf(m, 'acc'),
         speed:    u.speed ?? null,
@@ -308,6 +330,13 @@ export const DATASETS = {
     file: 'helomissileaa.json',
     isWeapon: false,
     defaultSort: 'cost',
+    presets: [
+      { label: 'ACCURATE',        filters: { acc:      { min: '55' } } },
+      { label: 'STABILIZED',      filters: { stab:     { min: '45' } } },
+      { label: 'LONG RANGE',      filters: { planeRng: { min: '3150' } } },
+      { label: 'MOBILE',          filters: { speed:    { min: '70' } } },
+      { label: 'FIRE AND FORGET', filters: { fnf:      { text: 'Y' } } },
+    ],
     columns: [
       ...N,
       { key: 'heloRng',  label: 'HELO RNG',  type: 'num',  width: 100, heat: 'high' },
@@ -316,10 +345,11 @@ export const DATASETS = {
       { key: 'acc',      label: 'ACC',       type: 'pct',  width: 65,  heat: 'high' },
       { key: 'stab',     label: 'STAB',      type: 'pct',  width: 65,  heat: 'high' },
       { key: 'mspd',     label: 'MS SPD',    type: 'num',  width: 80,  heat: 'high' },
-      { key: 'ammo',     label: 'AMMO',      type: 'num',  width: 65,  heat: 'high' },
-      { key: 'radar',    label: 'RADAR',     type: 'bool', width: 65,  heat: null   },
-      { key: 'speed',    label: 'SPEED',     type: 'num',  width: 70,  heat: 'high' },
-      { key: 'size',     label: 'SIZE',      type: 'num',  width: 65,  heat: 'low'  },
+      { key: 'salvoLen', label: 'SALVO LEN', type: 'num',       width: 90,  heat: 'high' },
+      { key: 'ammo',     label: 'AMMO',      type: 'num',       width: 65,  heat: 'high' },
+      { key: 'fnf',      label: 'F&F',       type: 'bool-good', width: 55,  heat: null   },
+      { key: 'radar',    label: 'RADAR',     type: 'bool',      width: 65,  heat: null   },
+      { key: 'speed',    label: 'SPEED',     type: 'num',       width: 70,  heat: 'high' },
     ],
     transform(u) {
       // exclude dmg=1 guns (SPAAG guns that appear in this file as secondary weapons)
@@ -332,10 +362,11 @@ export const DATASETS = {
         acc:      wf(m, 'acc'),
         stab:     wf(m, 'stab'),
         mspd:     wf(m, 'missileSpeed'),
+        salvoLen: wf(m, 'salvoLen'),
         ammo:     wf(m, 'ammo'),
+        fnf:      m?.tag?.includes('FnF') ?? false,
         radar:    m?.tag?.includes('RAD') ?? false,
         speed:    u.speed ?? null,
-        size:     u.size ?? 0,
       };
     },
   },
@@ -346,15 +377,22 @@ export const DATASETS = {
     file: 'manpads.json',
     isWeapon: false,
     defaultSort: 'cost',
+    presets: [
+      { label: 'ACCURATE',   filters: { acc:      { min: '50' } } },
+      { label: 'LONG RANGE', filters: { planeRng: { min: '2450' } } },
+      { label: 'REGULAR',    filters: { training: { max: '1' } } },
+      { label: 'HIGH DMG',   filters: { dmg:      { min: '4' } } },
+    ],
     columns: [
       ...N,
-      { key: 'health',   label: 'HP',        type: 'num', width: 55,  heat: 'high' },
-      { key: 'training', label: 'TRAINING',  type: 'num', width: 85,  heat: 'high' },
-      { key: 'heloRng',  label: 'HELO RNG',  type: 'num', width: 100, heat: 'high' },
-      { key: 'planeRng', label: 'PLANE RNG', type: 'num', width: 105, heat: 'high' },
-      { key: 'dmg',      label: 'DMG',       type: 'num', width: 65,  heat: 'high' },
-      { key: 'acc',      label: 'ACC',       type: 'pct', width: 65,  heat: 'high' },
-      { key: 'reload',   label: 'RELOAD',    type: 'num', width: 75,  heat: 'low'  },
+      { key: 'health',   label: 'HP',        type: 'num',       width: 55,  heat: 'high' },
+      { key: 'training', label: 'TRAINING',  type: 'num',       width: 85,  heat: 'high' },
+      { key: 'heloRng',  label: 'HELO RNG',  type: 'num',       width: 100, heat: 'high' },
+      { key: 'planeRng', label: 'PLANE RNG', type: 'num',       width: 105, heat: 'high' },
+      { key: 'dmg',      label: 'DMG',       type: 'num',       width: 65,  heat: 'high' },
+      { key: 'acc',      label: 'ACC',       type: 'pct',       width: 65,  heat: 'high' },
+      { key: 'fnf',      label: 'F&F',       type: 'bool-good', width: 55,  heat: null   },
+      { key: 'reload',   label: 'RELOAD',    type: 'num',       width: 75,  heat: 'low'  },
     ],
     transform(u) {
       const m = top(u, w => w.category === 'Missile' && (w.rng_a ?? 0) > 0, 'rng_a');
@@ -366,6 +404,7 @@ export const DATASETS = {
         planeRng: wf(m, 'rng_a'),
         dmg:      wf(m, 'dmg'),
         acc:      wf(m, 'acc'),
+        fnf:      m?.tag?.includes('FnF') ?? false,
         reload:   wf(m, 'salvoReload'),
       };
     },
@@ -377,6 +416,9 @@ export const DATASETS = {
     file: 'aahelos.json',
     isWeapon: false,
     defaultSort: 'cost',
+    presets: [
+      { label: 'TOUGH', filters: { health: { min: '6' } } },
+    ],
     columns: [
       ...N,
       { key: 'health',   label: 'HP',        type: 'num', width: 55,  heat: 'high' },
@@ -414,6 +456,9 @@ export const DATASETS = {
     file: 'rocketpodhelos.json',
     isWeapon: false,
     defaultSort: 'cost',
+    presets: [
+      { label: 'TOUGH', filters: { health: { min: '6' } } },
+    ],
     columns: [
       ...N,
       { key: 'health',   label: 'HP',        type: 'num', width: 65,  heat: 'high' },
@@ -628,6 +673,10 @@ export const DATASETS = {
     file: 'atgmplanes.json',
     isWeapon: false,
     defaultSort: 'cost',
+    presets: [
+      { label: 'ACCURATE',    filters: { acc: { min: '50' } } },
+      { label: 'RIPPLE FIRE', filters: { fnf: { text: 'Y' } } },
+    ],
     columns: [
       ...N,
       { key: 'ecm',      label: 'ECM',       type: 'pct',       width: 65,  heat: 'high' },
@@ -669,6 +718,14 @@ export const DATASETS = {
     file: 'atgmvehicles.json',
     isWeapon: false,
     defaultSort: 'cost',
+    presets: [
+      { label: 'NON-TANK',     filters: { armorF: { max: '6' } } },
+      { label: 'HIGH AP',      filters: { ap:     { min: '21' } } },
+      { label: 'ACCURATE',     filters: { acc:    { min: '55' } } },
+      { label: 'LONG RANGE',   filters: { rng:    { min: '2275' } } },
+      { label: 'FAST FIRING',  filters: { salvoLen: { min: '2' } } },
+      { label: 'FAST MISSILE', filters: { mspd:   { min: '1200' } } },
+    ],
     columns: [
       ...N,
       { key: 'armorF',      label: 'F ARM',     type: 'num',  width: 65,  heat: 'high' },
@@ -709,6 +766,12 @@ export const DATASETS = {
     file: 'atgminfantry.json',
     isWeapon: false,
     defaultSort: 'cost',
+    presets: [
+      { label: 'HIGH AP',      filters: { ap:   { min: '21' } } },
+      { label: 'ACCURATE',     filters: { acc:  { min: '50' } } },
+      { label: 'LONG RANGE',   filters: { rng:  { min: '2275' } } },
+      { label: 'FAST MISSILE', filters: { mspd: { min: '1000' } } },
+    ],
     columns: [
       ...N,
       { key: 'health',      label: 'HP',        type: 'num',  width: 55,  heat: 'high' },
@@ -744,6 +807,12 @@ export const DATASETS = {
     file: 'atgmhelos.json',
     isWeapon: false,
     defaultSort: 'cost',
+    presets: [
+      { label: 'TOUGH',        filters: { health: { min: '6' } } },
+      { label: 'HIGH AP',      filters: { ap:     { min: '21' } } },
+      { label: 'ACCURATE',     filters: { acc:    { min: '55' } } },
+      { label: 'FAST MISSILE', filters: { mspd:   { min: '1200' } } },
+    ],
     columns: [
       ...N,
       { key: 'health',      label: 'HP',        type: 'num',       width: 55,  heat: 'high' },
