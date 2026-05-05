@@ -9,7 +9,7 @@ function deriveEra(year) {
   return null;
 }
 
-function deriveUnitTags(weapons = []) {
+function deriveWeaponTags(weapons = []) {
   const tags = new Set();
   for (const w of weapons) {
     for (const tag of w.tag ?? []) tags.add(tag);
@@ -38,6 +38,8 @@ function transformUnit(unit) {
   if (unit.training != null) {
     derived.trainingLabel = TRAINING_LABELS[unit.training] ?? String(unit.training);
   }
+
+  derived.ownTags = unit.ownTags ?? [];
 
   if (unit.type === 'Vehicle' && unit.speed != null && unit.motionType) {
     if (unit.motionType === 'truck') {
@@ -79,6 +81,7 @@ export async function loadData(opts = {}) {
     const transformed = transformUnit(unit);
     units[unit.id] = transformed;
 
+    const ownTags = unit.ownTags ?? [];
     roster.push({
       id:         unit.id,
       name:       unit.name,
@@ -87,7 +90,8 @@ export async function loadData(opts = {}) {
       nationName: transformed.nationName,
       specs:      convertSpecs(unit.specs),
       cost:       unit.cost,
-      unitTags:   deriveUnitTags(unit.weapons),
+      ownTags,
+      unitTags:   [...ownTags, ...deriveWeaponTags(unit.weapons)],
       era:        transformed.era,
       transports: unit.transports ?? [],
     });

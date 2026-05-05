@@ -10,6 +10,16 @@ export function GeneralSection({ unit, s }) {
   const si = showSize ? sizeInfo(unit.size ?? 0) : null;
 
   const rows = [
+    unit.ownTags?.length > 0 && (
+      <div key="unitTags" style={{ display: 'flex', flexWrap: 'wrap', gap: 4, padding: '2px 0 4px' }}>
+        {unit.ownTags.map(tag => (
+          <span key={tag} style={{
+            fontSize: 9.5, color: s.ok, border: `1px solid ${s.ok}`,
+            padding: '1px 5px', letterSpacing: '0.08em',
+          }}>[{tag}]</span>
+        ))}
+      </div>
+    ),
     hide.field('health')   && <DotRow key="health" label="Health" value={unit.health} s={s} />,
     showSize && si && hide.field('size') && (
       <DotRow key="size" label="Size"

@@ -54,7 +54,10 @@ export function BrowserD({ roster, units, initialUnit }) {
     });
   }, []);
 
-  const allTags = useMemo(() => [...new Set(roster.flatMap(u => u.unitTags))].sort(), [roster]);
+  const allOwnTags    = useMemo(() => [...new Set(roster.flatMap(u => u.ownTags))].sort(), [roster]);
+  const allWeaponTags = useMemo(() => [...new Set(
+    roster.flatMap(u => u.unitTags.filter(t => !u.ownTags.includes(t)))
+  )].sort(), [roster]);
 
   const setSearch = useCallback((e) => setQ(e.target.value), [setQ]);
 
@@ -109,7 +112,8 @@ export function BrowserD({ roster, units, initialUnit }) {
           onEra={select('era')}
           tag={f.tag}
           onTag={toggle('tag')}
-          allTags={allTags}
+          weaponTags={allWeaponTags}
+          unitTags={allOwnTags}
           tagMode={tagMode}
           onTagMode={toggleTagMode}
           filtered={filtered}
@@ -176,7 +180,7 @@ const CoalBtn = React.memo(function CoalBtn({ label, flagSrc, onClick, active, c
 function ListPane({
   listOpen, setListOpen,
   q, setSearch,
-  spec, onSpec, era, onEra, tag, onTag, allTags, tagMode, onTagMode,
+  spec, onSpec, era, onEra, tag, onTag, weaponTags, unitTags, tagMode, onTagMode,
   filtered, rosterCount,
   selected, pinnedIds, expandedTransports,
   onSelect, onToggleTransports,
@@ -235,7 +239,7 @@ function ListPane({
               items={[['', 'SPEC: ALL'], ...SPECS.map(s => [s, s.toUpperCase()])]} />
             <FilterSelect value={era[0] ?? ''}  active={era.length > 0}  onChange={v => onEra(v || null)}
               items={[['', 'ERA: ALL'], ['PRE-85', 'PRE-85'], ['PRE-80', 'PRE-80']]} />
-            <TagDropdown allTags={allTags} selected={tag} onToggle={onTag} tagMode={tagMode} onTagMode={onTagMode} />
+            <TagDropdown weaponTags={weaponTags} unitTags={unitTags} selected={tag} onToggle={onTag} tagMode={tagMode} onTagMode={onTagMode} />
           </div>
 
 

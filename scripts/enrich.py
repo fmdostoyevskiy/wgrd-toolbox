@@ -1381,6 +1381,57 @@ def handle_bomb_tag(units, rows, data_dir):
 
 
 # ---------------------------------------------------------------------------
+# Handler 29 — Unit Tags  (auto: compute ownTags on each unit from properties)
+# ---------------------------------------------------------------------------
+
+def handle_unit_tags(units, rows, data_dir):
+    _TYPE_TAG = {
+        'Vehicle': 'VEH', 'Infantry': 'INF', 'FOB': 'FOB',
+        'Helicopter': 'HEL', 'Plane': 'AIR', 'Ship': 'SHIP',
+    }
+    for unit in units:
+        utype = unit.get('type', '')
+        tags = []
+
+        t = _TYPE_TAG.get(utype)
+        if t:
+            tags.append(t)
+
+        if unit.get('capacity') is not None and utype != 'FOB':
+            tags.append('SUPPL')
+        if (unit.get('optics') or 0) >= 120:
+            tags.append('RECON')
+        if utype == 'Vehicle' and unit.get('isTransport'):
+            tags.append('TRANS')
+        if unit.get('command'):
+            tags.append('CMD')
+        if unit.get('amphibious'):
+            tags.append('AMPH')
+
+        motion = unit.get('motionType', '')
+        if motion == 'wheeled':
+            tags.append('WHEEL')
+        elif motion == 'tracked':
+            tags.append('TRACK')
+        elif motion == 'truck':
+            tags.append('TRUCK')
+
+        f = (unit.get('armor') or {}).get('F') or 0
+        thresh = 1 if utype == 'Helicopter' else 2 if utype == 'Plane' else 4
+        if f >= thresh and utype in ('Vehicle', 'Helicopter', 'Plane'):
+            tags.append('ARMOR')
+
+        training = unit.get('training')
+        if utype == 'Infantry' and training is not None:
+            tags.append(('RESRV', 'REG', 'SHOCK', 'ELITE')[min(training, 3)])
+
+        unit['ownTags'] = tags
+
+    print(f'  [H29] Unit Tags: computed ownTags for {len(units)} units')
+    return []
+
+
+# ---------------------------------------------------------------------------
 # Handler registry
 # Each entry: (display_name, handler_fn, input_file_or_None)
 #   input_file: filename relative to data_dir; None = auto-detect (no file needed)
@@ -1423,6 +1474,7 @@ HANDLERS = [
     ('ATGM Tag',        handle_atgm_tag,       None),
     ('BOMB Tag',        handle_bomb_tag,       None),
     ('Turret',          handle_turret,         'turrets.tsv'),
+    ('Unit Tags',       handle_unit_tags,      None),
 ]
 
 
