@@ -2,25 +2,30 @@ import React, { useState, useRef, useEffect } from 'react';
 import ReactDOM from 'react-dom';
 import { BROWSER_TOKENS, BMono } from '@units-core';
 
-function TagColumn({ tags, selected, onToggle, t, borderLeft }) {
+function TagColumn({ tags, selected, onToggle, t }) {
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', borderLeft: borderLeft ? `1px solid ${t.rule}` : 'none' }}>
-      {tags.map(tag => {
-        const on = selected.includes(tag);
-        return (
-          <button key={tag} onClick={() => onToggle(tag)} style={{
-            ...BMono,
-            background: 'transparent',
-            color: on ? t.accent : t.dim,
-            border: 'none',
-            padding: '5px 12px',
-            fontSize: 10.5, letterSpacing: '0.14em',
-            textAlign: 'left', cursor: 'pointer',
-            borderLeft: `2px solid ${on ? t.accent : 'transparent'}`,
-            whiteSpace: 'nowrap',
-          }}>{tag}</button>
-        );
-      })}
+    <div style={{ display: 'flex', flexDirection: 'column' }}>
+      {tags.map((group, gi) => (
+        <React.Fragment key={gi}>
+          {gi > 0 && <div style={{ borderTop: `1px solid ${t.rule}`, margin: '2px 8px' }} />}
+          {group.map(tag => {
+            const on = selected.includes(tag);
+            return (
+              <button key={tag} onClick={() => onToggle(tag)} style={{
+                ...BMono,
+                background: 'transparent',
+                color: on ? t.accent : t.dim,
+                border: 'none',
+                padding: '5px 12px',
+                fontSize: 10.5, letterSpacing: '0.14em',
+                textAlign: 'left', cursor: 'pointer',
+                borderLeft: `2px solid ${on ? t.accent : 'transparent'}`,
+                whiteSpace: 'nowrap',
+              }}>{tag}</button>
+            );
+          })}
+        </React.Fragment>
+      ))}
     </div>
   );
 }
@@ -84,9 +89,12 @@ export const TagDropdown = React.memo(function TagDropdown({ weaponTags, unitTag
           }}>{tagMode}</button>
         )}
       </div>
-      <div style={{ display: 'flex', overflowY: 'auto' }}>
-        <TagColumn tags={weaponTags} selected={selected} onToggle={onToggle} t={t} borderLeft={false} />
-        <TagColumn tags={unitTags}   selected={selected} onToggle={onToggle} t={t} borderLeft={true} />
+      <div style={{ overflowY: 'auto', flex: 1, minHeight: 0 }}>
+        <div style={{ display: 'flex' }}>
+          <TagColumn tags={weaponTags} selected={selected} onToggle={onToggle} t={t} />
+          <div style={{ width: 1, background: t.rule, flexShrink: 0 }} />
+          <TagColumn tags={unitTags}   selected={selected} onToggle={onToggle} t={t} />
+        </div>
       </div>
     </div>,
     document.body
