@@ -92,7 +92,7 @@ export function DeckBrowser({ roster, units, deckState }) {
   const [f, setF] = useState({ nation: [], spec: [], tab: [], era: [], tag: [], q: '' });
   const [tagMode, setTagMode] = useState('OR');
   const toggleTagMode = useCallback(() => setTagMode(m => m === 'OR' ? 'AND' : 'OR'), []);
-  const [showOverview, setShowOverview] = useState(false);
+  const [showOverview, setShowOverview] = useState(true);
 
   const toggle = useCallback((key) => (val) => {
     setF(prev => {
@@ -242,9 +242,9 @@ export function DeckBrowser({ roster, units, deckState }) {
       setF(prev => ({ ...prev, tab: [] }));
     } else {
       setShowOverview(false);
-      select('tab')(val);
+      setF(prev => ({ ...prev, tab: [val] }));
     }
-  }, [select]);
+  }, []);
 
   return (
     <div style={{
