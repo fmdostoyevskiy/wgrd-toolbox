@@ -11,7 +11,7 @@ import { HideContext, makeHide } from './HideContext.js';
 
 const CARD_FONT = 'var(--wrd-mono, "JetBrains Mono", ui-monospace, Menlo, monospace)';
 
-function VetSelector({ vetIdx, setVetIdx, avail, s, deckMode }) {
+function VetSelector({ vetIdx, setVetIdx, avail, s, deckMode, maxPacksReached }) {
   return (
     <div style={{ margin: '10px 0 2px', display: 'flex', alignItems: 'center', gap: 8 }}>
       <span style={{ fontSize: 10, color: s.dim, letterSpacing: '0.14em', textTransform: 'uppercase' }}>
@@ -24,7 +24,7 @@ function VetSelector({ vetIdx, setVetIdx, avail, s, deckMode }) {
         {VET_TIERS.map((t, i) => {
           const active      = i === vetIdx;
           const unavailable = avail?.[i] === 0;
-          const blocked     = deckMode && unavailable;
+          const blocked     = deckMode && (unavailable || maxPacksReached);
           return (
             <button
               key={t.id}
@@ -38,7 +38,7 @@ function VetSelector({ vetIdx, setVetIdx, avail, s, deckMode }) {
                 color: active ? s.bg : s.dim,
                 padding: '4px 0 3px', fontFamily: 'inherit',
                 cursor: blocked ? 'not-allowed' : 'pointer',
-                opacity: unavailable ? 0.35 : 1,
+                opacity: (unavailable || maxPacksReached) ? 0.35 : 1,
                 display: 'flex', flexDirection: 'column',
                 alignItems: 'center', lineHeight: 1.05,
               }}>
@@ -97,7 +97,7 @@ function TitleBlock({ unit, s }) {
   );
 }
 
-export function V2Card({ unit, avail: availProp, vetIdx, setVetIdx, theme = 'tactical', hide, deckMode }) {
+export function V2Card({ unit, avail: availProp, vetIdx, setVetIdx, theme = 'tactical', hide, deckMode, maxPacksReached }) {
   const avail = availProp ?? unit.avail;
   const s     = { ...(V2_THEMES[theme] ?? V2_THEMES.tactical), font: CARD_FONT };
   const vet   = VET_TIERS[vetIdx];
@@ -125,7 +125,7 @@ export function V2Card({ unit, avail: availProp, vetIdx, setVetIdx, theme = 'tac
 
         <div style={{ flex: 1, overflowY: 'auto', padding: '4px 18px 18px' }}>
           {hideCtx.section('vet') && (
-            <VetSelector vetIdx={vetIdx} setVetIdx={setVetIdx} avail={avail} s={s} deckMode={deckMode} />
+            <VetSelector vetIdx={vetIdx} setVetIdx={setVetIdx} avail={avail} s={s} deckMode={deckMode} maxPacksReached={maxPacksReached} />
           )}
 
           {hideCtx.section('general')  && <GeneralSection unit={unit} s={s} />}

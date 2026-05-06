@@ -202,16 +202,26 @@ export function DeckBrowser({ roster, units, deckState }) {
     setVet(lowestAvailVet(a));
   }, [selected, specForCard, units, availBonus]);
 
+  const packCounts = useMemo(() => {
+    const map = {};
+    for (const c of cards) map[c.unitId] = (map[c.unitId] ?? 0) + 1;
+    return map;
+  }, [cards]);
+
+  const packsInDeck = selected ? (packCounts[selected] ?? 0) : 0;
+  const maxPacksReached = unit != null && packsInDeck >= (unit.maxPacks ?? Infinity);
+
   const handleVetAdd = useCallback((vetIdx) => {
     if (!selected || !avail || avail[vetIdx] === 0) return;
     const unitEntry = deckRoster.find(u => u.id === selected);
+    if (packsInDeck >= (unitEntry?.maxPacks ?? Infinity)) return;
     let transport = selectedTransport;
     if (!transport && unitEntry?.transports?.length > 0) {
       transport = unitEntry.transports[0].id;
     }
     addCard(selected, vetIdx, transport);
     setVet(vetIdx);
-  }, [selected, avail, selectedTransport, deckRoster, addCard]);
+  }, [selected, avail, packsInDeck, selectedTransport, deckRoster, addCard]);
 
   const handleSelectTab = useCallback((tab) => {
     setShowOverview(false);
@@ -378,6 +388,7 @@ export function DeckBrowser({ roster, units, deckState }) {
                         expandedIds={expandedTransports}
                         onSelect={selectUnit}
                         onToggleTransports={toggleTransports}
+                        packCounts={packCounts}
                       />
                     )}
                   </div>
@@ -413,6 +424,7 @@ export function DeckBrowser({ roster, units, deckState }) {
                     onVetAdd={handleVetAdd}
                     specForCard={specForCard}
                     tabSlots={tabSlots}
+                    maxPacksReached={maxPacksReached}
                   />
                 ) : (
                   <div className="armory-card-frame" style={{
@@ -445,7 +457,7 @@ export function DeckBrowser({ roster, units, deckState }) {
   );
 }
 
-function DeckCardSlot({ unit, avail, vet, onVetAdd, specForCard, tabSlots }) {
+function DeckCardSlot({ unit, avail, vet, onVetAdd, specForCard, tabSlots, maxPacksReached }) {
   const t = BROWSER_TOKENS;
   const tabFull = tabSlots[unit.tab]?.used >= tabSlots[unit.tab]?.total;
 
@@ -459,6 +471,7 @@ function DeckCardSlot({ unit, avail, vet, onVetAdd, specForCard, tabSlots }) {
           setVetIdx={onVetAdd}
           theme={sideOf(unit.nation)}
           deckMode
+          maxPacksReached={maxPacksReached}
         />
       </div>
       {tabFull && (

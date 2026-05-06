@@ -90,6 +90,7 @@ export async function loadData(opts = {}) {
       nationName: transformed.nationName,
       specs:      convertSpecs(unit.specs),
       cost:       unit.cost,
+      maxPacks:   unit.maxPacks,
       ownTags,
       unitTags:   [...ownTags, ...deriveWeaponTags(unit.weapons)],
       era:        transformed.era,
