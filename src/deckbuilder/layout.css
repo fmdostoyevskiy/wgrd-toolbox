@@ -1,0 +1,54 @@
+/* Deck builder layout — inherits global #root scaling from index.css.
+   Do NOT override html/body/#root here. */
+
+/* Reuse the same card aspect-ratio cap as the armory */
+.armory-card-frame {
+  height: 100%;
+  aspect-ratio: 8.5 / 10;
+  max-width: 100%;
+  margin: 0 auto;
+  min-height: 0;
+  min-width: 0;
+  position: relative;
+}
+
+.deck-bar {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 6px 18px;
+  font-size: 11px;
+  letter-spacing: 0.1em;
+}
+
+.deck-bar input {
+  flex: 1;
+  font-family: inherit;
+  font-size: 11px;
+  letter-spacing: 0.04em;
+  padding: 4px 8px;
+  border: 1px solid;
+  outline: none;
+}
+
+.overview-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 10px;
+  padding: 14px;
+  overflow-y: auto;
+  height: 100%;
+}
+
+@media (max-width: 1100px) {
+  .overview-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (max-width: 700px) {
+  .overview-grid {
+    grid-template-columns: 1fr;
+  }
+}

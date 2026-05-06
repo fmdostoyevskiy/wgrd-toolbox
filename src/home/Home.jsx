@@ -115,7 +115,7 @@ export function Home() {
       {/* Deck Builder */}
       <a href={`${BASE}deckbuilder/`} style={{ ...rowBase, minWidth: 280 }}>
         <span style={{ color: t.accent }}>Deck Builder</span>
-        <span style={{ color: t.dimmer, fontSize: 10, letterSpacing: '0.18em' }}>build &amp; export decks</span>
+        <span style={{ color: t.dimmer, fontSize: 10, letterSpacing: '0.18em' }}>build &amp; export decks · <span style={{ color: '#e55' }}>WIP</span></span>
       </a>
 
       {/* AP Damage Calculator */}
