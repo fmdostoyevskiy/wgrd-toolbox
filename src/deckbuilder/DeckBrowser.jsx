@@ -275,7 +275,11 @@ export function DeckBrowser({ roster, units, deckState }) {
         {nations.length > 1 && (
           <Seg label="NATION" options={nationOptions} selected={f.nation} onToggle={toggle('nation')} onSolo={solo('nation')} />
         )}
-        <div style={{ display: 'flex', alignItems: 'stretch', borderBottom: `1px solid ${t.rule}` }}>
+        <div style={{
+          display: 'flex', alignItems: 'stretch',
+          borderBottom: `1px solid ${t.rule}`,
+          overflowX: 'auto',
+        }}>
           <button
             onClick={() => handleTabSelect(null)}
             style={{
@@ -287,15 +291,24 @@ export function DeckBrowser({ roster, units, deckState }) {
               borderRight: `1px solid ${t.rule}`,
             }}
           >OVERVIEW</button>
-          <div style={{ flex: 1 }}>
-            <Seg
-              label=""
-              options={deckTabOptions}
-              selected={f.tab}
-              onToggle={(val) => handleTabSelect(val)}
-              onSolo={(val) => handleTabSelect(val)}
-            />
-          </div>
+          {deckTabOptions.map(opt => {
+            const active = f.tab.includes(opt.value);
+            return (
+              <button
+                key={opt.value}
+                onClick={() => handleTabSelect(opt.value)}
+                style={{
+                  ...BMono,
+                  background: 'transparent',
+                  color: active ? t.accent : t.dim,
+                  border: 'none', padding: '4px 10px', fontSize: 10.5,
+                  letterSpacing: '0.14em', cursor: 'pointer',
+                  borderBottom: `2px solid ${active ? t.accent : 'transparent'}`,
+                  borderTop: '2px solid transparent',
+                }}
+              >{opt.label}</button>
+            );
+          })}
         </div>
       </div>
 
@@ -313,6 +326,8 @@ export function DeckBrowser({ roster, units, deckState }) {
             units={units}
             onRemoveCard={removeCard}
             onSelectTab={handleSelectTab}
+            config={config}
+            availBonus={availBonus}
           />
         ) : (
           <>
