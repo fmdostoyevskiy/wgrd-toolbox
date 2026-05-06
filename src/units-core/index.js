@@ -20,7 +20,7 @@ export {
   ALL_NATIONS, PACT_NATIONS, NATION_CODE_MAP, NATION_FLAG_MAP, sideOf,
 } from './constants/nations.js';
 export {
-  COALITIONS, COALITION_NATIONS, COALITION_FLAG_MAP,
+  COALITIONS, COALITION_NATIONS, COALITION_FLAG_MAP, COALITION_CODE_MAP,
 } from './constants/coalitions.js';
 export { SPECS, SPEC_VET_BONUS, SPEC_CODE_MAP } from './constants/specs.js';
 export { TABS } from './constants/tabs.js';

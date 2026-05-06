@@ -2,9 +2,81 @@ import React, { useState } from 'react';
 import {
   BROWSER_TOKENS, BMono,
   ALL_NATIONS, PACT_NATIONS, NATION_FLAG_MAP, NATION_CODE_MAP,
-  COALITIONS, COALITION_NATIONS, COALITION_FLAG_MAP,
+  COALITIONS, COALITION_NATIONS, COALITION_FLAG_MAP, COALITION_CODE_MAP,
+  SPEC_VET_BONUS,
 } from '@units-core';
-import { ERAS, DECK_SPECS } from './deckConstants.js';
+import { ERAS, DECK_SPECS, SLOT_COSTS, ERA_AP, DECK_TYPE_AP, CHOICE_AVAIL, classifyDeckChoice } from './deckConstants.js';
+
+const TAB_FULL = {
+  LOG: 'Logistics', INF: 'Infantry', SUP: 'Support',
+  TNK: 'Tank', REC: 'Recon', VHC: 'Vehicle',
+  HEL: 'Helicopter', AIR: 'Air', NAV: 'Naval',
+};
+
+const TAB_ORDER = ['LOG', 'INF', 'SUP', 'TNK', 'REC', 'VHC', 'HEL', 'AIR', 'NAV'];
+
+function BonusPanel({ spec, era, choice }) {
+  const t = BROWSER_TOKENS;
+
+  const specCosts   = spec ? (SLOT_COSTS[spec] ?? {}) : {};
+  const baseCosts   = SLOT_COSTS.General;
+  const vetBonuses  = spec ? (SPEC_VET_BONUS[spec] ?? {}) : {};
+  const eraAP       = ERA_AP[era] ?? 0;
+  const deckType    = choice ? classifyDeckChoice(choice) : null;
+  const choiceAP    = deckType ? (DECK_TYPE_AP[deckType] ?? 0) : 0;
+  const choiceAvail = choice ? (CHOICE_AVAIL[choice] ?? 0) : 0;
+  const prototypes  = deckType === 'nation' || deckType === 'coalition';
+
+  const rows = !spec ? [] : TAB_ORDER.flatMap(tab => {
+    const len     = specCosts[tab]?.length ?? 0;
+    const baseLen = baseCosts[tab]?.length ?? 0;
+    const restricted = len === 0 && baseLen > 0;
+    const slotBonus  = len > baseLen ? len - baseLen : 0;
+    const vetBonus   = vetBonuses[tab] ?? 0;
+    if (!restricted && !slotBonus && !vetBonus) return [];
+    return [{ tab, restricted, slotBonus, slotTotal: len, vetBonus }];
+  });
+
+  const totalAP = choiceAP + eraAP;
+  const allRows = [
+    ...(totalAP > 0     ? [{ key: 'ap',     label: 'AP budget',    value: <span style={{ color: t.accent }}>+{totalAP} AP</span> }] : []),
+    ...(choiceAvail > 0 ? [{ key: 'avail',  label: 'Availability', value: <span style={{ color: t.accent }}>+{choiceAvail}%</span> }] : []),
+    ...(prototypes      ? [{ key: 'proto',  label: 'Prototypes',   value: <span style={{ color: t.accent }}>unlocked</span> }] : []),
+    ...rows.map(({ tab, restricted, slotBonus, slotTotal, vetBonus }) => ({
+      key: tab,
+      label: (
+        <span style={{ color: restricted ? t.dimmer : t.ink }}>
+          {restricted && <span style={{ marginRight: 5, opacity: 0.5 }}>✕</span>}
+          {TAB_FULL[tab] ?? tab}
+        </span>
+      ),
+      value: (
+        <div style={{ display: 'flex', gap: 16 }}>
+          {restricted && <span style={{ color: t.dimmer, letterSpacing: '0.08em', fontSize: 10 }}>NO SLOTS</span>}
+          {slotBonus > 0 && <span><span style={{ color: t.accent }}>+{slotBonus} slots</span><span style={{ color: t.dimmer }}> · {slotTotal} total</span></span>}
+          {vetBonus > 0 && <span style={{ color: '#ffd166' }}>+{vetBonus} vet</span>}
+        </div>
+      ),
+    })),
+  ];
+
+  if (allRows.length === 0) return null;
+
+  return (
+    <div style={{ display: 'flex', flexDirection: 'column' }}>
+      {allRows.map(({ key, label, value }, i) => (
+        <div key={key} style={{
+          display: 'grid', gridTemplateColumns: '100px 1fr',
+          alignItems: 'center', padding: '5px 14px', fontSize: 11,
+          borderBottom: i < allRows.length - 1 ? `1px solid ${t.rule}` : 'none',
+        }}>
+          <span style={{ color: t.dim, letterSpacing: '0.04em' }}>{label}</span>
+          {value}
+        </div>
+      ))}
+    </div>
+  );
+}
 
 const NATO_NATIONS = ALL_NATIONS.filter(n => !PACT_NATIONS.has(n));
 const PACT_NATIONS_LIST = ALL_NATIONS.filter(n => PACT_NATIONS.has(n));
@@ -107,7 +179,7 @@ export function DeckSetup({ onStart }) {
           <div style={labelStyle}>Alliance</div>
           <ChoiceBtn
             value={alliance}
-            label={`${alliance} (+0 AP, +0% avail)`}
+            label={alliance}
             flagSrc={COALITION_FLAG_MAP[alliance]}
             active={choice === alliance}
           />
@@ -121,7 +193,7 @@ export function DeckSetup({ onStart }) {
               <ChoiceBtn
                 key={name}
                 value={name}
-                label={name}
+                label={COALITION_CODE_MAP[name] ?? name}
                 flagSrc={COALITION_FLAG_MAP[name]}
                 active={choice === name}
               />
@@ -137,7 +209,7 @@ export function DeckSetup({ onStart }) {
               <ChoiceBtn
                 key={code}
                 value={code}
-                label={NATION_CODE_MAP[code] ?? code}
+                label={code}
                 flagSrc={NATION_FLAG_MAP[code]}
                 active={choice === code}
               />
@@ -145,47 +217,61 @@ export function DeckSetup({ onStart }) {
           </div>
         </div>
 
-        {/* Era */}
+        {/* Era + Specialization table */}
         <div style={sectionStyle}>
-          <div style={labelStyle}>Era</div>
-          <div style={{ display: 'flex', gap: 6 }}>
-            {ERAS.map(e => (
-              <button
-                key={e.id}
-                onClick={() => setEra(e.id)}
-                style={{
-                  ...BMono,
-                  background: era === e.id ? t.accent : 'transparent',
-                  color: era === e.id ? t.bg : t.dim,
-                  border: `1px solid ${era === e.id ? t.accent : t.rule}`,
-                  padding: '6px 14px', fontSize: 11, cursor: 'pointer',
-                }}
-              >
-                {e.label} <span style={{ fontSize: 9, opacity: 0.7 }}>({e.desc})</span>
-              </button>
-            ))}
-          </div>
-        </div>
+          <div style={{
+            display: 'grid',
+            gridTemplateColumns: 'auto auto 1fr',
+            border: `1px solid ${t.rule}`,
+          }}>
+            {/* Headers */}
+            <div style={{ ...labelStyle, marginBottom: 0, padding: '5px 14px', borderBottom: `1px solid ${t.rule}`, borderRight: `1px solid ${t.rule}` }}>Era</div>
+            <div style={{ ...labelStyle, marginBottom: 0, padding: '5px 14px', borderBottom: `1px solid ${t.rule}`, borderRight: `1px solid ${t.rule}` }}>Specialization</div>
+            <div style={{ ...labelStyle, marginBottom: 0, padding: '5px 14px', borderBottom: `1px solid ${t.rule}` }}>Bonuses</div>
 
-        {/* Specialization */}
-        <div style={sectionStyle}>
-          <div style={labelStyle}>Specialization</div>
-          <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
-            {DECK_SPECS.map(s => (
-              <button
-                key={s.label}
-                onClick={() => setSpec(s.id)}
-                style={{
-                  ...BMono,
-                  background: spec === s.id ? t.accent : 'transparent',
-                  color: spec === s.id ? t.bg : t.dim,
-                  border: `1px solid ${spec === s.id ? t.accent : t.rule}`,
-                  padding: '6px 14px', fontSize: 11, cursor: 'pointer',
-                }}
-              >
-                {s.label}
-              </button>
-            ))}
+            {/* Era buttons */}
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 6, padding: '10px 12px', borderRight: `1px solid ${t.rule}` }}>
+              {ERAS.map(e => (
+                <button
+                  key={e.id}
+                  onClick={() => setEra(e.id)}
+                  style={{
+                    ...BMono,
+                    background: era === e.id ? t.accent : 'transparent',
+                    color: era === e.id ? t.bg : t.dim,
+                    border: `1px solid ${era === e.id ? t.accent : t.rule}`,
+                    padding: '6px 14px', fontSize: 11, cursor: 'pointer',
+                    textAlign: 'left', whiteSpace: 'nowrap',
+                  }}
+                >
+                  {e.label}
+                </button>
+              ))}
+            </div>
+
+            {/* Spec buttons */}
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', alignContent: 'start', gap: 6, padding: '10px 12px', borderRight: `1px solid ${t.rule}` }}>
+              {DECK_SPECS.map(s => (
+                <button
+                  key={s.label}
+                  onClick={() => setSpec(s.id)}
+                  style={{
+                    ...BMono,
+                    background: spec === s.id ? t.accent : 'transparent',
+                    color: spec === s.id ? t.bg : t.dim,
+                    border: `1px solid ${spec === s.id ? t.accent : t.rule}`,
+                    padding: '6px 14px', fontSize: 11, cursor: 'pointer',
+                  }}
+                >
+                  {s.label}
+                </button>
+              ))}
+            </div>
+
+            {/* Bonus panel */}
+            <div style={{ padding: '4px 0' }}>
+              <BonusPanel spec={spec} era={era} choice={choice} />
+            </div>
           </div>
         </div>
 
