@@ -14,7 +14,7 @@ function rowHeight(index, props) {
   return BASE_HEIGHT + u.transports.length * TRANSPORT_HEIGHT + TRANSPORT_TRAY_PAD;
 }
 
-function Row({ index, style, rows, selectedId, pinnedSet, expandedSet, onSelect, onToggleTransports }) {
+function Row({ index, style, rows, selectedId, pinnedSet, expandedSet, onSelect, onToggleTransports, packCounts }) {
   const u = rows[index];
   if (!u) return null;
   return (
@@ -27,6 +27,7 @@ function Row({ index, style, rows, selectedId, pinnedSet, expandedSet, onSelect,
         selectedId={selectedId}
         onSelect={onSelect}
         onToggleTransports={onToggleTransports}
+        packCount={packCounts ? (packCounts[u.id] ?? 0) : null}
         compact
       />
     </div>
@@ -35,14 +36,14 @@ function Row({ index, style, rows, selectedId, pinnedSet, expandedSet, onSelect,
 
 export function UnitList({
   rows, selectedId, pinnedIds, expandedIds,
-  onSelect, onToggleTransports,
+  onSelect, onToggleTransports, packCounts,
 }) {
   const pinnedSet = useMemo(() => new Set(pinnedIds), [pinnedIds]);
 
   const rowProps = useMemo(() => ({
     rows, selectedId, pinnedSet, expandedSet: expandedIds,
-    onSelect, onToggleTransports,
-  }), [rows, selectedId, pinnedSet, expandedIds, onSelect, onToggleTransports]);
+    onSelect, onToggleTransports, packCounts,
+  }), [rows, selectedId, pinnedSet, expandedIds, onSelect, onToggleTransports, packCounts]);
 
   return (
     <List

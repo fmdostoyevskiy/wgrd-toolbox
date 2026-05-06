@@ -17,12 +17,14 @@ export const ROW_HEIGHTS = {
 
 export const UnitListRow = React.memo(function UnitListRow({
   u, active, pinned, transportsOpen, selectedId,
-  onSelect, onToggleTransports, compact = false,
+  onSelect, onToggleTransports, compact = false, packCount = null,
 }) {
   const t = BROWSER_TOKENS;
   const side = sideOf(u.nation);
   const sideColor = side === 'signal' ? t.pactTag : t.natoTag;
   const hasTransports = u.transports?.length > 0;
+  const deckMode = packCount !== null;
+  const packsFull = deckMode && packCount >= (u.maxPacks ?? Infinity);
 
   const handleClick    = useCallback(() => onSelect(u.id), [onSelect, u.id]);
   const handleChevron  = useCallback((e) => { e.stopPropagation(); onToggleTransports(u.id); }, [onToggleTransports, u.id]);
@@ -47,8 +49,8 @@ export const UnitListRow = React.memo(function UnitListRow({
         fontSize: 11.5,
         color: t.ink, cursor: 'pointer',
       }}>
-        <span style={{ fontSize: 9.5, letterSpacing: '0.12em', color: active ? sideColor : t.dimmer, fontWeight: 500 }}>
-          {u.tab}
+        <span style={{ fontSize: 9.5, letterSpacing: deckMode ? 0 : '0.12em', color: packsFull ? '#e55' : active ? sideColor : t.dimmer, fontWeight: 500, fontVariantNumeric: 'tabular-nums' }}>
+          {deckMode ? `${packCount}/${u.maxPacks ?? '?'}` : u.tab}
         </span>
         <span style={{ whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
           {u.name}
