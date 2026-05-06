@@ -15,6 +15,24 @@ import { CardPane } from './CardPane.jsx';
 const NATO_NATIONS = ALL_NATIONS.filter(n => !PACT_NATIONS.has(n));
 const PACT_NATIONS_ORDERED = ALL_NATIONS.filter(n =>  PACT_NATIONS.has(n));
 
+const WEAPON_TAG_GROUPS = [
+  ['AL', 'AoE', 'STAT', 'NPLM'],
+  ['KE', 'HEAT'],
+  ['AC', 'MG', 'GL'],
+  ['FnF', 'SA', 'GUID'],
+  ['INDIR', 'MLRS', 'MOR', 'HOW', 'SMK'],
+  ['SEAD', 'BOMB', 'LGB'],
+  ['RAD', 'SAM', 'SPAAG'],
+  ['SHIP', 'DEF'],
+];
+
+const UNIT_TAG_GROUPS = [
+  ['INF', 'VEH', 'HEL', 'AIR', 'SHIP', 'FOB'],
+  ['RESRV', 'REG', 'SHOCK', 'ELITE'],
+  ['TRACK', 'WHEEL', 'TRUCK', 'AMPH'],
+  ['TRANS', 'CMD', 'SUPPL', 'ARMOR', 'RECON'],
+];
+
 const NATION_OPTIONS = ALL_NATIONS.flatMap((code, i, arr) => {
   const item = { label: code, value: code, flag: NATION_FLAG_MAP[code] };
   const addSep = i > 0 && !PACT_NATIONS.has(arr[i - 1]) && PACT_NATIONS.has(code);
@@ -54,10 +72,23 @@ export function BrowserD({ roster, units, initialUnit }) {
     });
   }, []);
 
-  const allOwnTags    = useMemo(() => [...new Set(roster.flatMap(u => u.ownTags))].sort(), [roster]);
-  const allWeaponTags = useMemo(() => [...new Set(
-    roster.flatMap(u => u.unitTags.filter(t => !u.ownTags.includes(t)))
-  )].sort(), [roster]);
+  const allOwnTags = useMemo(() => {
+    const available = new Set(roster.flatMap(u => u.ownTags));
+    const grouped = UNIT_TAG_GROUPS.map(g => g.filter(t => available.has(t))).filter(g => g.length > 0);
+    const seen = new Set(grouped.flat());
+    const rest = [...available].filter(t => !seen.has(t)).sort();
+    if (rest.length) grouped.push(rest);
+    return grouped;
+  }, [roster]);
+
+  const allWeaponTags = useMemo(() => {
+    const available = new Set(roster.flatMap(u => u.unitTags.filter(t => !u.ownTags.includes(t))));
+    const grouped = WEAPON_TAG_GROUPS.map(g => g.filter(t => available.has(t))).filter(g => g.length > 0);
+    const seen = new Set(grouped.flat());
+    const rest = [...available].filter(t => !seen.has(t)).sort();
+    if (rest.length) grouped.push(rest);
+    return grouped;
+  }, [roster]);
 
   const setSearch = useCallback((e) => setQ(e.target.value), [setQ]);
 
