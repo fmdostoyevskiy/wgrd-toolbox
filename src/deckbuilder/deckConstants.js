@@ -79,7 +79,8 @@ export const CHOICE_AVAIL = {
   US: 10, ISR: 10, URSS: 10,
   ITA: 15, YUG: 15,
   UK: 20, FR: 20, RFA: 20, HOL: 20, RDA: 20, POL: 20, FIN: 20,
-  SWE: 30, ANZ: 30, JAP: 30, ROK: 30, SA: 30, TCH: 30, CHI: 30, NK: 30,
+  SWE: 30, ANZ: 30, JAP: 30, ROK: 30, SA: 30, TCH: 30, CHI: 30,
+  NK: 40,
   CAN: 40, DAN: 40, NOR: 40,
 };
 
