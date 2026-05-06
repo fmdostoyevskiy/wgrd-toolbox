@@ -68,7 +68,7 @@ _SPLIT_ID_CANON = {
 
 _TYPE_TAG = {
     'Vehicle': 'VEH', 'Infantry': 'INF', 'FOB': 'FOB',
-    'Helicopter': 'HEL', 'Plane': 'AIR', 'Ship': 'SHIP',
+    'Helicopter': 'HEL', 'Plane': 'PLANE', 'Ship': 'SHIP',
 }
 
 
