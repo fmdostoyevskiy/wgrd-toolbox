@@ -12,7 +12,8 @@ export function CardPane({ selectedId, pinnedIds, onTogglePin, units, slots = 2,
 
   return (
     <div style={{
-      display: 'grid', gridTemplateColumns: `repeat(${colCount}, 1fr)`,
+      display: 'grid', gridTemplateColumns: `repeat(${colCount}, auto)`,
+      justifyContent: 'end',
       gap: 14, height: '100%', minHeight: 0,
     }}>
       {slotsArr.map((id, i) => {
