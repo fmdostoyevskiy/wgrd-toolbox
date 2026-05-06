@@ -136,28 +136,32 @@ export function DeckBrowser({ roster, units, deckState }) {
 
   const [selected, setSelected]         = useState(null);
   const [selectedTransport, setSelectedTransport] = useState(null);
+  const [displayUnitId, setDisplayUnitId] = useState(null);
   const [expandedTransports, setExpandedTransports] = useState(() => new Set());
   const [listOpen, setListOpen]         = useState(true);
 
   const winWidth = useWindowWidth();
   const isMobile = winWidth < MOBILE_BREAKPOINT;
 
-  const selectUnit = useCallback((id) => {
-    const entry = deckRoster.find(u => u.id === id);
-    if (entry && entry.transports.length > 0) {
-      setSelected(id);
-      setSelectedTransport(null);
-    } else {
-      const parentEntry = deckRoster.find(u => u.transports.some(tr => tr.id === id));
-      if (parentEntry) {
-        setSelected(parentEntry.id);
-        setSelectedTransport(id);
-      } else {
-        setSelected(id);
-        setSelectedTransport(null);
-      }
+  const selectUnit = useCallback((id, isTransport = false, parentId = null) => {
+    if (isTransport) {
+      setSelected(parentId);
+      setSelectedTransport(id);
+      setDisplayUnitId(id);
+      return;
     }
-  }, [deckRoster]);
+    const entry = deckRoster.find(u => u.id === id);
+    if (!entry) return;
+    const isReclick = id === selected;
+    setSelected(id);
+    setDisplayUnitId(id);
+    if (!isReclick && entry.transports?.length > 0) {
+      setExpandedTransports(prev => { const n = new Set(prev); n.add(id); return n; });
+      setSelectedTransport(entry.transports[0].id);
+    } else if (!entry.transports?.length) {
+      setSelectedTransport(null);
+    }
+  }, [deckRoster, selected]);
 
   const toggleTransports = useCallback((id) => {
     setExpandedTransports(prev => {
@@ -193,6 +197,7 @@ export function DeckBrowser({ roster, units, deckState }) {
 
   const specForCard = config?.spec ?? null;
   const unit = units?.[selected];
+  const cardUnit = units?.[displayUnitId] ?? unit;
   const avail = unit ? applyAvailBonus(effectiveAvail(unit, specForCard), availBonus) : null;
   const [vet, setVet] = useState(0);
 
@@ -399,6 +404,7 @@ export function DeckBrowser({ roster, units, deckState }) {
                       <UnitList
                         rows={filtered}
                         selectedId={selected}
+                        selectedTransportId={selectedTransport}
                         pinnedIds={[]}
                         expandedIds={expandedTransports}
                         onSelect={selectUnit}
@@ -434,6 +440,7 @@ export function DeckBrowser({ roster, units, deckState }) {
                 {selected && unit ? (
                   <DeckCardSlot
                     unit={unit}
+                    cardUnit={cardUnit}
                     avail={avail}
                     vet={vet}
                     onVetAdd={handleVetAdd}
@@ -472,7 +479,7 @@ export function DeckBrowser({ roster, units, deckState }) {
   );
 }
 
-function DeckCardSlot({ unit, avail, vet, onVetAdd, specForCard, tabSlots, maxPacksReached }) {
+function DeckCardSlot({ unit, cardUnit, avail, vet, onVetAdd, specForCard, tabSlots, maxPacksReached }) {
   const t = BROWSER_TOKENS;
   const tabFull = tabSlots[unit.tab]?.used >= tabSlots[unit.tab]?.total;
 
@@ -480,7 +487,7 @@ function DeckCardSlot({ unit, avail, vet, onVetAdd, specForCard, tabSlots, maxPa
     <div className="armory-card-frame" style={{ display: 'flex', flexDirection: 'column' }}>
       <div style={{ flex: 1, minHeight: 0, overflow: 'hidden' }}>
         <V2Card
-          unit={unit}
+          unit={cardUnit}
           avail={avail}
           vetIdx={vet}
           setVetIdx={onVetAdd}
