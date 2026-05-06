@@ -20,9 +20,61 @@ import sys
 import unicodedata
 
 
-# ---------------------------------------------------------------------------
+# ===========================================================================
+# Constants
+# ===========================================================================
+
+# Range thresholds (game distance units)
+MORTAR_MAX_RANGE = 9100
+TANK_GUN_MIN_RANGE = 1925
+AC_RANGE_MIN = 1400
+AC_RANGE_MAX = 1925
+MG_RANGE_MAX = 1225
+GL_RANGE_MIN = 1225
+GL_RANGE_MAX = 1750
+ROCKET_POD_MIN_RANGE = 2100
+PLANE_AA_RANGE = 3150
+
+# Damage thresholds
+MG_DMG_MIN = 0.5
+MG_DMG_MAX = 1.0
+AC_DMG_MIN = 1.0
+AC_DMG_MAX = 1.5
+GL_DMG = 2
+HE_MLRS_MIN_DMG = 6
+HE_BOMB_MIN_DMG = 10
+
+# Tank detection thresholds
+TANK_MIN_HEALTH = 5
+TANK_MIN_SIDE_ARMOR = 2
+TANK_MIN_AP = 6
+TANK_MIN_DMG = 2
+
+# Optics thresholds
+RECON_OPTICS_MIN = 120
+ASF_AIR_OPTICS_MIN = 300
+
+# Weapons that represent the same gun but were assigned different nameIds in
+# the source data.  Map each secondary ID to the canonical (KE) ID so that
+# handle_merge_duplicate_weapons can merge them normally.
+_SPLIT_ID_CANON = {
+    # C1 ARIETE — OTO Breda 120mm L/44
+    'd1034d580659d405': 'd2b74594342e5d05',
+    # OF-40 Mk.2A — OTO Melara 105mm M52
+    '9af3700e146edd04': 'dff8340db3381c03',
+    # OF-40 Mk.2 — OTO Melara 105mm M52
+    'd1f66c56d4601903': '4d177d5b38424c07',
+}
+
+_TYPE_TAG = {
+    'Vehicle': 'VEH', 'Infantry': 'INF', 'FOB': 'FOB',
+    'Helicopter': 'HEL', 'Plane': 'AIR', 'Ship': 'SHIP',
+}
+
+
+# ===========================================================================
 # Name normalisation  (runs before any handler, on every unit/weapon name)
-# ---------------------------------------------------------------------------
+# ===========================================================================
 
 def _strip_diacritics(text):
     """
@@ -76,9 +128,9 @@ def normalise_names(units):
     return changes
 
 
-# ---------------------------------------------------------------------------
+# ===========================================================================
 # I/O utilities
-# ---------------------------------------------------------------------------
+# ===========================================================================
 
 def load_json(path):
     """Load a UTF-16 LE JSON file (BOM handled automatically)."""
@@ -104,9 +156,9 @@ def parse_file(path):
                 if any(cell.strip() for cell in row)]
 
 
-# ---------------------------------------------------------------------------
+# ===========================================================================
 # Name / label helpers
-# ---------------------------------------------------------------------------
+# ===========================================================================
 
 def parse_names(raw):
     """
@@ -138,9 +190,9 @@ def add_to_spreadsheet(obj, label):
         obj['spreadsheet'].append(label)
 
 
-# ---------------------------------------------------------------------------
+# ===========================================================================
 # Lookup helpers (all case-insensitive)
-# ---------------------------------------------------------------------------
+# ===========================================================================
 
 def find_units_by_name(units, name):
     """Return ALL units whose name matches case-insensitively.
@@ -168,9 +220,9 @@ def find_weapons_across_units(units, name):
     ]
 
 
-# ---------------------------------------------------------------------------
-# Auto-detect predicates
-# ---------------------------------------------------------------------------
+# ===========================================================================
+# Weapon predicates
+# ===========================================================================
 
 def is_bomb_type(w):
     """True if weapon is bomb-type: category Bomb, or has the LGB tag."""
@@ -197,9 +249,125 @@ def has_napalm(w):
     return 'NPLM' in w.get('tag', [])
 
 
-# ---------------------------------------------------------------------------
-# Handler -1 — Exclude  (exclude.txt: unit IDs to remove entirely)
-# ---------------------------------------------------------------------------
+def is_spaag_weapon(w):
+    """True if weapon is a SPAAG-type AA weapon (gun or radar autocannon)."""
+    if not has_plane_range(w):
+        return False
+    if w.get('category') == 'Gun':
+        return True
+    tags = w.get('tag', [])
+    return (w.get('category') == 'Missile'
+            and 'RAD' in tags
+            and 'GUID' not in tags
+            and 'FnF' not in tags)
+
+
+def is_atgm_missile(w):
+    """True if weapon is an ATGM-type missile: Missile with AP, not SHIP/RAD/SEAD."""
+    if w.get('category') != 'Missile' or not w.get('ap', 0):
+        return False
+    wtags = w.get('tag', [])
+    return 'SHIP' not in wtags and 'RAD' not in wtags and 'SEAD' not in wtags
+
+
+# ===========================================================================
+# Collection helpers
+# ===========================================================================
+
+def ensure_weapon_tag(weapon, tag):
+    """Add tag to weapon's tag list if not already present. Returns 1 if added, 0 if not."""
+    tags = weapon.setdefault('tag', [])
+    if tag not in tags:
+        tags.append(tag)
+        return 1
+    return 0
+
+
+def collect_units(units, predicate, label, dump_file, data_dir,
+                  weapon_tagger=None):
+    """
+    Iterate units, apply predicate, add spreadsheet label, dedup by id,
+    save dump JSON.  Returns (dump_list, tag_count).
+
+    weapon_tagger: optional callable(unit) -> int for side effects (e.g. tagging
+                   weapons); return value is summed into tag_count.
+    """
+    dump, seen = [], set()
+    tag_count = 0
+    for unit in units:
+        if not predicate(unit):
+            continue
+        add_to_spreadsheet(unit, label)
+        if weapon_tagger:
+            tag_count += weapon_tagger(unit)
+        uid = unit['id']
+        if uid not in seen:
+            dump.append(unit)
+            seen.add(uid)
+    save_json(os.path.join(data_dir, dump_file), dump)
+    return dump, tag_count
+
+
+def collect_units_from_file(units, rows, label, dump_file, data_dir,
+                            handler_tag, unit_pred=None, weapon_tagger=None):
+    """
+    For each row name, find matching units, optionally filter by unit_pred,
+    add spreadsheet label, dedup by id, save dump file.
+    Returns (dump_list, unmatched_list).
+    """
+    dump, seen, unmatched = [], set(), []
+    for row in rows:
+        if not row:
+            continue
+        for base_name, _ in parse_names(row[0]):
+            matched = find_units_by_name(units, base_name)
+            if not matched:
+                print(f'  {handler_tag} WARNING: unit "{base_name}" not found in JSON')
+                unmatched.append(base_name)
+                continue
+            for unit in matched:
+                if unit_pred and not unit_pred(unit):
+                    continue
+                add_to_spreadsheet(unit, label)
+                if weapon_tagger:
+                    weapon_tagger(unit)
+                uid = unit['id']
+                if uid not in seen:
+                    dump.append(unit)
+                    seen.add(uid)
+    save_json(os.path.join(data_dir, dump_file), dump)
+    return dump, unmatched
+
+
+def collect_weapons_from_file(units, rows, label, dump_file, data_dir,
+                              handler_tag):
+    """
+    For each row name, find matching weapons, apply label, dedup by nameId,
+    save dump file.  Returns (dump_dict, unmatched_list).
+    """
+    dump_dict = {}
+    unmatched = []
+    for row in rows:
+        if not row:
+            continue
+        for base_name, _ in parse_names(row[0]):
+            matches = find_weapons_across_units(units, base_name)
+            if not matches:
+                print(f'  {handler_tag} WARNING: weapon "{base_name}" not found in JSON')
+                unmatched.append(base_name)
+                continue
+            for _, w in matches:
+                add_to_spreadsheet(w, label)
+                key = w.get('nameId') or w.get('name')
+                if key not in dump_dict:
+                    dump_dict[key] = w
+    save_json(os.path.join(data_dir, dump_file), list(dump_dict.values()))
+    return dump_dict, unmatched
+
+
+# ===========================================================================
+# Preprocessing handlers
+# ===========================================================================
 
 def handle_exclude(units, rows, data_dir):
     exclude_ids = {row[0].strip() for row in rows if row and row[0].strip()}
@@ -212,10 +380,6 @@ def handle_exclude(units, rows, data_dir):
     print(f'  [H-1] Exclude: removed {removed} unit(s)')
     return unmatched
 
-
-# ---------------------------------------------------------------------------
-# Handler 0 — Trailing Spaces  (auto: strip trailing spaces from all names)
-# ---------------------------------------------------------------------------
 
 def handle_trailing_spaces(units, rows, data_dir):
     count = 0
@@ -235,9 +399,90 @@ def handle_trailing_spaces(units, rows, data_dir):
     return []
 
 
-# ---------------------------------------------------------------------------
-# Handler 1 — Fire Support  (weapons, firesupport.tsv)
-# ---------------------------------------------------------------------------
+def handle_split_id_weapons(units, rows, data_dir):
+    """
+    Canonicalize nameIds for guns whose KE and AoE ammo variants were given
+    different IDs in the source data, so handle_merge_duplicate_weapons can
+    merge them correctly.
+    """
+    total_fixed = 0
+    for unit in units:
+        for w in unit.get('weapons', []):
+            canon = _SPLIT_ID_CANON.get(w.get('nameId', ''))
+            if canon:
+                w['nameId'] = canon
+                total_fixed += 1
+    print(f'  [H21b] Split-ID Weapons: normalized {total_fixed} nameId(s)')
+    return []
+
+
+def handle_merge_duplicate_weapons(units, rows, data_dir):
+    """
+    Merge weapons on the same unit that share a nameId but differ in at least
+    one of ap or any range field.  Weapons that are truly identical (e.g. two
+    copies of the same MG) are left as separate entries.
+    """
+    RANGE_FIELDS = {"rng_g", "rng_h", "rng_a", "rng_s", "minRange", "maxRange"}
+    MAX_FIELDS   = {"dmg", "suppress"}
+    DIFF_FIELDS  = {"ap"} | RANGE_FIELDS
+
+    def differs(a, b):
+        for f in DIFF_FIELDS:
+            if a.get(f) != b.get(f):
+                return True
+        if set(a.get('tag', [])) != set(b.get('tag', [])):
+            return True
+        return False
+
+    total_merged = 0
+
+    for unit in units:
+        weapons = unit.get('weapons', [])
+        seen  = {}  # key -> weapon dict (merge target)
+        order = []  # keys in insertion order
+
+        for w in weapons:
+            nid = w.get('nameId', '')
+            if nid not in seen:
+                seen[nid] = w
+                order.append(nid)
+            else:
+                base = seen[nid]
+                if not differs(base, w) or base.get('category') != w.get('category'):
+                    unique_key = f'{nid}_{id(w)}'
+                    seen[unique_key] = w
+                    order.append(unique_key)
+                    continue
+
+                # Merge w into base
+                for k, v in w.items():
+                    if k == 'tag':
+                        existing = base.get('tag', [])
+                        for t in v:
+                            if t not in existing:
+                                existing.append(t)
+                        base['tag'] = existing
+                    elif k in RANGE_FIELDS:
+                        if k not in base or base[k] is None:
+                            base[k] = v
+                    elif k in MAX_FIELDS:
+                        if v is not None and (base.get(k) is None or v > base[k]):
+                            base[k] = v
+                    else:
+                        if k not in base or base[k] is None:
+                            base[k] = v
+                total_merged += 1
+
+        unit['weapons'] = [seen[k] for k in order]
+
+    print(f'  [H22] Merge Duplicate Weapons: merged {total_merged} weapon pair(s)')
+    return []
+
+
+# ===========================================================================
+# Data-patch handlers (file-driven, unique logic)
+# ===========================================================================
+
 # firesupport.tsv columns (0-indexed, header row skipped):
 #   0:Name  1:Unit  2:HE  3:AP  4:Range  5:Acc.  6:Stab.
 #   7:Salvo  8:Shot Reload  9:Salvo Reload  10:Turret
@@ -305,7 +550,6 @@ def handle_firesupport(units, rows, data_dir):
                     w['turreted'] = True
                 elif turret_col == 'N':
                     w['turreted'] = False
-                # Collect unique weapons by nameId (fall back to name if absent)
                 key = w.get('nameId') or w.get('name')
                 if key not in dump_dict:
                     dump_dict[key] = w
@@ -315,198 +559,372 @@ def handle_firesupport(units, rows, data_dir):
     return unmatched
 
 
-# ---------------------------------------------------------------------------
-# Handler 2 — SPAAG  (auto-detect: Vehicle + AA-capable gun weapon)
-#
-# Two weapon types qualify:
-#   1. category == "Gun" with rng_a > 0  — basic non-radar AA guns (ZSU-23-4, etc.)
-#   2. category == "Missile" with RAD tag, no GUID, no FnF, rng_a > 0
-#      — radar-guided autocannons (Gepard, Marksman, Tunguska, etc.)
-#      The game stores these under "Missile" because radar tracking is a
-#      missile-engine feature, but they are physically gun systems.
-#      Excluding GUID filters out SAMs; excluding FnF filters out NASAMS.
-# ---------------------------------------------------------------------------
-
-def _is_spaag_weapon(w):
-    if not has_plane_range(w):
-        return False
-    if w.get('category') == 'Gun':
-        return True
-    tags = w.get('tag', [])
-    return (w.get('category') == 'Missile'
-            and 'RAD' in tags
-            and 'GUID' not in tags
-            and 'FnF' not in tags)
-
-
-def handle_spaag(units, rows, data_dir):
-    dump, seen = [], set()
-    tag_count = 0
-    for unit in units:
-        if unit.get('type') != 'Vehicle':
-            continue
-        if not any(_is_spaag_weapon(w) for w in unit.get('weapons', [])):
-            continue
-        add_to_spreadsheet(unit, 'SPAAG')
-        for w in unit.get('weapons', []):
-            if _is_spaag_weapon(w):
-                tags = w.setdefault('tag', [])
-                if 'SPAAG' not in tags:
-                    tags.append('SPAAG')
-                    tag_count += 1
-        uid = unit['id']
-        if uid not in seen:
-            dump.append(unit)
-            seen.add(uid)
-    save_json(os.path.join(data_dir, 'spaags.json'), dump)
-    print(f'  [H2] SPAAG: found {len(dump)} units, tagged {tag_count} weapon(s)')
-    return []
-
-
-# ---------------------------------------------------------------------------
-# Handler 3 — HE MLRS  (hemlrs.txt + dmg >= 6 validation)
-# ---------------------------------------------------------------------------
-
-def handle_hemlrs(units, rows, data_dir):
-    dump, seen, unmatched = [], set(), []
+def handle_ship(units, rows, data_dir):
+    ships_map = {}
     for row in rows:
-        if not row:
+        if len(row) >= 3:
+            ships_map[row[0].strip().lower()] = {
+                'sailing': row[1].strip(),
+                'ciws':    row[2].strip(),
+            }
+
+    unit_names_lower = {(u.get('name') or '').lower() for u in units}
+
+    for unit in units:
+        key = (unit.get('name') or '').lower()
+        if key not in ships_map:
             continue
-        for base_name, _ in parse_names(row[0]):
-            matched = find_units_by_name(units, base_name)
-            if not matched:
-                print(f'  [H3] WARNING: unit "{base_name}" not found in JSON')
-                unmatched.append(base_name)
-                continue
-            for unit in matched:
-                # Must have at least one artillery weapon with dmg >= 6
-                if not any(
-                    w.get('category') == 'Artillery' and w.get('dmg', 0) >= 6
-                    for w in unit.get('weapons', [])
-                ):
-                    continue
-                add_to_spreadsheet(unit, 'HE MLRS')
-                for w in unit.get('weapons', []):
-                    if w.get('category') == 'Artillery' and w.get('dmg', 0) >= 6:
-                        tags = w.setdefault('tag', [])
-                        if 'MLRS' not in tags:
-                            tags.append('MLRS')
-                uid = unit['id']
-                if uid not in seen:
-                    dump.append(unit)
-                    seen.add(uid)
-    save_json(os.path.join(data_dir, 'hemlrs.json'), dump)
-    print(f'  [H3] HE MLRS: tagged {len(dump)} units')
+        vals = ships_map[key]
+        add_to_spreadsheet(unit, 'Ship')
+        unit['sailing'] = vals['sailing']
+        unit['ciws']    = vals['ciws']
+
+    unmatched = [name for name in ships_map if name not in unit_names_lower]
+    for name in unmatched:
+        print(f'  [H11] WARNING: ship "{name}" not found in JSON')
+
+    matched = len(ships_map) - len(unmatched)
+    print(f'  [H11] Ship: patched {matched}/{len(ships_map)} ships')
     return unmatched
 
 
-# ---------------------------------------------------------------------------
-# Handler 4 — Cluster MLRS  (auto-detect: Vehicle + weapon with CLUS tag)
-# ---------------------------------------------------------------------------
-
-def handle_clustermlrs(units, rows, data_dir):
-    dump, seen = [], set()
-    for unit in units:
-        if unit.get('type') != 'Vehicle':
+def handle_easter_eggs(units, rows, data_dir):
+    unmatched = []
+    count = 0
+    for row in rows:
+        if len(row) < 3:
             continue
-        if not any('CLUS' in w.get('tag', [])
-                   for w in unit.get('weapons', [])):
+        uid, target, new_name = row[0].strip(), row[1].strip(), row[2].strip()
+
+        unit = find_unit_by_id(units, uid)
+        if not unit:
+            print(f'  [H12] WARNING: unit ID "{uid}" not found')
+            unmatched.append(uid)
             continue
-        add_to_spreadsheet(unit, 'Cluster MLRS')
-        for w in unit.get('weapons', []):
-            if 'CLUS' in w.get('tag', []):
-                tags = w.setdefault('tag', [])
-                if 'MLRS' not in tags:
-                    tags.append('MLRS')
-        uid = unit['id']
-        if uid not in seen:
-            dump.append(unit)
-            seen.add(uid)
-    save_json(os.path.join(data_dir, 'clustermlrs.json'), dump)
-    print(f'  [H4] Cluster MLRS: found {len(dump)} units')
-    return []
+
+        if target.lower() == 'unit':
+            unit['name'] = new_name
+            count += 1
+        else:
+            weapon = next(
+                (w for w in unit.get('weapons', [])
+                 if (w.get('name') or '').lower() == target.lower()),
+                None,
+            )
+            if weapon:
+                weapon['name'] = new_name
+                count += 1
+            else:
+                print(f'  [H12] WARNING: weapon "{target}" not found '
+                      f'on unit "{unit.get("name")}"')
+
+    print(f'  [H12] Easter Eggs: applied {count} rename(s)')
+    return unmatched
 
 
-# ---------------------------------------------------------------------------
-# Handler 5 — Napalm MLRS  (auto-detect: Vehicle + Artillery with NPLM tag)
-# ---------------------------------------------------------------------------
-
-def handle_napalmmlrs(units, rows, data_dir):
-    dump, seen = [], set()
-    for unit in units:
-        if unit.get('type') != 'Vehicle':
+def handle_turret(units, rows, data_dir):
+    unmatched = []
+    count = 0
+    for row in rows:
+        if not row or len(row) < 3:
             continue
-        if not any(w.get('category') == 'Artillery' and has_napalm(w)
-                   for w in unit.get('weapons', [])):
+        unit_name = row[0].strip()
+        turret_val = row[1].strip().lower() == 'true'
+        try:
+            weapon_num = int(row[2].strip())
+        except ValueError:
+            print(f'  [H21] WARNING: invalid weapon number "{row[2]}" for unit "{unit_name}"')
             continue
-        add_to_spreadsheet(unit, 'Napalm MLRS')
-        for w in unit.get('weapons', []):
-            if w.get('category') == 'Artillery' and has_napalm(w):
-                tags = w.setdefault('tag', [])
-                if 'MLRS' not in tags:
-                    tags.append('MLRS')
-        uid = unit['id']
-        if uid not in seen:
-            dump.append(unit)
-            seen.add(uid)
-    save_json(os.path.join(data_dir, 'napalmmlrs.json'), dump)
-    print(f'  [H5] Napalm MLRS: found {len(dump)} units')
-    return []
+
+        matched = find_units_by_name(units, unit_name)
+        if not matched:
+            print(f'  [H21] WARNING: unit "{unit_name}" not found in JSON')
+            unmatched.append(unit_name)
+            continue
+
+        for unit in matched:
+            weapons = unit.get('weapons', [])
+            idx = weapon_num - 1
+            if idx < 0 or idx >= len(weapons):
+                print(f'  [H21] WARNING: unit "{unit.get("name")}" has no weapon #{weapon_num}')
+                continue
+            weapons[idx]['turreted'] = turret_val
+            count += 1
+
+    print(f'  [H21] Turret: set turreted on {count} weapon(s)')
+    return unmatched
 
 
-# ---------------------------------------------------------------------------
-# Handler 6 — ATGM  (weapons, atgms.txt)
-# ---------------------------------------------------------------------------
-
-def handle_atgm(units, rows, data_dir):
+def handle_asm(units, rows, data_dir):
     dump_dict = {}
     unmatched = []
     for row in rows:
-        if not row:
+        if not row or len(row) < 3:
             continue
-        for base_name, _ in parse_names(row[0]):
-            matches = find_weapons_across_units(units, base_name)
-            if not matches:
-                print(f'  [H6] WARNING: weapon "{base_name}" not found in JSON')
-                unmatched.append(base_name)
+        name = row[0].strip()
+        try:
+            ap = int(row[1].strip())
+        except ValueError:
+            print(f'  [H20] WARNING: invalid AP "{row[1]}" for weapon "{name}"')
+            continue
+        try:
+            rng_s = int(row[2].strip())
+        except ValueError:
+            print(f'  [H20] WARNING: invalid range "{row[2]}" for weapon "{name}"')
+            continue
+
+        nl = _strip_diacritics(name).lower()
+        matches = [
+            (u, w)
+            for u in units
+            for w in u.get('weapons', [])
+            if (w.get('name') or '').lower() == nl and w.get('rng_s') == rng_s
+        ]
+
+        if not matches:
+            print(f'  [H20] WARNING: weapon "{name}" with rng_s={rng_s} not found in JSON')
+            unmatched.append(f'{name} (rng_s={rng_s})')
+            continue
+
+        for _, w in matches:
+            w['ap'] = ap
+            ensure_weapon_tag(w, 'SHIP')
+            key = w.get('nameId') or w.get('name')
+            if key not in dump_dict:
+                dump_dict[key] = w
+
+    save_json(os.path.join(data_dir, 'asm.json'), list(dump_dict.values()))
+    print(f'  [H20] ASM: patched {len(dump_dict)} unique weapons')
+    return unmatched
+
+
+# ===========================================================================
+# Weapon-tag handlers
+# ===========================================================================
+
+def handle_ac(units, rows, data_dir):
+    count = 0
+    for unit in units:
+        for w in unit.get('weapons', []):
+            if w.get('category') != 'Gun':
                 continue
-            for _, w in matches:
-                add_to_spreadsheet(w, 'ATGM')
-                key = w.get('nameId') or w.get('name')
-                if key not in dump_dict:
-                    dump_dict[key] = w
-    save_json(os.path.join(data_dir, 'atgm.json'), list(dump_dict.values()))
+            if (w.get('ap') or 0) < 1:
+                continue
+            dmg = w.get('dmg') or 0
+            if not (AC_DMG_MIN <= dmg <= AC_DMG_MAX):
+                continue
+            if not (w.get('rng_h') or 0):
+                continue
+            rng_g = w.get('rng_g') or 0
+            if not (AC_RANGE_MIN <= rng_g <= AC_RANGE_MAX):
+                continue
+            count += ensure_weapon_tag(w, 'AC')
+    save_json(os.path.join(data_dir, 'ac.json'),
+              [u for u in units if any('AC' in w.get('tag', []) for w in u.get('weapons', []))])
+    print(f'  [H23] AC: tagged {count} weapon(s)')
+    return []
+
+
+def handle_mg(units, rows, data_dir):
+    count = 0
+    for unit in units:
+        if unit.get('type') == 'Infantry':
+            continue
+        for w in unit.get('weapons', []):
+            if w.get('category') != 'Gun':
+                continue
+            if (w.get('ap') or 0) != 0:
+                continue
+            dmg = w.get('dmg') or 0
+            if not (MG_DMG_MIN <= dmg <= MG_DMG_MAX):
+                continue
+            if (w.get('rng_g') or 0) > MG_RANGE_MAX:
+                continue
+            if (w.get('rng_a') or 0) > 0:
+                continue
+            count += ensure_weapon_tag(w, 'MG')
+    save_json(os.path.join(data_dir, 'mg.json'),
+              [u for u in units if any('MG' in w.get('tag', []) for w in u.get('weapons', []))])
+    print(f'  [H24] MG: tagged {count} weapon(s)')
+    return []
+
+
+def handle_gl(units, rows, data_dir):
+    count = 0
+    for unit in units:
+        for w in unit.get('weapons', []):
+            if w.get('category') != 'Gun':
+                continue
+            if (w.get('dmg') or 0) != GL_DMG:
+                continue
+            if (w.get('ap') or 0) != 0:
+                continue
+            rng_g = w.get('rng_g') or 0
+            if not (GL_RANGE_MIN <= rng_g <= GL_RANGE_MAX):
+                continue
+            if (w.get('rng_a') or 0) > 0:
+                continue
+            if (w.get('rng_h') or 0) > 0:
+                continue
+            count += ensure_weapon_tag(w, 'GL')
+    save_json(os.path.join(data_dir, 'gl.json'),
+              [u for u in units if any('GL' in w.get('tag', []) for w in u.get('weapons', []))])
+    print(f'  [H25] GL: tagged {count} weapon(s)')
+    return []
+
+
+def handle_atgm(units, rows, data_dir):
+    dump_dict, unmatched = collect_weapons_from_file(
+        units, rows, 'ATGM', 'atgm.json', data_dir, '[H6]')
     print(f'  [H6] ATGM: tagged {len(dump_dict)} unique weapons')
     return unmatched
 
 
-# ---------------------------------------------------------------------------
-# Handler 7 — HE Bomber  (auto-detect: Plane + HE bomb-type weapon)
-# ---------------------------------------------------------------------------
-
-def handle_hebomber(units, rows, data_dir):
-    dump, seen = [], set()
+def handle_atgm_tag(units, rows, data_dir):
+    count = 0
     for unit in units:
-        if unit.get('type') != 'Plane':
-            continue
-        if not any(has_he_bomb(w) and (w.get('dmg') or 0) >= 10 for w in unit.get('weapons', [])):
-            continue
-        add_to_spreadsheet(unit, 'HE Bomber')
-        uid = unit['id']
-        if uid not in seen:
-            dump.append(unit)
-            seen.add(uid)
-    save_json(os.path.join(data_dir, 'hebomber.json'), dump)
-    print(f'  [H7] HE Bomber: found {len(dump)} units')
+        for w in unit.get('weapons', []):
+            if w.get('category') != 'Missile':
+                continue
+            if not w.get('ap', 0):
+                continue
+            wtags = w.get('tag', [])
+            if 'SHIP' in wtags or 'SEAD' in wtags or is_spaag_weapon(w):
+                continue
+            count += ensure_weapon_tag(w, 'ATGM')
+    print(f'  [H27] ATGM Tag: tagged {count} weapon(s)')
     return []
 
 
-# ---------------------------------------------------------------------------
-# Handlers 8a/8b — Mortar / Howitzer  (auto-detect; hemlrs.txt as exclusion)
-# ---------------------------------------------------------------------------
+def handle_bomb_tag(units, rows, data_dir):
+    count = 0
+    for unit in units:
+        for w in unit.get('weapons', []):
+            if not is_bomb_type(w):
+                continue
+            count += ensure_weapon_tag(w, 'BOMB')
+    print(f'  [H28] BOMB Tag: tagged {count} weapon(s)')
+    return []
 
-MORTAR_MAX_RANGE = 9100
 
+def handle_autoloader(units, rows, data_dir):
+    auto_count = 0
+    for unit in units:
+        if unit.get('type') != 'Vehicle':
+            continue
+        for w in unit.get('weapons', []):
+            if w.get('category') != 'Gun':
+                continue
+            salvo_len = w.get('salvoLen') or 1
+            ammo = w.get('ammo') or 0
+            if salvo_len > 1 and ammo <= salvo_len and not (w.get('rng_h') or 0):
+                auto_count += ensure_weapon_tag(w, 'AL')
+
+    unmatched = []
+    tsv_count = 0
+    for row in rows:
+        if not row or not row[0].strip():
+            continue
+        unit_name = row[0].strip()
+        matched = find_units_by_name(units, unit_name)
+        if not matched:
+            print(f'  [H24] WARNING: unit "{unit_name}" not found in JSON')
+            unmatched.append(unit_name)
+            continue
+        for unit in matched:
+            weapons = unit.get('weapons', [])
+            if weapons:
+                tsv_count += ensure_weapon_tag(weapons[0], 'AL')
+
+    dump = [u for u in units if any('AL' in w.get('tag', []) for w in u.get('weapons', []))]
+    save_json(os.path.join(data_dir, 'autoloaders.json'), dump)
+    print(f'  [H24] Autoloader: {auto_count} auto-detected, {tsv_count} from TSV, {len(dump)} total units')
+    return unmatched
+
+
+# ===========================================================================
+# Unit-role handlers (auto-detect)
+# ===========================================================================
+
+# --- SPAAG ---
+
+def handle_spaag(units, rows, data_dir):
+    def pred(u):
+        return (u.get('type') == 'Vehicle'
+                and any(is_spaag_weapon(w) for w in u.get('weapons', [])))
+
+    def tagger(u):
+        count = 0
+        for w in u.get('weapons', []):
+            if is_spaag_weapon(w):
+                count += ensure_weapon_tag(w, 'SPAAG')
+        return count
+
+    dump, tag_count = collect_units(units, pred, 'SPAAG', 'spaags.json', data_dir,
+                                    weapon_tagger=tagger)
+    print(f'  [H2] SPAAG: found {len(dump)} units, tagged {tag_count} weapon(s)')
+    return []
+
+
+# --- MLRS variants ---
+
+def handle_hemlrs(units, rows, data_dir):
+    def unit_pred(u):
+        return any(w.get('category') == 'Artillery' and w.get('dmg', 0) >= HE_MLRS_MIN_DMG
+                   for w in u.get('weapons', []))
+
+    def tagger(u):
+        count = 0
+        for w in u.get('weapons', []):
+            if w.get('category') == 'Artillery' and w.get('dmg', 0) >= HE_MLRS_MIN_DMG:
+                count += ensure_weapon_tag(w, 'MLRS')
+        return count
+
+    dump, unmatched = collect_units_from_file(
+        units, rows, 'HE MLRS', 'hemlrs.json', data_dir, '[H3]',
+        unit_pred=unit_pred, weapon_tagger=tagger)
+    print(f'  [H3] HE MLRS: tagged {len(dump)} units')
+    return unmatched
+
+
+def handle_clustermlrs(units, rows, data_dir):
+    def pred(u):
+        return (u.get('type') == 'Vehicle'
+                and any('CLUS' in w.get('tag', []) for w in u.get('weapons', [])))
+
+    def tagger(u):
+        count = 0
+        for w in u.get('weapons', []):
+            if 'CLUS' in w.get('tag', []):
+                count += ensure_weapon_tag(w, 'MLRS')
+        return count
+
+    dump, _ = collect_units(units, pred, 'Cluster MLRS', 'clustermlrs.json', data_dir,
+                            weapon_tagger=tagger)
+    print(f'  [H4] Cluster MLRS: found {len(dump)} units')
+    return []
+
+
+def handle_napalmmlrs(units, rows, data_dir):
+    def pred(u):
+        return (u.get('type') == 'Vehicle'
+                and any(w.get('category') == 'Artillery' and has_napalm(w)
+                        for w in u.get('weapons', [])))
+
+    def tagger(u):
+        count = 0
+        for w in u.get('weapons', []):
+            if w.get('category') == 'Artillery' and has_napalm(w):
+                count += ensure_weapon_tag(w, 'MLRS')
+        return count
+
+    dump, _ = collect_units(units, pred, 'Napalm MLRS', 'napalmmlrs.json', data_dir,
+                            weapon_tagger=tagger)
+    print(f'  [H5] Napalm MLRS: found {len(dump)} units')
+    return []
+
+
+# --- Tube artillery ---
 
 def _build_he_mlrs_names(rows):
     names = set()
@@ -544,9 +962,7 @@ def handle_mortar(units, rows, data_dir):
         add_to_spreadsheet(unit, 'Mortar')
         for w in unit.get('weapons', []):
             if w.get('category') == 'Artillery' and not w.get('ap', 0) and not has_napalm(w):
-                tags = w.setdefault('tag', [])
-                if 'MOR' not in tags:
-                    tags.append('MOR')
+                ensure_weapon_tag(w, 'MOR')
         uid = unit['id']
         if uid not in seen:
             dump.append(unit)
@@ -565,9 +981,7 @@ def handle_howitzer(units, rows, data_dir):
         add_to_spreadsheet(unit, 'Howitzer')
         for w in unit.get('weapons', []):
             if w.get('category') == 'Artillery' and not w.get('ap', 0) and not has_napalm(w):
-                tags = w.setdefault('tag', [])
-                if 'HOW' not in tags:
-                    tags.append('HOW')
+                ensure_weapon_tag(w, 'HOW')
         uid = unit['id']
         if uid not in seen:
             dump.append(unit)
@@ -577,232 +991,98 @@ def handle_howitzer(units, rows, data_dir):
     return []
 
 
-# ---------------------------------------------------------------------------
-# Handler 9 — AA Helo  (auto-detect: Helicopter + Missile with rng_a > 0)
-# ---------------------------------------------------------------------------
+# --- Bombers ---
 
-def handle_aahelo(units, rows, data_dir):
-    dump, seen = [], set()
-    for unit in units:
-        if unit.get('type') != 'Helicopter':
-            continue
-        if not any(w.get('category') == 'Missile' and has_plane_range(w)
-                   for w in unit.get('weapons', [])):
-            continue
-        add_to_spreadsheet(unit, 'AA Helo')
-        uid = unit['id']
-        if uid not in seen:
-            dump.append(unit)
-            seen.add(uid)
-    save_json(os.path.join(data_dir, 'aahelos.json'), dump)
-    print(f'  [H9] AA Helo: found {len(dump)} units')
+def handle_hebomber(units, rows, data_dir):
+    def pred(u):
+        return (u.get('type') == 'Plane'
+                and any(has_he_bomb(w) and (w.get('dmg') or 0) >= HE_BOMB_MIN_DMG
+                        for w in u.get('weapons', [])))
+
+    dump, _ = collect_units(units, pred, 'HE Bomber', 'hebomber.json', data_dir)
+    print(f'  [H7] HE Bomber: found {len(dump)} units')
     return []
 
-
-# ---------------------------------------------------------------------------
-# Handler 10 — Tank  (auto-detect: Vehicle + Gun with rng_g >= 1925, no helo range, dmg >= 2, ap >= 6)
-# ---------------------------------------------------------------------------
-
-def handle_tank(units, rows, data_dir):
-    dump, seen = [], set()
-    for unit in units:
-        if unit.get('type') != 'Vehicle':
-            continue
-        if unit.get('command'):
-            continue
-        if (unit.get('health') or 0) < 5:
-            continue
-        if (unit.get('armor', {}).get('S') or 0) < 2:
-            continue
-        if not any(w.get('category') == 'Gun'
-                   and (w.get('rng_g') or 0) >= 1925
-                   and not (w.get('rng_h') or 0)
-                   and (w.get('dmg') or 0) >= 2
-                   and (w.get('ap') or 0) >= 6
-                   for w in unit.get('weapons', [])):
-            continue
-        add_to_spreadsheet(unit, 'Tank')
-        uid = unit['id']
-        if uid not in seen:
-            dump.append(unit)
-            seen.add(uid)
-    save_json(os.path.join(data_dir, 'tanks.json'), dump)
-    print(f'  [H10] Tank: found {len(dump)} units')
-    return []
-
-
-# ---------------------------------------------------------------------------
-# Handler 11 — Ship  (ships.tsv: Name, Sailing, CIWS)
-# ---------------------------------------------------------------------------
-
-def handle_ship(units, rows, data_dir):
-    ships_map = {}
-    for row in rows:
-        if len(row) >= 3:
-            ships_map[row[0].strip().lower()] = {
-                'sailing': row[1].strip(),
-                'ciws':    row[2].strip(),
-            }
-
-    unit_names_lower = {(u.get('name') or '').lower() for u in units}
-
-    for unit in units:
-        key = (unit.get('name') or '').lower()
-        if key not in ships_map:
-            continue
-        vals = ships_map[key]
-        add_to_spreadsheet(unit, 'Ship')
-        unit['sailing'] = vals['sailing']
-        unit['ciws']    = vals['ciws']
-
-    unmatched = [name for name in ships_map if name not in unit_names_lower]
-    for name in unmatched:
-        print(f'  [H11] WARNING: ship "{name}" not found in JSON')
-
-    matched = len(ships_map) - len(unmatched)
-    print(f'  [H11] Ship: patched {matched}/{len(ships_map)} ships')
-    return unmatched
-
-
-# ---------------------------------------------------------------------------
-# Handler 12 — Easter Eggs  (eastereggs.txt: ID, target, new_name)
-# ---------------------------------------------------------------------------
-
-def handle_easter_eggs(units, rows, data_dir):
-    unmatched = []
-    count = 0
-    for row in rows:
-        if len(row) < 3:
-            continue
-        uid, target, new_name = row[0].strip(), row[1].strip(), row[2].strip()
-
-        unit = find_unit_by_id(units, uid)
-        if not unit:
-            print(f'  [H12] WARNING: unit ID "{uid}" not found')
-            unmatched.append(uid)
-            continue
-
-        if target.lower() == 'unit':
-            unit['name'] = new_name
-            count += 1
-        else:
-            weapon = next(
-                (w for w in unit.get('weapons', [])
-                 if (w.get('name') or '').lower() == target.lower()),
-                None,
-            )
-            if weapon:
-                weapon['name'] = new_name
-                count += 1
-            else:
-                print(f'  [H12] WARNING: weapon "{target}" not found '
-                      f'on unit "{unit.get("name")}"')
-
-    print(f'  [H12] Easter Eggs: applied {count} rename(s)')
-    return unmatched
-
-
-# ---------------------------------------------------------------------------
-# Handler 13 — Cluster Bomber  (auto-detect: Plane + weapon with CLUS tag)
-# ---------------------------------------------------------------------------
 
 def handle_clusterbomber(units, rows, data_dir):
-    dump, seen = [], set()
-    for unit in units:
-        if unit.get('type') != 'Plane':
-            continue
-        if not any('CLUS' in w.get('tag', [])
-                   for w in unit.get('weapons', [])):
-            continue
-        add_to_spreadsheet(unit, 'Cluster Bomber')
-        uid = unit['id']
-        if uid not in seen:
-            dump.append(unit)
-            seen.add(uid)
-    save_json(os.path.join(data_dir, 'clusterbombers.json'), dump)
+    def pred(u):
+        return (u.get('type') == 'Plane'
+                and any('CLUS' in w.get('tag', []) for w in u.get('weapons', [])))
+
+    dump, _ = collect_units(units, pred, 'Cluster Bomber', 'clusterbombers.json', data_dir)
     print(f'  [H13] Cluster Bomber: found {len(dump)} units')
     return []
 
 
-# ---------------------------------------------------------------------------
-# Handler 13b — Napalm Bomber  (auto-detect: Plane + weapon with NPLM tag)
-# ---------------------------------------------------------------------------
-
 def handle_naplmbomber(units, rows, data_dir):
-    dump, seen = [], set()
-    for unit in units:
-        if unit.get('type') != 'Plane':
-            continue
-        if not any(has_napalm(w) for w in unit.get('weapons', [])):
-            continue
-        add_to_spreadsheet(unit, 'Napalm Bomber')
-        uid = unit['id']
-        if uid not in seen:
-            dump.append(unit)
-            seen.add(uid)
-    save_json(os.path.join(data_dir, 'naplmbombers.json'), dump)
+    def pred(u):
+        return (u.get('type') == 'Plane'
+                and any(has_napalm(w) for w in u.get('weapons', [])))
+
+    dump, _ = collect_units(units, pred, 'Napalm Bomber', 'naplmbombers.json', data_dir)
     print(f'  [H13b] Napalm Bomber: found {len(dump)} units')
     return []
 
 
-# ---------------------------------------------------------------------------
-# Handler 14 — Manpad  (auto-detect: Infantry + Missile with rng_a > 0)
-# ---------------------------------------------------------------------------
+# --- Tank ---
 
-def handle_manpad(units, rows, data_dir):
-    dump, seen = [], set()
-    for unit in units:
-        if unit.get('type') != 'Infantry':
-            continue
-        if not any(w.get('category') == 'Missile' and has_plane_range(w)
-                   for w in unit.get('weapons', [])):
-            continue
-        add_to_spreadsheet(unit, 'Manpad')
-        uid = unit['id']
-        if uid not in seen:
-            dump.append(unit)
-            seen.add(uid)
-    save_json(os.path.join(data_dir, 'manpads.json'), dump)
-    print(f'  [H14] Manpad: found {len(dump)} units')
+def handle_tank(units, rows, data_dir):
+    def pred(u):
+        if u.get('type') != 'Vehicle' or u.get('command'):
+            return False
+        if (u.get('health') or 0) < TANK_MIN_HEALTH:
+            return False
+        if (u.get('armor', {}).get('S') or 0) < TANK_MIN_SIDE_ARMOR:
+            return False
+        return any(w.get('category') == 'Gun'
+                   and (w.get('rng_g') or 0) >= TANK_GUN_MIN_RANGE
+                   and not (w.get('rng_h') or 0)
+                   and (w.get('dmg') or 0) >= TANK_MIN_DMG
+                   and (w.get('ap') or 0) >= TANK_MIN_AP
+                   for w in u.get('weapons', []))
+
+    dump, _ = collect_units(units, pred, 'Tank', 'tanks.json', data_dir)
+    print(f'  [H10] Tank: found {len(dump)} units')
     return []
 
 
-# ---------------------------------------------------------------------------
-# Handler 15 — Missile AA  (auto-detect: Vehicle + Missile; two labels)
-#
-# Plane Missile AA : any missile with rng_a >= 3150
-# Helo Missile AA  : any missile with 0 < rng_a < 3150
-#                    OR (is Plane AA AND any missile with rng_h >= 3150)
-# A unit can receive both labels; both dump files may overlap.
-# ---------------------------------------------------------------------------
+# --- AA ---
+
+def handle_aahelo(units, rows, data_dir):
+    def pred(u):
+        return (u.get('type') == 'Helicopter'
+                and any(w.get('category') == 'Missile' and has_plane_range(w)
+                        for w in u.get('weapons', [])))
+
+    dump, _ = collect_units(units, pred, 'AA Helo', 'aahelos.json', data_dir)
+    print(f'  [H9] AA Helo: found {len(dump)} units')
+    return []
+
 
 def handle_missileaa(units, rows, data_dir):
+    """Dual-classification: Plane Missile AA and/or Helo Missile AA."""
     plane_dump, helo_dump = [], []
     plane_seen, helo_seen = set(), set()
 
     for unit in units:
         if unit.get('type') != 'Vehicle':
             continue
-        # Exclude SPAAG weapons — radar autocannons are stored as category
-        # "Missile" in the JSON but are not SAMs and should not count here.
         missiles = [w for w in unit.get('weapons', [])
-                    if w.get('category') == 'Missile' and not _is_spaag_weapon(w)]
+                    if w.get('category') == 'Missile' and not is_spaag_weapon(w)]
         if not missiles:
             continue
 
-        is_plane_aa = any(w.get('rng_a', 0) >= 3150 for w in missiles)
+        is_plane_aa = any(w.get('rng_a', 0) >= PLANE_AA_RANGE for w in missiles)
         is_helo_aa  = (
-            any(0 < w.get('rng_a', 0) < 3150 for w in missiles)
-            or (is_plane_aa and any(w.get('rng_h', 0) >= 3150 for w in missiles))
+            any(0 < w.get('rng_a', 0) < PLANE_AA_RANGE for w in missiles)
+            or (is_plane_aa and any(w.get('rng_h', 0) >= PLANE_AA_RANGE for w in missiles))
         )
 
         uid = unit['id']
         if is_plane_aa or is_helo_aa:
             for w in missiles:
                 if w.get('rng_a', 0) > 0:
-                    tags = w.setdefault('tag', [])
-                    if 'SAM' not in tags:
-                        tags.append('SAM')
+                    ensure_weapon_tag(w, 'SAM')
         if is_plane_aa:
             add_to_spreadsheet(unit, 'Plane Missile AA')
             if uid not in plane_seen:
@@ -820,63 +1100,62 @@ def handle_missileaa(units, rows, data_dir):
     return []
 
 
-# ---------------------------------------------------------------------------
-# Handler 16 — Rocket Pod Helo  (auto-detect: Helicopter + Gun, rng_g >= 2100)
-# ---------------------------------------------------------------------------
+def handle_manpad(units, rows, data_dir):
+    def pred(u):
+        return (u.get('type') == 'Infantry'
+                and any(w.get('category') == 'Missile' and has_plane_range(w)
+                        for w in u.get('weapons', [])))
+
+    dump, _ = collect_units(units, pred, 'Manpad', 'manpads.json', data_dir)
+    print(f'  [H14] Manpad: found {len(dump)} units')
+    return []
+
 
 def handle_rocketpodhelo(units, rows, data_dir):
-    dump, seen = [], set()
-    for unit in units:
-        if unit.get('type') != 'Helicopter':
-            continue
-        if not any(w.get('category') == 'Gun' and w.get('rng_g', 0) >= 2100
-                   for w in unit.get('weapons', [])):
-            continue
-        add_to_spreadsheet(unit, 'Rocket Pod Helo')
-        uid = unit['id']
-        if uid not in seen:
-            dump.append(unit)
-            seen.add(uid)
-    save_json(os.path.join(data_dir, 'rocketpodhelos.json'), dump)
+    def pred(u):
+        return (u.get('type') == 'Helicopter'
+                and any(w.get('category') == 'Gun' and w.get('rng_g', 0) >= ROCKET_POD_MIN_RANGE
+                        for w in u.get('weapons', [])))
+
+    dump, _ = collect_units(units, pred, 'Rocket Pod Helo', 'rocketpodhelos.json', data_dir)
     print(f'  [H16] Rocket Pod Helo: found {len(dump)} units')
     return []
 
 
-# ---------------------------------------------------------------------------
-# Handler 17 — ASF  (asfs.txt)
-# ---------------------------------------------------------------------------
+# --- ASF / SEAD ---
 
 def _has_ship_weapon(weapons):
     return any('SHIP' in w.get('tag', []) for w in weapons)
 
 
 def _has_plane_range_3150(weapons):
-    return any(w.get('rng_a', 0) >= 3150 for w in weapons)
+    return any(w.get('rng_a', 0) >= PLANE_AA_RANGE for w in weapons)
 
 
 def handle_asf(units, rows, data_dir):
-    dump, seen = [], set()
-    for unit in units:
-        if (unit.get('airOptics') or 0) < 300:
-            continue
-        weapons = unit.get('weapons', [])
-        if _has_ship_weapon(weapons):
-            continue
-        if not _has_plane_range_3150(weapons):
-            continue
-        add_to_spreadsheet(unit, 'ASF')
-        uid = unit['id']
-        if uid not in seen:
-            dump.append(unit)
-            seen.add(uid)
-    save_json(os.path.join(data_dir, 'asfs.json'), dump)
+    def pred(u):
+        if (u.get('airOptics') or 0) < ASF_AIR_OPTICS_MIN:
+            return False
+        weapons = u.get('weapons', [])
+        return not _has_ship_weapon(weapons) and _has_plane_range_3150(weapons)
+
+    dump, _ = collect_units(units, pred, 'ASF', 'asfs.json', data_dir)
     print(f'  [H17] ASF: tagged {len(dump)} units')
     return []
 
 
-# ---------------------------------------------------------------------------
-# Handler 18 — ATGM Plane  (atgmplanes.txt)
-# ---------------------------------------------------------------------------
+def handle_sead(units, rows, data_dir):
+    def pred(u):
+        return (u.get('type') == 'Plane'
+                and any(w.get('category') == 'Missile' and 'SEAD' in w.get('tag', [])
+                        for w in u.get('weapons', [])))
+
+    dump, _ = collect_units(units, pred, 'SEAD', 'sead.json', data_dir)
+    print(f'  [H19] SEAD: found {len(dump)} units')
+    return []
+
+
+# --- ATGM variants ---
 
 def handle_atgmplane(units, rows, data_dir):
     dump, seen, unmatched = [], set(), []
@@ -907,488 +1186,44 @@ def handle_atgmplane(units, rows, data_dir):
     return unmatched
 
 
-# ---------------------------------------------------------------------------
-# Handler 18a — ATGM Vehicle  (auto-detect: Vehicle + Missile with ap > 0)
-# ---------------------------------------------------------------------------
-
 def handle_atgmvehicle(units, rows, data_dir):
-    dump, seen = [], set()
-    for unit in units:
-        if unit.get('type') != 'Vehicle':
-            continue
-        if unit.get('command'):
-            continue
-        if not any(w.get('category') == 'Missile' and w.get('ap', 0)
-                   and 'SHIP' not in w.get('tag', [])
-                   and 'RAD' not in w.get('tag', [])
-                   and 'SEAD' not in w.get('tag', [])
-                   for w in unit.get('weapons', [])):
-            continue
-        add_to_spreadsheet(unit, 'ATGM Vehicle')
-        uid = unit['id']
-        if uid not in seen:
-            dump.append(unit)
-            seen.add(uid)
-    save_json(os.path.join(data_dir, 'atgmvehicles.json'), dump)
+    def pred(u):
+        return (u.get('type') == 'Vehicle'
+                and not u.get('command')
+                and any(is_atgm_missile(w) for w in u.get('weapons', [])))
+
+    dump, _ = collect_units(units, pred, 'ATGM Vehicle', 'atgmvehicles.json', data_dir)
     print(f'  [H18a] ATGM Vehicle: found {len(dump)} units')
     return []
 
 
-# ---------------------------------------------------------------------------
-# Handler 18b — ATGM Helo  (auto-detect: Helicopter + Missile with ap > 0)
-# ---------------------------------------------------------------------------
-
 def handle_atgmhelo(units, rows, data_dir):
-    dump, seen = [], set()
-    for unit in units:
-        if unit.get('type') != 'Helicopter':
-            continue
-        if unit.get('command'):
-            continue
-        if not any(w.get('category') == 'Missile' and w.get('ap', 0)
-                   and 'SHIP' not in w.get('tag', [])
-                   and 'RAD' not in w.get('tag', [])
-                   and 'SEAD' not in w.get('tag', [])
-                   for w in unit.get('weapons', [])):
-            continue
-        add_to_spreadsheet(unit, 'ATGM Helo')
-        uid = unit['id']
-        if uid not in seen:
-            dump.append(unit)
-            seen.add(uid)
-    save_json(os.path.join(data_dir, 'atgmhelos.json'), dump)
+    def pred(u):
+        return (u.get('type') == 'Helicopter'
+                and not u.get('command')
+                and any(is_atgm_missile(w) for w in u.get('weapons', [])))
+
+    dump, _ = collect_units(units, pred, 'ATGM Helo', 'atgmhelos.json', data_dir)
     print(f'  [H18b] ATGM Helo: found {len(dump)} units')
     return []
 
 
-# ---------------------------------------------------------------------------
-# Handler 18c — ATGM Infantry  (auto-detect: Infantry + Missile with ap > 0)
-# ---------------------------------------------------------------------------
-
 def handle_atgminfantry(units, rows, data_dir):
-    dump, seen = [], set()
-    for unit in units:
-        if unit.get('type') != 'Infantry':
-            continue
-        if unit.get('command'):
-            continue
-        if not any(w.get('category') == 'Missile' and w.get('ap', 0)
-                   and 'SHIP' not in w.get('tag', [])
-                   and 'RAD' not in w.get('tag', [])
-                   and 'SEAD' not in w.get('tag', [])
-                   for w in unit.get('weapons', [])):
-            continue
-        add_to_spreadsheet(unit, 'ATGM Infantry')
-        uid = unit['id']
-        if uid not in seen:
-            dump.append(unit)
-            seen.add(uid)
-    save_json(os.path.join(data_dir, 'atgminfantry.json'), dump)
+    def pred(u):
+        return (u.get('type') == 'Infantry'
+                and not u.get('command')
+                and any(is_atgm_missile(w) for w in u.get('weapons', [])))
+
+    dump, _ = collect_units(units, pred, 'ATGM Infantry', 'atgminfantry.json', data_dir)
     print(f'  [H18c] ATGM Infantry: found {len(dump)} units')
     return []
 
 
-# ---------------------------------------------------------------------------
-# Handler 19 — SEAD  (auto-detect: Plane or Helicopter + Missile with SEAD tag)
-# ---------------------------------------------------------------------------
-
-def handle_sead(units, rows, out_dir):
-    dump, seen = [], set()
-    for unit in units:
-        if unit.get('type') != 'Plane':
-            continue
-        if not any(w.get('category') == 'Missile' and 'SEAD' in w.get('tag', [])
-                   for w in unit.get('weapons', [])):
-            continue
-        add_to_spreadsheet(unit, 'SEAD')
-        uid = unit['id']
-        if uid not in seen:
-            dump.append(unit)
-            seen.add(uid)
-    save_json(os.path.join(out_dir, 'sead.json'), dump)
-    print(f'  [H19] SEAD: found {len(dump)} units')
-    return []
-
-
-# ---------------------------------------------------------------------------
-# Handler 20 — ASM  (asm.tsv: Name, AP, Range)
-# Matches weapons by name + rng_s, updates ap, and adds SHIP tag.
-# ---------------------------------------------------------------------------
-
-def handle_asm(units, rows, data_dir):
-    dump_dict = {}
-    unmatched = []
-    for row in rows:
-        if not row or len(row) < 3:
-            continue
-        name = row[0].strip()
-        try:
-            ap = int(row[1].strip())
-        except ValueError:
-            print(f'  [H20] WARNING: invalid AP "{row[1]}" for weapon "{name}"')
-            continue
-        try:
-            rng_s = int(row[2].strip())
-        except ValueError:
-            print(f'  [H20] WARNING: invalid range "{row[2]}" for weapon "{name}"')
-            continue
-
-        nl = _strip_diacritics(name).lower()
-        matches = [
-            (u, w)
-            for u in units
-            for w in u.get('weapons', [])
-            if (w.get('name') or '').lower() == nl and w.get('rng_s') == rng_s
-        ]
-
-        if not matches:
-            print(f'  [H20] WARNING: weapon "{name}" with rng_s={rng_s} not found in JSON')
-            unmatched.append(f'{name} (rng_s={rng_s})')
-            continue
-
-        for _, w in matches:
-            w['ap'] = ap
-            if 'SHIP' not in w.get('tag', []):
-                w.setdefault('tag', []).append('SHIP')
-            key = w.get('nameId') or w.get('name')
-            if key not in dump_dict:
-                dump_dict[key] = w
-
-    save_json(os.path.join(data_dir, 'asm.json'), list(dump_dict.values()))
-    print(f'  [H20] ASM: patched {len(dump_dict)} unique weapons')
-    return unmatched
-
-
-# ---------------------------------------------------------------------------
-# Handler 21 — Turret  (turrets.tsv: UnitName, Turreted, WeaponNumber)
-# Sets the turreted boolean on the nth weapon (1-indexed) for each unit.
-# Overrides any existing turreted value.
-# ---------------------------------------------------------------------------
-
-def handle_turret(units, rows, data_dir):
-    unmatched = []
-    count = 0
-    for row in rows:
-        if not row or len(row) < 3:
-            continue
-        unit_name = row[0].strip()
-        turret_val = row[1].strip().lower() == 'true'
-        try:
-            weapon_num = int(row[2].strip())
-        except ValueError:
-            print(f'  [H21] WARNING: invalid weapon number "{row[2]}" for unit "{unit_name}"')
-            continue
-
-        matched = find_units_by_name(units, unit_name)
-        if not matched:
-            print(f'  [H21] WARNING: unit "{unit_name}" not found in JSON')
-            unmatched.append(unit_name)
-            continue
-
-        for unit in matched:
-            weapons = unit.get('weapons', [])
-            idx = weapon_num - 1
-            if idx < 0 or idx >= len(weapons):
-                print(f'  [H21] WARNING: unit "{unit.get("name")}" has no weapon #{weapon_num}')
-                continue
-            weapons[idx]['turreted'] = turret_val
-            count += 1
-
-    print(f'  [H21] Turret: set turreted on {count} weapon(s)')
-    return unmatched
-
-
-# ---------------------------------------------------------------------------
-# Handler 21b — Split-ID Weapons  (normalize mismatched nameIds before merge)
-# ---------------------------------------------------------------------------
-
-# Weapons that represent the same gun but were assigned different nameIds in
-# the source data.  Map each secondary ID to the canonical (KE) ID so that
-# handle_merge_duplicate_weapons can merge them normally.
-_SPLIT_ID_CANON = {
-    # C1 ARIETE — OTO Breda 120mm L/44
-    'd1034d580659d405': 'd2b74594342e5d05',
-    # OF-40 Mk.2A — OTO Melara 105mm M52
-    '9af3700e146edd04': 'dff8340db3381c03',
-    # OF-40 Mk.2 — OTO Melara 105mm M52
-    'd1f66c56d4601903': '4d177d5b38424c07',
-}
-
-def handle_split_id_weapons(units, rows, data_dir):
-    """
-    Canonicalize nameIds for guns whose KE and AoE ammo variants were given
-    different IDs in the source data, so handle_merge_duplicate_weapons can
-    merge them correctly.
-    """
-    total_fixed = 0
-    for unit in units:
-        for w in unit.get('weapons', []):
-            canon = _SPLIT_ID_CANON.get(w.get('nameId', ''))
-            if canon:
-                w['nameId'] = canon
-                total_fixed += 1
-    print(f'  [H21b] Split-ID Weapons: normalized {total_fixed} nameId(s)')
-    return []
-
-
-# ---------------------------------------------------------------------------
-# Handler 22 — Merge Duplicate Weapons  (auto: collapse AP+HE split guns)
-# ---------------------------------------------------------------------------
-
-def handle_merge_duplicate_weapons(units, rows, data_dir):
-    """
-    Merge weapons on the same unit that share a nameId but differ in at least
-    one of ap or any range field.  Weapons that are truly identical (e.g. two
-    copies of the same MG) are left as separate entries.
-    """
-    RANGE_FIELDS = {"rng_g", "rng_h", "rng_a", "rng_s", "minRange", "maxRange"}
-    MAX_FIELDS   = {"dmg", "suppress"}
-    DIFF_FIELDS  = {"ap"} | RANGE_FIELDS
-
-    def differs(a, b):
-        for f in DIFF_FIELDS:
-            if a.get(f) != b.get(f):
-                return True
-        if set(a.get('tag', [])) != set(b.get('tag', [])):
-            return True
-        return False
-
-    total_merged = 0
-
-    for unit in units:
-        weapons = unit.get('weapons', [])
-        seen  = {}  # key -> weapon dict (merge target)
-        order = []  # keys in insertion order
-
-        for w in weapons:
-            nid = w.get('nameId', '')
-            if nid not in seen:
-                seen[nid] = w
-                order.append(nid)
-            else:
-                base = seen[nid]
-                if not differs(base, w) or base.get('category') != w.get('category'):
-                    # Genuinely identical or incompatible categories — keep as a separate entry
-                    unique_key = f'{nid}_{id(w)}'
-                    seen[unique_key] = w
-                    order.append(unique_key)
-                    continue
-
-                # Merge w into base
-                for k, v in w.items():
-                    if k == 'tag':
-                        existing = base.get('tag', [])
-                        for t in v:
-                            if t not in existing:
-                                existing.append(t)
-                        base['tag'] = existing
-                    elif k in RANGE_FIELDS:
-                        if k not in base or base[k] is None:
-                            base[k] = v
-                    elif k in MAX_FIELDS:
-                        if v is not None and (base.get(k) is None or v > base[k]):
-                            base[k] = v
-                    else:
-                        if k not in base or base[k] is None:
-                            base[k] = v
-                total_merged += 1
-
-        unit['weapons'] = [seen[k] for k in order]
-
-    print(f'  [H22] Merge Duplicate Weapons: merged {total_merged} weapon pair(s)')
-    return []
-
-
-# ---------------------------------------------------------------------------
-# Handler 23 — AC  (auto-detect: Gun, ap >= 1, dmg in [1, 1.5], rng_h > 0,
-#                   rng_g in [1400, 1925])
-# ---------------------------------------------------------------------------
-
-def handle_ac(units, rows, data_dir):
-    count = 0
-    for unit in units:
-        for w in unit.get('weapons', []):
-            if w.get('category') != 'Gun':
-                continue
-            if (w.get('ap') or 0) < 1:
-                continue
-            dmg = w.get('dmg') or 0
-            if not (1 <= dmg <= 1.5):
-                continue
-            if not (w.get('rng_h') or 0):
-                continue
-            rng_g = w.get('rng_g') or 0
-            if not (1400 <= rng_g <= 1925):
-                continue
-            tags = w.setdefault('tag', [])
-            if 'AC' not in tags:
-                tags.append('AC')
-                count += 1
-    save_json(os.path.join(data_dir, 'ac.json'),
-              [u for u in units if any('AC' in w.get('tag', []) for w in u.get('weapons', []))])
-    print(f'  [H23] AC: tagged {count} weapon(s)')
-    return []
-
-
-# ---------------------------------------------------------------------------
-# Handler 24 — MG  (auto-detect: non-Infantry, Gun, ap == 0, dmg in [0.5, 1],
-#                   rng_g <= 1225, no plane range)
-# ---------------------------------------------------------------------------
-
-def handle_mg(units, rows, data_dir):
-    count = 0
-    for unit in units:
-        if unit.get('type') == 'Infantry':
-            continue
-        for w in unit.get('weapons', []):
-            if w.get('category') != 'Gun':
-                continue
-            if (w.get('ap') or 0) != 0:
-                continue
-            dmg = w.get('dmg') or 0
-            if not (0.5 <= dmg <= 1):
-                continue
-            if (w.get('rng_g') or 0) > 1225:
-                continue
-            if (w.get('rng_a') or 0) > 0:
-                continue
-            tags = w.setdefault('tag', [])
-            if 'MG' not in tags:
-                tags.append('MG')
-                count += 1
-    save_json(os.path.join(data_dir, 'mg.json'),
-              [u for u in units if any('MG' in w.get('tag', []) for w in u.get('weapons', []))])
-    print(f'  [H24] MG: tagged {count} weapon(s)')
-    return []
-
-
-# ---------------------------------------------------------------------------
-# Handler 25 — GL  (auto-detect: Gun, ap == 0, dmg == 2, rng_g in [1225, 1750], no air range)
-# ---------------------------------------------------------------------------
-
-def handle_gl(units, rows, data_dir):
-    count = 0
-    for unit in units:
-        for w in unit.get('weapons', []):
-            if w.get('category') != 'Gun':
-                continue
-            if (w.get('dmg') or 0) != 2:
-                continue
-            if (w.get('ap') or 0) != 0:
-                continue
-            rng_g = w.get('rng_g') or 0
-            if not (1225 <= rng_g <= 1750):
-                continue
-            if (w.get('rng_a') or 0) > 0:
-                continue
-            if (w.get('rng_h') or 0) > 0:
-                continue
-            tags = w.setdefault('tag', [])
-            if 'GL' not in tags:
-                tags.append('GL')
-                count += 1
-    save_json(os.path.join(data_dir, 'gl.json'),
-              [u for u in units if any('GL' in w.get('tag', []) for w in u.get('weapons', []))])
-    print(f'  [H25] GL: tagged {count} weapon(s)')
-    return []
-
-
-# ---------------------------------------------------------------------------
-# Handler 26 — Autoloader  (auto-detect: Vehicle + Gun, salvoLen > 1, ammo <= salvoLen,
-#                            no helicopter range; plus optional autoloader.tsv overrides)
-# ---------------------------------------------------------------------------
-
-def handle_autoloader(units, rows, data_dir):
-    auto_count = 0
-    for unit in units:
-        if unit.get('type') != 'Vehicle':
-            continue
-        for w in unit.get('weapons', []):
-            if w.get('category') != 'Gun':
-                continue
-            salvo_len = w.get('salvoLen') or 1
-            ammo = w.get('ammo') or 0
-            if salvo_len > 1 and ammo <= salvo_len and not (w.get('rng_h') or 0):
-                tags = w.setdefault('tag', [])
-                if 'AL' not in tags:
-                    tags.append('AL')
-                    auto_count += 1
-
-    unmatched = []
-    tsv_count = 0
-    for row in rows:
-        if not row or not row[0].strip():
-            continue
-        unit_name = row[0].strip()
-        matched = find_units_by_name(units, unit_name)
-        if not matched:
-            print(f'  [H24] WARNING: unit "{unit_name}" not found in JSON')
-            unmatched.append(unit_name)
-            continue
-        for unit in matched:
-            weapons = unit.get('weapons', [])
-            if weapons:
-                tags = weapons[0].setdefault('tag', [])
-                if 'AL' not in tags:
-                    tags.append('AL')
-                    tsv_count += 1
-
-    dump = [u for u in units if any('AL' in w.get('tag', []) for w in u.get('weapons', []))]
-    save_json(os.path.join(data_dir, 'autoloaders.json'), dump)
-    print(f'  [H24] Autoloader: {auto_count} auto-detected, {tsv_count} from TSV, {len(dump)} total units')
-    return unmatched
-
-
-# ---------------------------------------------------------------------------
-# Handler 27 — ATGM Tag  (auto-detect: Missile, ap > 0, not SHIP/SEAD/SPAAG)
-# ---------------------------------------------------------------------------
-
-def handle_atgm_tag(units, rows, data_dir):
-    count = 0
-    for unit in units:
-        for w in unit.get('weapons', []):
-            if w.get('category') != 'Missile':
-                continue
-            if not w.get('ap', 0):
-                continue
-            wtags = w.get('tag', [])
-            if 'SHIP' in wtags or 'SEAD' in wtags or _is_spaag_weapon(w):
-                continue
-            tags = w.setdefault('tag', [])
-            if 'ATGM' not in tags:
-                tags.append('ATGM')
-                count += 1
-    print(f'  [H27] ATGM Tag: tagged {count} weapon(s)')
-    return []
-
-
-# ---------------------------------------------------------------------------
-# Handler 28 — BOMB Tag  (auto-detect: category Bomb or LGB tag)
-# ---------------------------------------------------------------------------
-
-def handle_bomb_tag(units, rows, data_dir):
-    count = 0
-    for unit in units:
-        for w in unit.get('weapons', []):
-            if not is_bomb_type(w):
-                continue
-            tags = w.setdefault('tag', [])
-            if 'BOMB' not in tags:
-                tags.append('BOMB')
-                count += 1
-    print(f'  [H28] BOMB Tag: tagged {count} weapon(s)')
-    return []
-
-
-# ---------------------------------------------------------------------------
-# Handler 29 — Unit Tags  (auto: compute ownTags on each unit from properties)
-# ---------------------------------------------------------------------------
+# ===========================================================================
+# Post-processing handlers
+# ===========================================================================
 
 def handle_unit_tags(units, rows, data_dir):
-    _TYPE_TAG = {
-        'Vehicle': 'VEH', 'Infantry': 'INF', 'FOB': 'FOB',
-        'Helicopter': 'HEL', 'Plane': 'AIR', 'Ship': 'SHIP',
-    }
     for unit in units:
         utype = unit.get('type', '')
         tags = []
@@ -1399,7 +1234,7 @@ def handle_unit_tags(units, rows, data_dir):
 
         if unit.get('capacity') is not None and utype != 'FOB':
             tags.append('SUPPL')
-        if (unit.get('optics') or 0) >= 120:
+        if (unit.get('optics') or 0) >= RECON_OPTICS_MIN:
             tags.append('RECON')
         if utype == 'Vehicle' and unit.get('isTransport'):
             tags.append('TRANS')
@@ -1431,11 +1266,11 @@ def handle_unit_tags(units, rows, data_dir):
     return []
 
 
-# ---------------------------------------------------------------------------
+# ===========================================================================
 # Handler registry
 # Each entry: (display_name, handler_fn, input_file_or_None)
 #   input_file: filename relative to data_dir; None = auto-detect (no file needed)
-# ---------------------------------------------------------------------------
+# ===========================================================================
 
 HANDLERS = [
     ('Exclude',         handle_exclude,          'exclude.txt'),
@@ -1478,9 +1313,9 @@ HANDLERS = [
 ]
 
 
-# ---------------------------------------------------------------------------
+# ===========================================================================
 # Main
-# ---------------------------------------------------------------------------
+# ===========================================================================
 
 def main():
     parser = argparse.ArgumentParser(
