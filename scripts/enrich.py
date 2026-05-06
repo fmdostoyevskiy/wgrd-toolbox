@@ -1234,7 +1234,7 @@ def handle_unit_tags(units, rows, data_dir):
 
         if unit.get('capacity') is not None and utype != 'FOB':
             tags.append('SUPPL')
-        if (unit.get('optics') or 0) >= RECON_OPTICS_MIN:
+        if (unit.get('optics') or 0) >= RECON_OPTICS_MIN and utype != 'Ship':
             tags.append('RECON')
         if utype == 'Vehicle' and unit.get('isTransport'):
             tags.append('TRANS')
