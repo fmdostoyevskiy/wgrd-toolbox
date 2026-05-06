@@ -27,7 +27,7 @@ const WEAPON_TAG_GROUPS = [
 ];
 
 const UNIT_TAG_GROUPS = [
-  ['INF', 'VEH', 'HEL', 'AIR', 'SHIP', 'FOB'],
+  ['INF', 'VEH', 'HEL', 'PLANE', 'SHIP', 'FOB'],
   ['RESRV', 'REG', 'SHOCK', 'ELITE'],
   ['TRACK', 'WHEEL', 'TRUCK', 'AMPH'],
   ['TRANS', 'CMD', 'SUPPL', 'ARMOR', 'RECON'],
