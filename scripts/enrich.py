@@ -1286,6 +1286,7 @@ HANDLERS = [
     ('HE Bomber',       handle_hebomber,      None),
     ('Mortar',          handle_mortar,        'hemlrs.txt'),   # hemlrs.txt used as exclusion list
     ('Howitzer',        handle_howitzer,      'hemlrs.txt'),   # hemlrs.txt used as exclusion list
+    ('Autoloader',      handle_autoloader,     'autoloader.tsv'),
     ('AA Helo',         handle_aahelo,        None),
     ('Tank',            handle_tank,          None),
     ('Ship',            handle_ship,          'ships.tsv'),
@@ -1305,7 +1306,6 @@ HANDLERS = [
     ('AC',              handle_ac,             None),
     ('MG',              handle_mg,             None),
     ('GL',              handle_gl,             None),
-    ('Autoloader',      handle_autoloader,     'autoloader.tsv'),
     ('ATGM Tag',        handle_atgm_tag,       None),
     ('BOMB Tag',        handle_bomb_tag,       None),
     ('Turret',          handle_turret,         'turrets.tsv'),

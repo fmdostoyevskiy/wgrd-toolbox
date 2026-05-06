@@ -87,8 +87,9 @@ export const DATASETS = {
     isWeapon: false,
     defaultSort: 'cost',
     presets: [
-      { label: 'SUPERHEAVY', filters: { cost:       { min: '155' } } },
-      { label: 'WHEELED',    filters: { motionType: { text: 'wheeled' } } },
+      { label: 'SUPERHEAVY',   filters: { cost:       { min: '155' } } },
+      { label: 'WHEELED',      filters: { motionType: { text: 'wheeled' } } },
+      { label: 'STEALTH TANK', filters: { optics:     { min: '120' } } },
     ],
     columns: [
       ...N,
@@ -104,7 +105,7 @@ export const DATASETS = {
       { key: 'rng',        label: 'RNG',      type: 'num',       width: 90,  heat: 'high' },
       { key: 'speed',      label: 'SPEED',    type: 'num',       width: 70,  heat: 'high' },
       { key: 'motionType', label: 'TYPE',     type: 'text',      width: 80,  heat: null   },
-      { key: 'stealth',    label: 'STEALTH',  type: 'num',       width: 75,  heat: 'high' },
+      { key: 'optics',     label: 'GND OPT',  type: 'num',       width: 75,  heat: 'high' },
     ],
     transform(u) {
       const gun = top(u, w => w.category === 'Gun' && (w.rng_g ?? 0) >= 1925 && !(w.rng_h ?? 0) && (w.dmg ?? 0) >= 2 && (w.ap ?? 0) >= 6 && (u.health ?? 0) >= 5 && (u.armor?.S ?? 0) >= 2, 'ap');
@@ -123,7 +124,7 @@ export const DATASETS = {
         rng:        wf(gun, 'rng_g'),
         speed:      u.speed ?? null,
         motionType: u.motionType ?? null,
-        stealth:    u.stealth ?? null,
+        optics:     u.optics ?? null,
       };
     },
   },
