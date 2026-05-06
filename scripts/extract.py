@@ -628,29 +628,8 @@ def classify_weapon(ammo_obj: dict, turret_class: str) -> str:
     return "Gun"
 
 
-def extract_weapon(mw_obj: dict, instances: dict, turret_class: str, dic: dict = {}, is_plane: bool = False) -> Optional[dict]:
-    """
-    Extract weapon data from a TMountedWeaponDescriptor + its TAmmunition.
-    Returns a dict with a _salvo_stock_index and _nb_tirs field that the caller
-    must resolve against WeaponManager.Salves for the final ammo count.
-    """
-    mw_p = mw_obj["properties"]
-    ammo_obj = resolve_ref(instances, mw_p.get("Ammunition"))
-    if ammo_obj is None:
-        return None
-
-    p        = ammo_obj["properties"]
-    category = classify_weapon(ammo_obj, turret_class)
-    tags     = get_weapon_tags(ammo_obj, mw_obj)
-
-    weapon = {
-        "nameId":   p.get("Name", ""),   # localisation hash hex — needs unites.dic lookup
-        "name":     "",                   # display name placeholder; populate from dic
-        "caliber":  dic_lookup(dic, p.get("Caliber", "")) if dic else "",
-        "category": category,
-        "tag":      tags,
-    }
-
+def _extract_weapon_damage(p: dict, mw_p: dict, weapon: dict, dic: dict):
+    """Populate damage, suppress, supply cost, AP, and ammo-resolution indices."""
     weapon["dmg"]      = p.get("PhysicalDamages")
     weapon["suppress"] = p.get("SuppressDamages")
 
@@ -671,11 +650,13 @@ def extract_weapon(mw_obj: dict, instances: dict, turret_class: str, dic: dict =
     if ap is not None:
         weapon["ap"] = ap
 
-    # Accuracy
+
+def _extract_weapon_accuracy(p: dict, mw_p: dict, instances: dict, weapon: dict):
+    """Populate accuracy and stabilizer from HitRollRule."""
     # HitRollRule may be an inline object or an obj_ref — handle both
-    hit_rule_raw  = p.get("HitRollRule")
-    hit_rule_obj  = resolve_ref(instances, hit_rule_raw) if isinstance(hit_rule_raw, dict) and "obj_ref" in hit_rule_raw else None
-    hr            = hit_rule_obj["properties"] if hit_rule_obj else {}
+    hit_rule_raw = p.get("HitRollRule")
+    hit_rule_obj = resolve_ref(instances, hit_rule_raw) if isinstance(hit_rule_raw, dict) and "obj_ref" in hit_rule_raw else None
+    hr           = hit_rule_obj["properties"] if hit_rule_obj else {}
 
     hit_prob = hr.get("HitProbability")
     if hit_prob is not None:
@@ -690,44 +671,38 @@ def extract_weapon(mw_obj: dict, instances: dict, turret_class: str, dic: dict =
     else:
         weapon["stab"] = 0
 
-    # Ranges
-    # Source: armory getGroundRange/getHeloRange/getPlaneRange
-    rng_g = p.get("PorteeMaximale")
-    rng_h = p.get("PorteeMaximaleTBA")
-    rng_a = p.get("PorteeMaximaleHA")
-    rng_s = p.get("PorteeMaximaleBateaux")
-    min_g = p.get("PorteeMinimale")
-    min_h = p.get("PorteeMinimaleTBA")
-    min_a = p.get("PorteeMinimaleHA")
-    min_s = p.get("PorteeMinimaleBateaux")
 
-    if rng_g:
-        v = to_meters_range(rng_g)
+def _set_range(weapon: dict, key: str, raw):
+    """Convert a raw range value to meters and store it if positive."""
+    if raw:
+        v = to_meters_range(raw)
         if v and v > 0:
-            weapon["rng_g"] = v
-    if rng_h:
-        v = to_meters_range(rng_h)
-        if v and v > 0:
-            weapon["rng_h"] = v
-    if rng_a:
-        v = to_meters_range(rng_a)
-        if v and v > 0:
-            weapon["rng_a"] = v
+            weapon[key] = v
+
+
+def _extract_weapon_ranges(p: dict, weapon: dict):
+    """Populate ground/helo/air/ship ranges, minRange, maxRange, blast radii, dispersion."""
+    # Source: armory getGroundRange/getHeloRange/getPlaneRange
+    _set_range(weapon, "rng_g", p.get("PorteeMaximale"))
+    _set_range(weapon, "rng_h", p.get("PorteeMaximaleTBA"))
+    _set_range(weapon, "rng_a", p.get("PorteeMaximaleHA"))
+
+    # Ship range: only write if it differs from ground range or there is no ground range
+    rng_s = p.get("PorteeMaximaleBateaux")
     if rng_s:
         v = to_meters_range(rng_s)
         if v and v > 0:
-            # Only write ship range if it differs from ground range,
-            # or if there is no ground range at all.
             ground_v = weapon.get("rng_g")
             if ground_v is None or v != ground_v:
                 weapon["rng_s"] = v
 
-    min_raw = min_g or min_h or min_a or min_s
+    min_raw = (p.get("PorteeMinimale") or p.get("PorteeMinimaleTBA")
+               or p.get("PorteeMinimaleHA") or p.get("PorteeMinimaleBateaux"))
     if min_raw:
         weapon["minRange"] = to_meters_range(min_raw)
 
-    if category == "Artillery" and rng_g:
-        weapon["maxRange"] = to_meters_range(rng_g)
+    if weapon.get("category") == "Artillery" and p.get("PorteeMaximale"):
+        weapon["maxRange"] = to_meters_range(p.get("PorteeMaximale"))
 
     # Blast radii
     dmg_radius  = p.get("RadiusSplashPhysicalDamages")
@@ -741,7 +716,9 @@ def extract_weapon(mw_obj: dict, instances: dict, turret_class: str, dic: dict =
     if disp_max is not None: weapon["dispersion"]    = to_meters_dist(disp_max)
     if disp_min is not None: weapon["dispersionMin"] = to_meters_dist(disp_min)
 
-    # Rate of fire
+
+def _extract_weapon_fire_rate(p: dict, weapon: dict):
+    """Populate salvo length, reload timings, and aim time."""
     salvo_len    = p.get("NbTirParSalves")
     shot_reload  = p.get("TempsEntreDeuxTirs")
     salvo_reload = p.get("TempsEntreDeuxSalves")
@@ -754,51 +731,97 @@ def extract_weapon(mw_obj: dict, instances: dict, turret_class: str, dic: dict =
     if aim_time is not None:
         weapon["aimTime"] = aim_time
 
-    # Missile kinematics
-    # Path: TAmmunition.MissileDescriptor -> TUniteDescriptor ->
-    #       Modules.MouvementHandler.Default.Maxspeed / MaxAcceleration (both / 52)
-    # Source: armory getMissileMaxSpeed / getMissileMaxAcceleration
-    if category == "Missile":
-        missile_desc = resolve_ref(instances, p.get("MissileDescriptor"))
-        if missile_desc:
-            missile_mouv = get_module(missile_desc, instances, "MouvementHandler")
-            if missile_mouv:
-                ms_raw = prop(missile_mouv, "Maxspeed")
-                ma_raw = prop(missile_mouv, "MaxAcceleration")
-                if ms_raw is not None: weapon["missileSpeed"] = to_meters_dist(ms_raw)
-                if ma_raw is not None: weapon["missileAccel"] = to_meters_dist(ma_raw)
+
+def _extract_weapon_missile(p: dict, instances: dict, weapon: dict):
+    """Populate missile speed and acceleration (Missile category only).
+
+    Path: TAmmunition.MissileDescriptor -> TUniteDescriptor ->
+          Modules.MouvementHandler.Default.Maxspeed / MaxAcceleration (both / 52)
+    Source: armory getMissileMaxSpeed / getMissileMaxAcceleration
+    """
+    missile_desc = resolve_ref(instances, p.get("MissileDescriptor"))
+    if missile_desc:
+        missile_mouv = get_module(missile_desc, instances, "MouvementHandler")
+        if missile_mouv:
+            ms_raw = prop(missile_mouv, "Maxspeed")
+            ma_raw = prop(missile_mouv, "MaxAcceleration")
+            if ms_raw is not None: weapon["missileSpeed"] = to_meters_dist(ms_raw)
+            if ma_raw is not None: weapon["missileAccel"] = to_meters_dist(ma_raw)
+
+
+def _apply_plane_weapon_transforms(weapon: dict):
+    """Apply plane-specific post-processing: strip INDIR, reclassify Artillery as LGB Bomb,
+    convert supplyPerShot to rearmTime."""
+    tags = weapon.get("tag", [])
+
+    # Strip INDIR — planes never fire indirect
+    if "INDIR" in tags:
+        tags.remove("INDIR")
+
+    # Plane artillery = LGB: strip AL tag, add LGB tag, reclassify as Bomb
+    if weapon.get("category") == "Artillery":
+        weapon["category"] = "Bomb"
+        if "AL"  in tags: tags.remove("AL")
+        if "LGB" not in tags: tags.append("LGB")
+
+    # Planes use rearmTime instead of supplyPerShot
+    # rearmTime = supplyPerShot / 35
+    if "supplyPerShot" in weapon:
+        weapon["rearmTime"] = round(weapon.pop("supplyPerShot") / 35, 2)
+
+
+def extract_weapon(mw_obj: dict, instances: dict, turret_class: str,
+                   dic: Optional[dict] = None, is_plane: bool = False) -> Optional[dict]:
+    """Extract weapon data from a TMountedWeaponDescriptor + its TAmmunition.
+
+    Returns a dict with _salvo_stock_index and _nb_tirs fields that the caller
+    must resolve against WeaponManager.Salves for the final ammo count.
+    """
+    if dic is None:
+        dic = {}
+
+    mw_p = mw_obj["properties"]
+    ammo_obj = resolve_ref(instances, mw_p.get("Ammunition"))
+    if ammo_obj is None:
+        return None
+
+    p = ammo_obj["properties"]
+
+    weapon = {
+        "nameId":   p.get("Name", ""),   # localisation hash hex — needs unites.dic lookup
+        "name":     "",                   # display name placeholder; populate from dic
+        "caliber":  dic_lookup(dic, p.get("Caliber", "")) if dic else "",
+        "category": classify_weapon(ammo_obj, turret_class),
+        "tag":      get_weapon_tags(ammo_obj, mw_obj),
+    }
+
+    _extract_weapon_damage(p, mw_p, weapon, dic)
+    _extract_weapon_accuracy(p, mw_p, instances, weapon)
+    _extract_weapon_ranges(p, weapon)
+    _extract_weapon_fire_rate(p, weapon)
+    if weapon["category"] == "Missile":
+        _extract_weapon_missile(p, instances, weapon)
 
     # Noise
     noise = p.get("NoiseDissimulationMalus")
     if noise is not None:
         weapon["noise"] = noise
 
-    # Plane-specific weapon transformations
-    # Strip INDIR — planes never fire indirect
-    if is_plane and "INDIR" in weapon.get("tag", []):
-        weapon["tag"].remove("INDIR")
-
-    # Plane artillery = LGB: strip AL tag, add LGB tag, reclassify as Bomb
-    if is_plane and weapon.get("category") == "Artillery":
-        weapon["category"] = "Bomb"
-        tags = weapon.get("tag", [])
-        if "AL"  in tags: tags.remove("AL")
-        if "LGB" not in tags: tags.append("LGB")
-
-    # Planes use rearmTime instead of supplyPerShot
-    # rearmTime = supplyPerShot / 35
-    if is_plane and "supplyPerShot" in weapon:
-        weapon["rearmTime"] = round(weapon.pop("supplyPerShot") / 35, 2)
+    if is_plane:
+        _apply_plane_weapon_transforms(weapon)
 
     return weapon
 
 
 
-def extract_weapons(unit_obj: dict, instances: dict, dic: dict = {}, is_plane: bool = False) -> list:
-    """
-    Traverse WeaponManager -> TurretDescriptorList -> MountedWeaponDescriptorList -> Ammunition.
+def extract_weapons(unit_obj: dict, instances: dict, dic: Optional[dict] = None,
+                    is_plane: bool = False) -> list:
+    """Traverse WeaponManager -> TurretDescriptorList -> MountedWeaponDescriptorList -> Ammunition.
+
     Resolves ammo count from WeaponManager.Salves[SalvoStockIndex].
     """
+    if dic is None:
+        dic = {}
     weapons = []
     wm = get_module(unit_obj, instances, "WeaponManager")
     if wm is None:
@@ -878,17 +901,6 @@ def build_upgrade_chains(instances: dict) -> dict:
     return {idx: get_descendants(idx) for idx in instances if idx in children or children.get(idx)}
 
 
-
-    """Recursively round all floats in a nested structure to 2 decimal places."""
-    if isinstance(obj, float):
-        return round(obj, 2)
-    if isinstance(obj, dict):
-        return {k: round_floats(v) for k, v in obj.items()}
-    if isinstance(obj, list):
-        return [round_floats(v) for v in obj]
-    return obj
-
-
 def round_floats(obj):
     """Recursively round all floats in a nested structure to 2 decimal places."""
     if isinstance(obj, float):
@@ -900,17 +912,18 @@ def round_floats(obj):
     return obj
 
 
-def extract_unit(unit_obj: dict, instances: dict, dic: dict = {}, upgrade_chains: dict = {}) -> Optional[dict]:
-    p    = unit_obj["properties"]
-    unit = {}
+def _extract_unit_identity(p: dict, unit_obj: dict, instances: dict, dic: dict) -> dict:
+    """Extract core identity fields: id, name, nation, year, cost, avail, tab, specs, type, command.
 
-    # Identity
-    unit["id"]        = p.get("DescriptorId")
+    Source: armory getUnitName() + manual §NameInMenuToken, §Factory, §UnitTypeTokens
+    """
+    unit = {}
+    unit["id"] = p.get("DescriptorId")
+
     # Display name: NameInMenuToken is a localisation hash -> dic lookup
     # AliasName is unreliable for helicopters/planes (contains debug class name)
     # For TUniteDescriptor (air units), NameInMenuToken may only exist on the
     # TypeUnit submodule, not at the top level.
-    # Source: armory getUnitName() + manual §NameInMenuToken
     name_token = p.get("NameInMenuToken")
     if not name_token:
         type_unit_mod_for_name = get_module(unit_obj, instances, "TypeUnit")
@@ -918,6 +931,7 @@ def extract_unit(unit_obj: dict, instances: dict, dic: dict = {}, upgrade_chains
     name_from_dic = dic_lookup(dic, name_token) if name_token else ""
     raw_name = name_from_dic or p.get("AliasName") or p.get("ClassNameForDebug", "Unknown")
     unit["name"] = " ".join(w for w in raw_name.split() if not w.startswith("#")).strip()
+
     unit["nation"]    = p.get("MotherCountry")
     unit["year"]      = p.get("ProductionYear", 0)
     unit["prototype"] = bool(p.get("IsPrototype"))
@@ -939,81 +953,25 @@ def extract_unit(unit_obj: dict, instances: dict, dic: dict = {}, upgrade_chains
         if isinstance(tok, str) and tok.lower() in SPEC_HASH_TO_CODE
     ]
 
-    unit["type"] = infer_unit_type(unit_obj, instances)
-
-    # Command: presence of TCommandManagerModuleDescriptor
-    # Source: manual §TCommandManagerModuleDescriptor
+    unit["type"]    = infer_unit_type(unit_obj, instances)
     unit["command"] = has_module_class(unit_obj, instances, "TCommandManagerModuleDescriptor")
 
+    return unit
+
+
+def _extract_unit_survivability(unit_obj: dict, instances: dict, p: dict, unit: dict):
+    """Extract health, armor, size, ECM, and stealth.
+
+    Source: armory getHealth(), get*Armor(), getECM(), getStealth()
+    """
     # Health: Modules.Damage.Default.MaxDamages
-    # Source: armory getHealth()
     damage_mod = get_module(unit_obj, instances, "Damage")
     unit["health"] = prop(damage_mod, "MaxDamages")
 
-    # Speed: Modules.MouvementHandler.Default.Maxspeed / 52
-    # Source: armory getSpeed()
-    mouv_mod    = get_module(unit_obj, instances, "MouvementHandler")
-    maxspeed_raw = prop(mouv_mod, "Maxspeed")
-    if maxspeed_raw is not None:
-        unit["speed"] = to_meters_dist(maxspeed_raw)
-
-    # MotionType and amphibious from UnitMovingType on movement handler
-    # Source: manual §UnitMovingType
-    moving_type_int = prop(mouv_mod, "UnitMovingType")
-    if moving_type_int in UNIT_MOVING_TYPE:
-        motion_str, amphibious, _ = UNIT_MOVING_TYPE[moving_type_int]
-        if motion_str not in ("foot", "air", "ship"):
-            unit["motionType"] = motion_str
-        if amphibious:
-            unit["amphibious"] = True
-
-    # Fuel and autonomy
-    # Source: armory getFuel() -> Modules.Fuel.Default.FuelCapacity
-    #         armory getAutonomy() -> Modules.Fuel.Default.FuelMoveDuration
-    fuel_mod = get_module(unit_obj, instances, "Fuel")
-    fuel_cap  = prop(fuel_mod, "FuelCapacity")
-    fuel_move = prop(fuel_mod, "FuelMoveDuration")
-    if fuel_cap is not None:
-        if unit.get("type") == "Plane":
-            # Planes show refuel time instead of fuel capacity
-            # Rate: ~81 liters/second at base
-            unit["refuelTime"] = round(fuel_cap / 81, 2)
-        else:
-            unit["fuel"] = fuel_cap
-    if fuel_move is not None: unit["autonomy"] = fuel_move
-
-    # Vehicle transport: presence of TTransporterModuleDescriptor
-    # Source: manual §TModernWarfareDamageModuleDescriptor/Transporter
-    if unit.get("type") == "Vehicle":
-        unit["isTransport"] = has_module_class(unit_obj, instances, "TTransporterModuleDescriptor")
-
-    # Helicopter and ship acceleration/deceleration
-    # Source: manual §TMouvementHandlerHelicopterDescriptor / §TMouvementHandlerLandVehicleDescriptor
-    if unit.get("type") in ("Helicopter", "Ship"):
-        max_accel = prop(mouv_mod, "MaxAcceleration")
-        max_decel = prop(mouv_mod, "MaxDeceleration")
-        if max_accel is not None: unit["maxAcceleration"] = to_meters_dist(max_accel)
-        if max_decel is not None: unit["maxDeceleration"] = to_meters_dist(max_decel)
-    # Planes only: Modules.MouvementHandler.Default.FlyingAltitude / 52
-    # Source: armory getFlyingAltitude
-    if unit.get("type") == "Plane":
-        flying_alt = prop(mouv_mod, "FlyingAltitude")
-        if flying_alt is not None:
-            unit["altitude"] = to_meters_dist(flying_alt)
-
-    # Planes: turning radius from MouvementHandler.Default.GirationRadius / 52
-    # Source: manual §TMouvementHandlerAirplaneDescriptor
-    if unit.get("type") == "Plane":
-        giration_raw = prop(mouv_mod, "GirationRadius")
-        if giration_raw is not None:
-            unit["turnRadius"] = to_meters_dist(giration_raw)
-
-    # Size: raw HitRollSizeModifier float, same as in game data
-    # Source: manual §HitRollSizeModifier
+    # Size: raw HitRollSizeModifier float
     unit["size"] = p.get("HitRollSizeModifier")
 
     # Armor: deep path through Damage module
-    # Source: armory get*Armor()
     #   Modules.Damage.Default.CommonDamageDescriptor.BlindageProperties
     #     .ArmorDescriptor{Front/Sides/Rear/Top}.BaseBlindage
     if damage_mod:
@@ -1028,13 +986,17 @@ def extract_unit(unit_obj: dict, instances: dict, dic: dict = {}, upgrade_chains
                     )
                 unit["armor"] = {
                     "F": get_armor("ArmorDescriptorFront"),
-                    "S": get_armor("ArmorDescriptorSides"),  # plural: Sides
+                    "S": get_armor("ArmorDescriptorSides"),
                     "R": get_armor("ArmorDescriptorRear"),
                     "T": get_armor("ArmorDescriptorTop"),
                 }
 
+    # ECM: top-level HitRollECMModifier (NOT a module)
+    ecm = p.get("HitRollECMModifier")
+    if ecm is not None:
+        unit["ecm"] = round(abs(ecm) * 100)
+
     # Stealth: Modules.Visibility.Default.UnitStealthBonus
-    # Source: armory getStealth()
     vis_mod = get_module(unit_obj, instances, "Visibility")
     stealth = prop(vis_mod, "UnitStealthBonus")
     if stealth is not None:
@@ -1043,8 +1005,70 @@ def extract_unit(unit_obj: dict, instances: dict, dic: dict = {}, upgrade_chains
         else:
             unit["stealth"] = stealth
 
-    # Optics: Modules.ScannerConfiguration.Default.OpticalStrength / OpticalStrengthAltitude
-    # Source: armory getGroundOptics() / getAirOptics()
+
+def _extract_unit_mobility(unit_obj: dict, instances: dict, unit: dict):
+    """Extract speed, motionType, amphibious, fuel/autonomy, acceleration, altitude, turnRadius.
+
+    Source: armory getSpeed(), getFuel(), getAutonomy(), getFlyingAltitude()
+           manual §UnitMovingType, §TMouvementHandlerAirplaneDescriptor
+    """
+    mouv_mod = get_module(unit_obj, instances, "MouvementHandler")
+    unit_type = unit.get("type")
+
+    # Speed
+    maxspeed_raw = prop(mouv_mod, "Maxspeed")
+    if maxspeed_raw is not None:
+        unit["speed"] = to_meters_dist(maxspeed_raw)
+
+    # MotionType and amphibious from UnitMovingType
+    moving_type_int = prop(mouv_mod, "UnitMovingType")
+    if moving_type_int in UNIT_MOVING_TYPE:
+        motion_str, amphibious, _ = UNIT_MOVING_TYPE[moving_type_int]
+        if motion_str not in ("foot", "air", "ship"):
+            unit["motionType"] = motion_str
+        if amphibious:
+            unit["amphibious"] = True
+
+    # Fuel and autonomy
+    fuel_mod = get_module(unit_obj, instances, "Fuel")
+    fuel_cap  = prop(fuel_mod, "FuelCapacity")
+    fuel_move = prop(fuel_mod, "FuelMoveDuration")
+    if fuel_cap is not None:
+        if unit_type == "Plane":
+            # Planes show refuel time instead of fuel capacity (~81 liters/second)
+            unit["refuelTime"] = round(fuel_cap / 81, 2)
+        else:
+            unit["fuel"] = fuel_cap
+    if fuel_move is not None:
+        unit["autonomy"] = fuel_move
+
+    # Vehicle transport flag
+    if unit_type == "Vehicle":
+        unit["isTransport"] = has_module_class(unit_obj, instances, "TTransporterModuleDescriptor")
+
+    # Helicopter and ship acceleration/deceleration
+    if unit_type in ("Helicopter", "Ship"):
+        max_accel = prop(mouv_mod, "MaxAcceleration")
+        max_decel = prop(mouv_mod, "MaxDeceleration")
+        if max_accel is not None: unit["maxAcceleration"] = to_meters_dist(max_accel)
+        if max_decel is not None: unit["maxDeceleration"] = to_meters_dist(max_decel)
+
+    # Plane: altitude and turning radius
+    if unit_type == "Plane":
+        flying_alt = prop(mouv_mod, "FlyingAltitude")
+        if flying_alt is not None:
+            unit["altitude"] = to_meters_dist(flying_alt)
+        giration_raw = prop(mouv_mod, "GirationRadius")
+        if giration_raw is not None:
+            unit["turnRadius"] = to_meters_dist(giration_raw)
+
+
+def _extract_unit_sensors(unit_obj: dict, instances: dict, unit: dict):
+    """Extract optics, airOptics, and seaOptics.
+
+    Source: armory getGroundOptics() / getAirOptics()
+           manual §TScannerConfigurationDescriptor
+    """
     scanner_mod = get_module(unit_obj, instances, "ScannerConfiguration")
     optics     = prop(scanner_mod, "OpticalStrength")
     air_optics = prop(scanner_mod, "OpticalStrengthAltitude")  # NOT OpticalStrengthAlt
@@ -1054,7 +1078,6 @@ def extract_unit(unit_obj: dict, instances: dict, dic: dict = {}, upgrade_chains
     # Sea optics: SpecializedOpticalStrengths MapList, key 6 = ships.
     # Ships always emit; planes only emit if value > SEA_OPTICS_PLANE_THRESHOLD (60).
     # Key may be stored as int 6 or string "6" — check both.
-    # Source: manual §TScannerConfigurationDescriptor + known-gaps note.
     if unit.get("type") in ("Ship", "Plane"):
         specialized_optical = prop(scanner_mod, "SpecializedOpticalStrengths", [])
         if isinstance(specialized_optical, list):
@@ -1067,43 +1090,28 @@ def extract_unit(unit_obj: dict, instances: dict, dic: dict = {}, upgrade_chains
                             unit["seaOptics"] = val
                     break
 
-    # Ship-specific recon and identity fields
-    if unit.get("type") == "Ship":
-        # Sea optics extracted above (shared with Plane).
 
-        # CIWS and Sailing: localisation hashes on TypeUnit module -> dic lookup
-        # Source: manual §TTypeUnitModuleDescriptor/CIWS + /Sailing
-        # Note: these are display-only values in the game engine
-        type_unit_mod_ship = get_module(unit_obj, instances, "TypeUnit")
-        ciws_hash    = prop(type_unit_mod_ship, "CIWS")
-        sailing_hash = prop(type_unit_mod_ship, "Sailing")
-        if ciws_hash:
-            ciws_str = dic_lookup(dic, ciws_hash)
-            if ciws_str: unit["ciws"] = ciws_str
-        if sailing_hash:
-            sailing_str = dic_lookup(dic, sailing_hash)
-            if sailing_str: unit["sailing"] = sailing_str
+def _extract_unit_misc(unit_obj: dict, instances: dict, p: dict, dic: dict,
+                       upgrade_chains: dict, unit: dict):
+    """Extract training, transports, supply capacity, and ship-specific fields (CIWS, sailing).
 
-    # ECM: top-level HitRollECMModifier (NOT a module)
-    # Source: armory getECM()
-    ecm = p.get("HitRollECMModifier")
-    if ecm is not None:
-        unit["ecm"] = round(abs(ecm) * 100)
+    Source: manual §TTypeUnitModuleDescriptor, §TTransportableModuleDescriptor
+           armory getSupplyCapacity()
+    """
+    unit_type = unit.get("type")
 
-    # Training (infantry only): TypeUnit module -> Training localisation hash
-    # Source: manual §TTypeUnitModuleDescriptor/Training
-    type_unit_mod    = get_module(unit_obj, instances, "TypeUnit")
-    training_hash    = prop(type_unit_mod, "Training")
+    # Training: TypeUnit module -> Training localisation hash
+    type_unit_mod = get_module(unit_obj, instances, "TypeUnit")
+    training_hash = prop(type_unit_mod, "Training")
     if training_hash is not None:
         training_int = TRAINING_HASH_TO_INT.get(str(training_hash).lower())
         if training_int is not None:
             unit["training"] = training_int
 
     # Transports: infantry only
-    # TTransportableModuleDescriptor.TransportListAvailableForSpawn lists root
-    # transports only; descendants via UpgradeRequired are implicitly available too.
-    # Source: manual §TTransportableModuleDescriptor
-    if unit.get("type") == "Infantry":
+    # TransportListAvailableForSpawn lists root transports only;
+    # descendants via UpgradeRequired are implicitly available too.
+    if unit_type == "Infantry":
         transport_mod = get_module(unit_obj, instances, "Transportable")
         transport_refs = prop(transport_mod, "TransportListAvailableForSpawn", [])
         if isinstance(transport_refs, list):
@@ -1117,7 +1125,6 @@ def extract_unit(unit_obj: dict, instances: dict, dic: dict = {}, upgrade_chains
                 t_id = obj["properties"].get("DescriptorId")
                 if t_id:
                     transport_ids.append(t_id)
-                # Also add all descendants via UpgradeRequired chain
                 for desc_idx in upgrade_chains.get(obj["_index"], []):
                     add_transport(instances.get(desc_idx))
 
@@ -1126,35 +1133,65 @@ def extract_unit(unit_obj: dict, instances: dict, dic: dict = {}, upgrade_chains
 
             if transport_ids:
                 unit["transports"] = transport_ids
-    # Source: armory getSupplyCapacity()
+
+    # Supply capacity
     supply_mod = get_module(unit_obj, instances, "Supply")
     supply_cap = prop(supply_mod, "SupplyCapacity")
     if supply_cap is not None:
         unit["capacity"] = supply_cap
 
-    # Weapons
-    unit["weapons"] = extract_weapons(unit_obj, instances, dic, unit.get("type") == "Plane")
+    # Ship-specific: CIWS and Sailing (display-only values from dic)
+    if unit_type == "Ship":
+        type_unit_mod_ship = get_module(unit_obj, instances, "TypeUnit")
+        ciws_hash    = prop(type_unit_mod_ship, "CIWS")
+        sailing_hash = prop(type_unit_mod_ship, "Sailing")
+        if ciws_hash:
+            ciws_str = dic_lookup(dic, ciws_hash)
+            if ciws_str: unit["ciws"] = ciws_str
+        if sailing_hash:
+            sailing_str = dic_lookup(dic, sailing_hash)
+            if sailing_str: unit["sailing"] = sailing_str
 
-    # Clean up: remove Nones and schema-irrelevant fields
+
+def _cleanup_unit(unit: dict) -> dict:
+    """Remove empty/None fields and strip type-inappropriate fields."""
     unit = {k: v for k, v in unit.items() if v is not None and v != [] and v != {}}
 
-    # Size is not stored/displayed for planes (schema)
-    if unit.get("type") == "Plane":
+    unit_type = unit.get("type")
+    if unit_type == "Plane":
         unit.pop("size", None)
-    # Armor is not stored/displayed for infantry
-    if unit.get("type") == "Infantry":
+    elif unit_type == "Infantry":
         unit.pop("armor", None)
-    # FOB has no weapons, specs, prototype
-    if unit.get("type") == "FOB":
-        unit.pop("weapons", None)
-        unit.pop("specs", None)
-        unit.pop("prototype", None)
-    # Ships don't have motionType, amphibious, training, size, or transports
-    if unit.get("type") == "Ship":
+    elif unit_type == "FOB":
+        for f in ("weapons", "specs", "prototype"):
+            unit.pop(f, None)
+    elif unit_type == "Ship":
         for f in ("motionType", "amphibious", "training", "size", "transports", "isTransport"):
             unit.pop(f, None)
 
-    return round_floats(unit)
+    return unit
+
+
+def extract_unit(unit_obj: dict, instances: dict, dic: Optional[dict] = None,
+                 upgrade_chains: Optional[dict] = None) -> Optional[dict]:
+    """Extract a complete unit record from a parsed NDF unit object."""
+    if dic is None:
+        dic = {}
+    if upgrade_chains is None:
+        upgrade_chains = {}
+
+    p    = unit_obj["properties"]
+    unit = _extract_unit_identity(p, unit_obj, instances, dic)
+
+    _extract_unit_survivability(unit_obj, instances, p, unit)
+    _extract_unit_mobility(unit_obj, instances, unit)
+    _extract_unit_sensors(unit_obj, instances, unit)
+    _extract_unit_misc(unit_obj, instances, p, dic, upgrade_chains, unit)
+
+    # Weapons
+    unit["weapons"] = extract_weapons(unit_obj, instances, dic, unit.get("type") == "Plane")
+
+    return round_floats(_cleanup_unit(unit))
 
 
 # ---------------------------------------------------------------------------

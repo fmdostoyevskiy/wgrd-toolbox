@@ -18,6 +18,7 @@ export default defineConfig({
       input: {
         home:        path.resolve(__dirname, 'index.html'),
         armory:      path.resolve(__dirname, 'armory/index.html'),
+        deckbuilder: path.resolve(__dirname, 'deckbuilder/index.html'),
         spreadsheet: path.resolve(__dirname, 'spreadsheet/index.html'),
         apdamage:    path.resolve(__dirname, 'apdamage/index.html'),
       },

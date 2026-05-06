@@ -3,6 +3,10 @@ import { NATION_CODE_MAP, NATION_FLAG_MAP, sideOf } from '@units-core';
 
 const BASE = import.meta.env.BASE_URL;
 
+// Column type sets for repeated type checks
+const BOOL_TYPES        = new Set(['bool', 'bool-good', 'bool-plain']);
+const TEXT_FILTER_TYPES  = new Set(['text', 'nation', 'bool', 'bool-good', 'bool-plain']);
+
 async function fetchJson(url) {
   const buf  = await fetch(url).then(r => { if (!r.ok) throw new Error(`HTTP ${r.status}`); return r.arrayBuffer(); });
   const head = new Uint8Array(buf, 0, 2);
@@ -56,7 +60,7 @@ function heatColor(val, stats, intensity) {
 
 // ---------- fmt ----------
 function fmt(val, col) {
-  if (col.type === 'bool' || col.type === 'bool-good' || col.type === 'bool-plain') {
+  if (BOOL_TYPES.has(col.type)) {
     return val ? 'Y' : 'N';
   }
   if (val === null || val === undefined || val === '') return <span className="muted">–</span>;
@@ -150,7 +154,7 @@ function Spreadsheet({ columns, rows, sortKey, sortDir, onSort, heatStats, varia
             {columns.map((col, i) => {
               const isSticky = i === 0;
               const style = { width: col.width, minWidth: col.width, maxWidth: col.width };
-              if (col.type === 'text' || col.type === 'nation' || col.type === 'bool' || col.type === 'bool-good' || col.type === 'bool-plain') {
+              if (TEXT_FILTER_TYPES.has(col.type)) {
                 return (
                   <th key={col.key} className={isSticky ? 'sticky' : ''} style={style}>
                     <input
@@ -192,7 +196,7 @@ function Spreadsheet({ columns, rows, sortKey, sortDir, onSort, heatStats, varia
                 {columns.map((col, ci) => {
                   const val   = row[col.key];
                   const isNum = col.type === 'num' || col.type === 'pct';
-                  const isBool = col.type === 'bool' || col.type === 'bool-plain';
+                  const isBool = BOOL_TYPES.has(col.type);
                   const style = { width: col.width, minWidth: col.width, maxWidth: col.width };
                   if (ci > 0) style.textAlign = 'center';
 
@@ -244,6 +248,15 @@ function Spreadsheet({ columns, rows, sortKey, sortDir, onSort, heatStats, varia
         </tbody>
       </table>
     </div>
+  );
+}
+
+// ---------- PlaceholderTopBar (error/loading states) ----------
+function PlaceholderTopBar({ label, isWeapon }) {
+  return (
+    <TopBar label={label} search="" setSearch={() => {}} total={0} shown={0}
+      coalFilter="all" setCoalFilter={() => {}} variant="heatmap" setVariant={() => {}}
+      isWeapon={isWeapon} presets={[]} filters={{}} onPreset={() => {}} />
   );
 }
 
@@ -305,10 +318,10 @@ export function SpreadsheetApp({ dataset }) {
       if (!f) return;
       const col = dataset.columns.find(c => c.key === key);
       if (!col) return;
-      if (col.type === 'text' || col.type === 'nation' || col.type === 'bool' || col.type === 'bool-good' || col.type === 'bool-plain') {
+      if (TEXT_FILTER_TYPES.has(col.type)) {
         if (f.text?.trim()) {
           const q = f.text.toLowerCase();
-          const isBoolCol = col.type === 'bool' || col.type === 'bool-good' || col.type === 'bool-plain';
+          const isBoolCol = BOOL_TYPES.has(col.type);
           r = r.filter(row => {
             const v = isBoolCol ? (row[key] ? 'y' : 'n') : String(row[key] ?? '').toLowerCase();
             return v.includes(q);
@@ -359,9 +372,7 @@ export function SpreadsheetApp({ dataset }) {
   if (error) {
     return (
       <>
-        <TopBar label={dataset.label} search="" setSearch={() => {}} total={0} shown={0}
-          coalFilter="all" setCoalFilter={() => {}} variant="heatmap" setVariant={() => {}}
-          isWeapon={dataset.isWeapon} presets={[]} filters={{}} onPreset={() => {}} />
+        <PlaceholderTopBar label={dataset.label} isWeapon={dataset.isWeapon} />
         <div className="main">
           <div className="state-screen">
             <span className="glyph">◇ ✕ ◇</span>
@@ -376,9 +387,7 @@ export function SpreadsheetApp({ dataset }) {
   if (!rows) {
     return (
       <>
-        <TopBar label={dataset.label} search="" setSearch={() => {}} total={0} shown={0}
-          coalFilter="all" setCoalFilter={() => {}} variant="heatmap" setVariant={() => {}}
-          isWeapon={dataset.isWeapon} presets={[]} filters={{}} onPreset={() => {}} />
+        <PlaceholderTopBar label={dataset.label} isWeapon={dataset.isWeapon} />
         <div className="main">
           <div className="state-screen">
             <span className="glyph">◇ ◆ ◇</span>

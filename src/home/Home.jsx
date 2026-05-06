@@ -112,6 +112,12 @@ export function Home() {
         <span style={{ color: t.dimmer, fontSize: 10, letterSpacing: '0.18em' }}>unit reference</span>
       </a>
 
+      {/* Deck Builder */}
+      <a href={`${BASE}deckbuilder/`} style={{ ...rowBase, minWidth: 280 }}>
+        <span style={{ color: t.accent }}>Deck Builder</span>
+        <span style={{ color: t.dimmer, fontSize: 10, letterSpacing: '0.18em' }}>build &amp; export decks</span>
+      </a>
+
       {/* AP Damage Calculator */}
       <a href={`${BASE}apdamage/`} style={{ ...rowBase, minWidth: 280 }}>
         <span style={{ color: t.accent }}>AP Damage</span>

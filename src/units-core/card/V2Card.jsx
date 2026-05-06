@@ -11,11 +11,11 @@ import { HideContext, makeHide } from './HideContext.js';
 
 const CARD_FONT = 'var(--wrd-mono, "JetBrains Mono", ui-monospace, Menlo, monospace)';
 
-function VetSelector({ vetIdx, setVetIdx, avail, s }) {
+function VetSelector({ vetIdx, setVetIdx, avail, s, deckMode }) {
   return (
     <div style={{ margin: '10px 0 2px', display: 'flex', alignItems: 'center', gap: 8 }}>
       <span style={{ fontSize: 10, color: s.dim, letterSpacing: '0.14em', textTransform: 'uppercase' }}>
-        Vet
+        {deckMode ? 'Add' : 'Vet'}
       </span>
       <div style={{
         flex: 1, display: 'grid', gridTemplateColumns: 'repeat(5, 1fr)',
@@ -24,18 +24,20 @@ function VetSelector({ vetIdx, setVetIdx, avail, s }) {
         {VET_TIERS.map((t, i) => {
           const active      = i === vetIdx;
           const unavailable = avail?.[i] === 0;
+          const blocked     = deckMode && unavailable;
           return (
             <button
               key={t.id}
               title={VET_TOOLTIPS[i]}
-              onClick={() => setVetIdx(i)}
+              onClick={blocked ? undefined : () => setVetIdx(i)}
+              disabled={blocked}
               style={{
                 background: active ? s.accent : 'transparent',
                 border: 'none',
                 borderLeft: i === 0 ? 'none' : `1px solid ${s.rule}`,
                 color: active ? s.bg : s.dim,
                 padding: '4px 0 3px', fontFamily: 'inherit',
-                cursor: unavailable ? 'not-allowed' : 'pointer',
+                cursor: blocked ? 'not-allowed' : 'pointer',
                 opacity: unavailable ? 0.35 : 1,
                 display: 'flex', flexDirection: 'column',
                 alignItems: 'center', lineHeight: 1.05,
@@ -95,7 +97,7 @@ function TitleBlock({ unit, s }) {
   );
 }
 
-export function V2Card({ unit, avail: availProp, vetIdx, setVetIdx, theme = 'tactical', hide }) {
+export function V2Card({ unit, avail: availProp, vetIdx, setVetIdx, theme = 'tactical', hide, deckMode }) {
   const avail = availProp ?? unit.avail;
   const s     = { ...(V2_THEMES[theme] ?? V2_THEMES.tactical), font: CARD_FONT };
   const vet   = VET_TIERS[vetIdx];
@@ -123,7 +125,7 @@ export function V2Card({ unit, avail: availProp, vetIdx, setVetIdx, theme = 'tac
 
         <div style={{ flex: 1, overflowY: 'auto', padding: '4px 18px 18px' }}>
           {hideCtx.section('vet') && (
-            <VetSelector vetIdx={vetIdx} setVetIdx={setVetIdx} avail={avail} s={s} />
+            <VetSelector vetIdx={vetIdx} setVetIdx={setVetIdx} avail={avail} s={s} deckMode={deckMode} />
           )}
 
           {hideCtx.section('general')  && <GeneralSection unit={unit} s={s} />}

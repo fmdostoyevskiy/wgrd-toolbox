@@ -6,6 +6,16 @@ const top = (unit, pred, sortKey) => {
   return matches.sort((a, b) => (b[sortKey] ?? 0) - (a[sortKey] ?? 0))[0] ?? null;
 };
 
+// Shared transform helpers
+const base        = u => ({ id: u.id, name: u.name, nation: u.nation, cost: u.cost });
+const supplySalvo = (sps, len) => (sps != null && len != null) ? Math.round(sps * len) : null;
+const totalRearm  = (rt, len)  => (rt != null && len != null) ? Math.round(rt * len) : null;
+
+// Shared weapon predicates
+const isHEArtillery = w => w.category === 'Artillery' && !(w.ap ?? 0) && !w.tag?.includes('NPLM');
+const isAtgm        = w => w.category === 'Missile' && (w.ap ?? 0) > 0
+  && !w.tag?.includes('SHIP') && !w.tag?.includes('RAD') && !w.tag?.includes('SEAD');
+
 // Leading columns shared by all unit-based datasets
 const N = [
   { key: 'name',   label: 'NAME',   type: 'text',   width: 220, heat: null },
@@ -49,7 +59,7 @@ export const DATASETS = {
       const gun = pw(u, w => (w.category === 'Gun' || (w.category === 'Missile' && w.tag?.includes('RAD'))) && (w.rng_a ?? 0) > 0);
       const sam = pw(u, w => w.category === 'Missile' && (w.tag?.includes('FnF') || w.tag?.includes('GUID')) && (w.rng_a ?? 0) > 0);
       return {
-        id: u.id, name: u.name, nation: u.nation, cost: u.cost,
+        ...base(u),
         aim:      wf(gun, 'aimTime'),
         he:       wf(gun, 'dmg'),
         planeRng: wf(gun, 'rng_a'),
@@ -100,7 +110,7 @@ export const DATASETS = {
       const gun = top(u, w => w.category === 'Gun' && (w.rng_g ?? 0) >= 1925 && !(w.rng_h ?? 0) && (w.dmg ?? 0) >= 2 && (w.ap ?? 0) >= 6 && (u.health ?? 0) >= 5 && (u.armor?.S ?? 0) >= 2, 'ap');
       const tag = gun?.tag ?? [];
       return {
-        id: u.id, name: u.name, nation: u.nation, cost: u.cost,
+        ...base(u),
         armorF:     u.armor?.F ?? null,
         armorT:     u.armor?.T ?? null,
         ammoType:   tag.includes('KE') ? 'KE' : tag.includes('HEAT') ? 'HEAT' : null,
@@ -139,11 +149,11 @@ export const DATASETS = {
       { key: 'maxDisp',     label: 'MAX DISP',    type: 'num', width: 85,  heat: 'low'  },
     ],
     transform(u) {
-      const art = top(u, w => w.category === 'Artillery' && !(w.ap ?? 0) && !w.tag?.includes('NPLM'), 'rng_g');
+      const art = top(u, isHEArtillery, 'rng_g');
       const supplyPerShot = wf(art, 'supplyPerShot');
       const salvoLen      = wf(art, 'salvoLen');
       return {
-        id: u.id, name: u.name, nation: u.nation, cost: u.cost,
+        ...base(u),
         dmg:         wf(art, 'dmg'),
         suppress:    wf(art, 'suppress'),
         aim:         wf(art, 'aimTime'),
@@ -152,7 +162,7 @@ export const DATASETS = {
         salvo:       wf(art, 'salvoReload'),
         ammo:        wf(art, 'ammo'),
         supplyShot:  supplyPerShot,
-        supplySalvo: (supplyPerShot != null && salvoLen != null) ? Math.round(supplyPerShot * salvoLen) : null,
+        supplySalvo: supplySalvo(supplyPerShot, salvoLen),
         rng:         wf(art, 'maxRange'),
         maxDisp:     wf(art, 'dispersion'),
       };
@@ -182,18 +192,18 @@ export const DATASETS = {
       { key: 'maxDisp',     label: 'MAX DISP',    type: 'num', width: 85,  heat: 'low'  },
     ],
     transform(u) {
-      const art = top(u, w => w.category === 'Artillery' && !(w.ap ?? 0) && !w.tag?.includes('NPLM'), 'rng_g');
+      const art = top(u, isHEArtillery, 'rng_g');
       const supplyPerShot = wf(art, 'supplyPerShot');
       const salvoLen      = wf(art, 'salvoLen');
       return {
-        id: u.id, name: u.name, nation: u.nation, cost: u.cost,
+        ...base(u),
         dmg:         wf(art, 'dmg'),
         suppress:    wf(art, 'suppress'),
         aim:         wf(art, 'aimTime'),
         salvoLen,
         shot:        wf(art, 'shotReload'),
         supplyShot:  supplyPerShot,
-        supplySalvo: (supplyPerShot != null && salvoLen != null) ? Math.round(supplyPerShot * salvoLen) : null,
+        supplySalvo: supplySalvo(supplyPerShot, salvoLen),
         rng:         wf(art, 'maxRange'),
         maxDisp:     wf(art, 'dispersion'),
       };
@@ -226,7 +236,7 @@ export const DATASETS = {
       const supplyPerShot = wf(art, 'supplyPerShot');
       const salvoLen      = wf(art, 'salvoLen');
       return {
-        id: u.id, name: u.name, nation: u.nation, cost: u.cost,
+        ...base(u),
         dmg:         wf(art, 'dmg'),
         dmgRadius:   wf(art, 'dmgRadius'),
         suppress:    wf(art, 'suppress'),
@@ -235,7 +245,7 @@ export const DATASETS = {
         shot:        wf(art, 'shotReload'),
         salvoLen,
         salvo:       wf(art, 'salvoReload'),
-        supplySalvo: (supplyPerShot != null && salvoLen != null) ? Math.round(supplyPerShot * salvoLen) : null,
+        supplySalvo: supplySalvo(supplyPerShot, salvoLen),
         minRng:      wf(art, 'minRange'),
         rng:         wf(art, 'maxRange'),
       };
@@ -265,14 +275,14 @@ export const DATASETS = {
       const supplyPerShot = wf(art, 'supplyPerShot');
       const salvoLen      = wf(art, 'salvoLen');
       return {
-        id: u.id, name: u.name, nation: u.nation, cost: u.cost,
+        ...base(u),
         ap:          wf(art, 'ap'),
         dmgRadius:   wf(art, 'dmgRadius'),
         aim:         wf(art, 'aimTime'),
         shot:        wf(art, 'shotReload'),
         salvoLen,
         salvo:       wf(art, 'salvoReload'),
-        supplySalvo: (supplyPerShot != null && salvoLen != null) ? Math.round(supplyPerShot * salvoLen) : null,
+        supplySalvo: supplySalvo(supplyPerShot, salvoLen),
         minRng:      wf(art, 'minRange'),
         rng:         wf(art, 'maxRange'),
       };
@@ -302,14 +312,14 @@ export const DATASETS = {
       const supplyPerShot = wf(art, 'supplyPerShot');
       const salvoLen      = wf(art, 'salvoLen');
       return {
-        id: u.id, name: u.name, nation: u.nation, cost: u.cost,
+        ...base(u),
         dmg:         wf(art, 'dmg'),
         dmgRadius:   wf(art, 'dmgRadius'),
         aim:         wf(art, 'aimTime'),
         shot:        wf(art, 'shotReload'),
         salvoLen,
         salvo:       wf(art, 'salvoReload'),
-        supplySalvo: (supplyPerShot != null && salvoLen != null) ? Math.round(supplyPerShot * salvoLen) : null,
+        supplySalvo: supplySalvo(supplyPerShot, salvoLen),
         minRng:      wf(art, 'minRange'),
         rng:         wf(art, 'maxRange'),
       };
@@ -345,7 +355,7 @@ export const DATASETS = {
     transform(u) {
       const m = top(u, w => w.category === 'Missile' && (w.rng_a ?? 0) >= 3150, 'rng_a');
       return {
-        id: u.id, name: u.name, nation: u.nation, cost: u.cost,
+        ...base(u),
         planeRng: wf(m, 'rng_a'),
         heloRng:  wf(m, 'rng_h'),
         dmg:      wf(m, 'dmg'),
@@ -392,7 +402,7 @@ export const DATASETS = {
       // exclude dmg=1 guns (SPAAG guns that appear in this file as secondary weapons)
       const m = top(u, w => w.category === 'Missile' && (w.rng_a ?? 0) > 0 && (w.dmg ?? 0) > 1, 'rng_a');
       return {
-        id: u.id, name: u.name, nation: u.nation, cost: u.cost,
+        ...base(u),
         heloRng:  wf(m, 'rng_h'),
         planeRng: wf(m, 'rng_a'),
         dmg:      wf(m, 'dmg'),
@@ -434,7 +444,7 @@ export const DATASETS = {
     transform(u) {
       const m = top(u, w => w.category === 'Missile' && (w.rng_a ?? 0) > 0, 'rng_a');
       return {
-        id: u.id, name: u.name, nation: u.nation, cost: u.cost,
+        ...base(u),
         health:   u.health ?? null,
         training: u.training ?? null,
         heloRng:  wf(m, 'rng_h'),
@@ -472,7 +482,7 @@ export const DATASETS = {
     transform(u) {
       const m = top(u, w => w.category === 'Missile' && (w.rng_a ?? 0) > 0, 'rng_a');
       return {
-        id: u.id, name: u.name, nation: u.nation, cost: u.cost,
+        ...base(u),
         health:   u.health ?? null,
         heloRng:  wf(m, 'rng_h'),
         planeRng: wf(m, 'rng_a'),
@@ -511,7 +521,7 @@ export const DATASETS = {
     transform(u) {
       const gun = top(u, w => w.category === 'Gun' && (w.rng_g ?? 0) >= 2100, 'rng_g');
       return {
-        id: u.id, name: u.name, nation: u.nation, cost: u.cost,
+        ...base(u),
         health:   u.health ?? null,
         rng:      wf(gun, 'rng_g'),
         dmg:      wf(gun, 'dmg'),
@@ -551,7 +561,7 @@ export const DATASETS = {
       const rearmTime = wf(bomb, 'rearmTime');
       const salvoLen  = wf(bomb, 'salvoLen');
       return {
-        id: u.id, name: u.name, nation: u.nation, cost: u.cost,
+        ...base(u),
         health:    u.health ?? null,
         ecm:       u.ecm ?? 0,
         armorF:    u.armor?.F ?? null,
@@ -561,7 +571,7 @@ export const DATASETS = {
         ammo:      wf(bomb, 'ammo'),
         nplm:      bomb?.tag?.includes('NPLM') ?? false,
         lgb:       bomb?.tag?.includes('LGB')  ?? false,
-        rearm:     (rearmTime != null && salvoLen != null) ? Math.round(rearmTime * salvoLen) : null,
+        rearm:     totalRearm(rearmTime, salvoLen),
         speed:     u.speed ?? null,
         autonomy:  u.autonomy ?? null,
       };
@@ -589,12 +599,12 @@ export const DATASETS = {
       const rearmTime = wf(bomb, 'rearmTime');
       const salvoLen  = wf(bomb, 'salvoLen');
       return {
-        id: u.id, name: u.name, nation: u.nation, cost: u.cost,
+        ...base(u),
         ecm:       u.ecm ?? 0,
         ap:        wf(bomb, 'ap'),
         acc:       wf(bomb, 'acc'),
         salvoLen,
-        rearm:     (rearmTime != null && salvoLen != null) ? Math.round(rearmTime * salvoLen) : null,
+        rearm:     totalRearm(rearmTime, salvoLen),
         speed:     u.speed ?? null,
         autonomy:  u.autonomy ?? null,
       };
@@ -624,14 +634,14 @@ export const DATASETS = {
       const rearmTime = wf(bomb, 'rearmTime');
       const salvoLen  = wf(bomb, 'salvoLen');
       return {
-        id: u.id, name: u.name, nation: u.nation, cost: u.cost,
+        ...base(u),
         ecm:       u.ecm ?? 0,
         dmg:       wf(bomb, 'dmg'),
         dmgRadius: wf(bomb, 'dmgRadius'),
         acc:       wf(bomb, 'acc'),
         salvoLen,
         ammo:      wf(bomb, 'ammo'),
-        rearm:     (rearmTime != null && salvoLen != null) ? Math.round(rearmTime * salvoLen) : null,
+        rearm:     totalRearm(rearmTime, salvoLen),
         speed:     u.speed ?? null,
         autonomy:  u.autonomy ?? null,
       };
@@ -679,7 +689,7 @@ export const DATASETS = {
       let vet = null;
       for (let i = 4; i >= 0; i--) { if ((avail[i] ?? 0) > 0) { vet = vetLabels[i]; break; } }
       return {
-        id: u.id, name: u.name, nation: u.nation, cost: u.cost,
+        ...base(u),
         ecm:     u.ecm ?? 0,
         optics:  u.airOptics ?? null,
         vet,
@@ -687,13 +697,13 @@ export const DATASETS = {
         m1Helo:  wf(m1, 'rng_h'),
         m1Acc:   wf(m1, 'acc'),
         m1He:    wf(m1, 'dmg'),
-        m1Rld:   (wf(m1, 'rearmTime') != null && wf(m1, 'salvoLen') != null) ? Math.round(wf(m1, 'rearmTime') * wf(m1, 'salvoLen')) : null,
+        m1Rld:   totalRearm(wf(m1, 'rearmTime'), wf(m1, 'salvoLen')),
         m1Fnf:   m1?.tag?.includes('FnF') ?? false,
         m2Plane: wf(m2, 'rng_a'),
         m2Helo:  wf(m2, 'rng_h'),
         m2Acc:   wf(m2, 'acc'),
         m2He:    wf(m2, 'dmg'),
-        m2Rld:   (wf(m2, 'rearmTime') != null && wf(m2, 'salvoLen') != null) ? Math.round(wf(m2, 'rearmTime') * wf(m2, 'salvoLen')) : null,
+        m2Rld:   totalRearm(wf(m2, 'rearmTime'), wf(m2, 'salvoLen')),
         m2Fnf:   m2?.tag?.includes('FnF') ?? false,
         gunAcc:  wf(gun, 'acc'),
         gunRld:  wf(gun, 'shotReload'),
@@ -733,7 +743,7 @@ export const DATASETS = {
       const rearmTime = wf(m, 'rearmTime');
       const salvoLen  = wf(m, 'salvoLen');
       return {
-        id: u.id, name: u.name, nation: u.nation, cost: u.cost,
+        ...base(u),
         ecm:      u.ecm ?? 0,
         armorF:   u.armor?.F ?? null,
         armorR:   u.armor?.R ?? null,
@@ -742,7 +752,7 @@ export const DATASETS = {
         acc:      wf(m, 'acc'),
         fnf:      m?.tag?.includes('FnF') ?? false,
         ammo:     wf(m, 'ammo'),
-        rearm:    (rearmTime != null && salvoLen != null) ? Math.round(rearmTime * salvoLen) : null,
+        rearm:    totalRearm(rearmTime, salvoLen),
         speed:    u.speed ?? null,
         autonomy: u.autonomy ?? null,
       };
@@ -778,10 +788,10 @@ export const DATASETS = {
       { key: 'stealth',     label: 'STEALTH',   type: 'num',  width: 75,  heat: 'high' },
     ],
     transform(u) {
-      const m = top(u, w => w.category === 'Missile' && (w.ap ?? 0) > 0 && !w.tag?.includes('SHIP') && !w.tag?.includes('RAD') && !w.tag?.includes('SEAD'), 'ap');
+      const m = top(u, isAtgm, 'ap');
       const salvoLen = wf(m, 'salvoLen');
       return {
-        id: u.id, name: u.name, nation: u.nation, cost: u.cost,
+        ...base(u),
         armorF:       u.armor?.F ?? null,
         ap:           wf(m, 'ap'),
         acc:          wf(m, 'acc'),
@@ -822,9 +832,9 @@ export const DATASETS = {
       { key: 'stealth',     label: 'STEALTH',   type: 'num',  width: 75,  heat: 'high' },
     ],
     transform(u) {
-      const m = top(u, w => w.category === 'Missile' && (w.ap ?? 0) > 0 && !w.tag?.includes('SHIP') && !w.tag?.includes('RAD') && !w.tag?.includes('SEAD'), 'ap');
+      const m = top(u, isAtgm, 'ap');
       return {
-        id: u.id, name: u.name, nation: u.nation, cost: u.cost,
+        ...base(u),
         health:       u.health ?? null,
         ap:           wf(m, 'ap'),
         acc:          wf(m, 'acc'),
@@ -867,10 +877,10 @@ export const DATASETS = {
       { key: 'size',        label: 'SIZE',      type: 'num',       width: 65,  heat: 'low'  },
     ],
     transform(u) {
-      const m = top(u, w => w.category === 'Missile' && (w.ap ?? 0) > 0 && !w.tag?.includes('SHIP') && !w.tag?.includes('RAD') && !w.tag?.includes('SEAD'), 'ap');
+      const m = top(u, isAtgm, 'ap');
       const salvoLen = wf(m, 'salvoLen');
       return {
-        id: u.id, name: u.name, nation: u.nation, cost: u.cost,
+        ...base(u),
         health:       u.health ?? null,
         rng:          wf(m, 'rng_g'),
         ap:           wf(m, 'ap'),
@@ -913,7 +923,7 @@ export const DATASETS = {
       const rearmTime = wf(m, 'rearmTime');
       const salvoLen  = wf(m, 'salvoLen');
       return {
-        id: u.id, name: u.name, nation: u.nation, cost: u.cost,
+        ...base(u),
         ecm:      u.ecm ?? 0,
         ap:       wf(m, 'ap'),
         he:       wf(m, 'dmg'),
