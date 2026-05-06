@@ -70,8 +70,17 @@ export function DeckBrowser({ roster, units, deckState }) {
 
   const isAlliance = deckType === 'alliance';
 
+  const transportIds = useMemo(() => {
+    const ids = new Set();
+    for (const u of roster) {
+      for (const t of u.transports) ids.add(t.id);
+    }
+    return ids;
+  }, [roster]);
+
   const deckRoster = useMemo(() => {
     return roster.filter(u => {
+      if (transportIds.has(u.id)) return false;
       if (!nations.includes(u.nation)) return false;
       if (isAlliance && units[u.id]?.prototype) return false;
       if (config.era === 'B' && u.era !== 'PRE-80' && u.era !== 'PRE-85' && u.era != null) return false;
