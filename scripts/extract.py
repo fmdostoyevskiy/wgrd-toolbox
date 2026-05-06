@@ -939,6 +939,7 @@ def _extract_unit_identity(p: dict, unit_obj: dict, instances: dict, dic: dict) 
     prod_price = p.get("ProductionPrice")
     unit["cost"] = get_list_item(prod_price, 0) if isinstance(prod_price, list) else prod_price
 
+    unit["maxPacks"] = p.get("MaxPacks")
     unit["avail"] = p.get("MaxDeployableAmount", [0, 0, 0, 0, 0])
 
     # Tab from Factory (NOT Category — Category is unreliable per manual)
@@ -1042,9 +1043,12 @@ def _extract_unit_mobility(unit_obj: dict, instances: dict, unit: dict):
     if fuel_move is not None:
         unit["autonomy"] = fuel_move
 
-    # Vehicle transport flag
+    # Vehicle transport flag and turning time
     if unit_type == "Vehicle":
         unit["isTransport"] = has_module_class(unit_obj, instances, "TTransporterModuleDescriptor")
+        turning_time = prop(mouv_mod, "TempsDemiTour")
+        if turning_time is not None:
+            unit["turningTime"] = turning_time
 
     # Helicopter and ship acceleration/deceleration
     if unit_type in ("Helicopter", "Ship"):
