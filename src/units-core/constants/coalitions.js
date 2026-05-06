@@ -16,6 +16,20 @@ export const COALITION_NATIONS = {
 
 export const COALITIONS = Object.keys(COALITION_NATIONS);
 
+export const COALITION_CODE_MAP = {
+  'NORAD':        'NORAD',
+  'Eurocorps':    'EURO',
+  'Scandinavia':  'SCAND',
+  'Commonwealth': 'CMW',
+  'Blue Dragons': 'BLUEDRAGONS',
+  'Landjut':      'LAND',
+  'Dutch-German': 'NLGR',
+  'Eastern Bloc': 'NSWP',
+  'Red Dragons':  'REDDRAGONS',
+  'Baltic Front': 'FINPOL',
+  'Entente':      'YUGVAK',
+};
+
 export const COALITION_FLAG_MAP = {
   'NATO':         `${BASE}flags/coalition_nato.png`,
   'PACT':         `${BASE}flags/coalition_pact.png`,

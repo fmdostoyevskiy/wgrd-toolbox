@@ -1,7 +1,7 @@
 import { useState, useMemo, useCallback } from 'react';
 import { PACT_NATIONS } from '@units-core';
 import {
-  SLOT_COSTS, BASE_AP, DECK_TYPE_AP, ERA_AP, AVAIL_BONUS,
+  SLOT_COSTS, BASE_AP, DECK_TYPE_AP, ERA_AP, CHOICE_AVAIL,
   classifyDeckChoice, nationsForChoice,
 } from './deckConstants.js';
 import { encodeDeck } from './deckCodec.js';
@@ -31,7 +31,7 @@ export function useDeckState(units) {
   const deckType = config ? classifyDeckChoice(config.choice) : null;
   const specKey  = config?.spec ?? 'General';
   const costMatrix = SLOT_COSTS[specKey] ?? SLOT_COSTS.General;
-  const availBonus = deckType != null ? (AVAIL_BONUS[deckType] ?? 0) : 0;
+  const availBonus = config ? (CHOICE_AVAIL[config.choice] ?? 0) : 0;
 
   const nations = useMemo(() => {
     if (!config) return [];

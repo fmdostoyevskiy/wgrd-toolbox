@@ -93,9 +93,10 @@ export function DeckBrowser({ roster, units, deckState }) {
         const year = units[u.id]?.year ?? 0;
         if (year > 1980) return false;
       }
+      if (config.spec && !u.specs.some(s => s === config.spec)) return false;
       return true;
     });
-  }, [roster, nations, isAlliance, config?.era, units]);
+  }, [roster, nations, isAlliance, config?.era, config?.spec, units]);
 
   // --- Filter state (simplified from useFilterState, no coalition toggle) ---
   const [f, setF] = useState({ nation: [], spec: [], tab: [], era: [], tag: [], q: '' });

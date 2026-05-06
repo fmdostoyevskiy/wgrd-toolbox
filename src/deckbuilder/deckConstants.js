@@ -66,11 +66,21 @@ export const ERA_AP = {
   C: 10,
 };
 
-// --- Availability bonus (placeholder percentages) ---
-export const AVAIL_BONUS = {
-  nation: 20,
-  coalition: 10,
-  alliance: 0,
+// --- Availability bonus per choice ---
+export const CHOICE_AVAIL = {
+  // Alliances
+  'NATO': 0, 'PACT': 0,
+  // Coalitions
+  'NORAD': 0, 'Eurocorps': 0, 'Baltic Front': 0, 'Entente': 0,
+  'Dutch-German': 10, 'Eastern Bloc': 10,
+  'Scandinavia': 15, 'Commonwealth': 15,
+  'Blue Dragons': 20, 'Landjut': 20, 'Red Dragons': 20,
+  // Nations
+  US: 10, ISR: 10, URSS: 10,
+  ITA: 15, YUG: 15,
+  UK: 20, FR: 20, RFA: 20, HOL: 20, RDA: 20, POL: 20, FIN: 20,
+  SWE: 30, ANZ: 30, JAP: 30, ROK: 30, SA: 30, TCH: 30, CHI: 30, NK: 30,
+  CAN: 40, DAN: 40, NOR: 40,
 };
 
 // --- Deck type classification ---
