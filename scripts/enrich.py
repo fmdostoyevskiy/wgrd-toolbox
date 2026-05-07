@@ -455,6 +455,11 @@ def handle_merge_duplicate_weapons(units, rows, data_dir):
                     continue
 
                 # Merge w into base
+                base_aim       = base.get('aimTime')
+                w_aim          = w.get('aimTime')
+                base_tags_orig = set(base.get('tag', []))
+                w_tags_orig    = set(w.get('tag', []))
+
                 for k, v in w.items():
                     if k == 'tag':
                         existing = base.get('tag', [])
@@ -471,6 +476,23 @@ def handle_merge_duplicate_weapons(units, rows, data_dir):
                     else:
                         if k not in base or base[k] is None:
                             base[k] = v
+
+                # Split aim time into AP/HE variants when the two weapons differ in
+                # both their AP value (one is AP ammo, the other HE) and aim time.
+                if (base.get('ap') != w.get('ap')
+                        and base_aim is not None and w_aim is not None
+                        and base_aim != w_aim):
+                    base_is_ap = bool(base_tags_orig & {'KE', 'HEAT'})
+                    w_is_ap    = bool(w_tags_orig    & {'KE', 'HEAT'})
+                    if base_is_ap and not w_is_ap:
+                        base['aimTimeAP'] = base_aim
+                        base['aimTimeHE'] = w_aim
+                        base.pop('aimTime', None)
+                    elif w_is_ap and not base_is_ap:
+                        base['aimTimeAP'] = w_aim
+                        base['aimTimeHE'] = base_aim
+                        base.pop('aimTime', None)
+
                 total_merged += 1
 
         unit['weapons'] = [seen[k] for k in order]

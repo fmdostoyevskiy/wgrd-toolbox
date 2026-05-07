@@ -172,6 +172,8 @@ export function WeaponBlock({ w, vet, s }) {
 
         {w.category !== 'Bomb' && (
           <>
+            {hide.field('weaponAimTime') && w.aimTimeAP != null && <DotRow label="Aim Time AP" value={`${w.aimTimeAP} s`} s={s} dense />}
+            {hide.field('weaponAimTime') && w.aimTimeHE != null && <DotRow label="Aim Time HE" value={`${w.aimTimeHE} s`} s={s} dense />}
             {hide.field('weaponAimTime') && w.aimTime != null && <DotRow label="Aim Time" value={`${w.aimTime} s`} s={s} dense />}
             {hide.field('weaponRof') && (
               <DotRow
