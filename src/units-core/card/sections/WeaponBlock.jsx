@@ -5,6 +5,7 @@ import {
   rofString, isLongRof, formatRearm, formatSupply, heMissileTooltip,
 } from '../../format/weapon.js';
 import { useHide } from '../HideContext.js';
+import { useExpertMode } from '../ExpertModeContext.js';
 
 const HEADER_TAG_BLACKLIST = new Set(['KE', 'HEAT', 'STAT', 'AUTO']);
 
@@ -47,6 +48,7 @@ function vet_accuracy(base, level) {
 
 export function WeaponBlock({ w, vet, s }) {
   const hide = useHide();
+  const { expert } = useExpertMode();
   const tags    = w.tag ?? [];
   const hasKE   = tags.includes('KE');
   const hasHEAT = tags.includes('HEAT');
@@ -145,19 +147,26 @@ export function WeaponBlock({ w, vet, s }) {
             : <DotRow label="Dispersion" value={`${w.dispersion} m`} s={s} dense />
         )}
 
-        {hide.field('weaponDmgRadius') && (w.category === 'Artillery' || w.category === 'Bomb') && w.dmgRadius != null && (
+        {hide.field('weaponDmgRadius') && w.dmgRadius != null &&
+          ((w.category === 'Artillery' || w.category === 'Bomb') || expert) && (
           <DotRow label="Dmg Radius" value={`${w.dmgRadius} m`} s={s} dense />
         )}
-        {hide.field('weaponSuppRadius') && (w.category === 'Artillery' || w.category === 'Bomb') && w.suppRadius != null && (
+        {hide.field('weaponSuppRadius') && w.suppRadius != null &&
+          ((w.category === 'Artillery' || w.category === 'Bomb') || expert) && (
           <DotRow label="Supp Radius" value={`${w.suppRadius} m`} s={s} dense />
         )}
 
-        {hide.field('weaponMissileSpeed') && w.category === 'Missile' && w.missileAccel != null && (
+        {hide.field('weaponMissileSpeed') && w.category === 'Missile' && w.missileSpeed != null && (
           <DotRow
             label="Missile Speed"
-            value={`${w.missileAccel} / ${w.missileSpeed}`}
+            value={w.missileSpeed}
             accent={missileSpeedColor(w.missileSpeed)}
-            tooltip="Acceleration / Max Speed"
+            s={s} dense />
+        )}
+        {hide.field('weaponMissileAccel') && w.category === 'Missile' && w.missileAccel != null && expert && (
+          <DotRow
+            label="Missile Accel"
+            value={`${w.missileAccel} m/s²`}
             s={s} dense />
         )}
 
@@ -178,7 +187,7 @@ export function WeaponBlock({ w, vet, s }) {
           <DotRow label="Salvo Size" value={w.salvoLen} s={s} dense />
         )}
 
-        {hide.field('weaponNoise') && (w.category === 'Gun' || w.category === 'Missile') && w.noise != null && (
+        {hide.field('weaponNoise') && (w.category === 'Gun' || w.category === 'Missile') && w.noise != null && expert && (
           <DotRow label="Noise" value={w.noise.toFixed(1)}
             tooltip="The factor by which your stealth is decreased when the weapon fires."
             s={s} dense />

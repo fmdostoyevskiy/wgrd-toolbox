@@ -10,6 +10,6 @@ const dataset = DATASETS[dsKey] ?? DATASETS['spaags'];
 
 ReactDOM.createRoot(document.getElementById('root')).render(
   <React.StrictMode>
-    <SpreadsheetApp dataset={dataset} />
+    <SpreadsheetApp dataset={dataset} dsKey={dsKey} />
   </React.StrictMode>
 );

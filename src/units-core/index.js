@@ -12,6 +12,7 @@ export { FlagImg } from './list/FlagImg.jsx';
 
 export { V2Card } from './card/V2Card.jsx';
 export { SECTION_IDS, FIELD_IDS, HideContext, makeHide, useHide } from './card/HideContext.js';
+export { ExpertModeContext, useExpertMode } from './card/ExpertModeContext.js';
 
 export {
   BROWSER_TOKENS, BMono, V2_THEMES,

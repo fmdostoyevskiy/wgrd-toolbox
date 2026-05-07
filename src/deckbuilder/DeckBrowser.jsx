@@ -13,6 +13,8 @@ import { CornerMarks } from '../armory/CornerMarks.jsx';
 import { CardSlot } from '../armory/CardSlot.jsx';
 import { OverviewTab } from './OverviewTab.jsx';
 import { DeckBar } from './DeckBar.jsx';
+
+const BASE = import.meta.env.BASE_URL;
 import { classifyDeckChoice } from './deckConstants.js';
 
 const WEAPON_TAG_GROUPS = [
@@ -306,9 +308,9 @@ export function DeckBrowser({ roster, units, deckState }) {
         background: t.surface,
         display: 'flex', alignItems: 'center', gap: 14,
       }}>
-        <div style={{ fontSize: 13, letterSpacing: '0.24em', fontWeight: 600, flexShrink: 0 }}>
+        <a href={BASE} style={{ fontSize: 13, letterSpacing: '0.24em', fontWeight: 600, flexShrink: 0, textDecoration: 'none', color: 'inherit' }}>
           DECK<span style={{ color: t.accent, marginLeft: 4 }}>BUILDER</span>
-        </div>
+        </a>
         <div style={{ width: 1, alignSelf: 'stretch', background: t.rule, flexShrink: 0, margin: '4px 0' }} />
         <span style={{ fontSize: 10, color: t.dimmer, letterSpacing: '0.1em' }}>
           {config.choice}

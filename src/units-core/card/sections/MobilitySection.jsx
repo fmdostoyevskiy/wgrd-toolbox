@@ -3,6 +3,7 @@ import { DotRow } from '../primitives/DotRow.jsx';
 import { SectionHeader } from '../primitives/SectionHeader.jsx';
 import { speedColor, autonomyColor } from '../../format/tiers.js';
 import { useHide } from '../HideContext.js';
+import { useExpertMode } from '../ExpertModeContext.js';
 
 const FOREST_TOOLTIPS = {
   wheeled: 'Wheeled units always travel at 50% speed in forests.',
@@ -34,6 +35,7 @@ export function hasMobility(unit) {
 
 export function MobilitySection({ unit, s }) {
   const hide = useHide();
+  const { expert } = useExpertMode();
   const motion = unit.motionType === 'wheeled' ? 'wheeled'
                : unit.motionType === 'truck'   ? 'truck'
                : 'tracked';
@@ -57,8 +59,8 @@ export function MobilitySection({ unit, s }) {
     unit.refuelTime  != null && hide.field('refuelTime')  && <DotRow key="refuel" label="Refuel Time" value={`${unit.refuelTime} s`} s={s} />,
     unit.altitude    != null && hide.field('altitude')    && <DotRow key="alt" label="Altitude" value={`${unit.altitude} m`} s={s} />,
     unit.turnRadius  != null && hide.field('turnRadius')  && <DotRow key="turn" label="Turn Radius" value={`${unit.turnRadius} m`} s={s} />,
-    unit.turningTime != null && hide.field('turningTime') && <DotRow key="turningTime" label="Turning Time" value={`${unit.turningTime} s`} s={s} />,
-    accelDecel && hide.field('accelDecel') && <DotRow key="ad" label={accelDecel.label} value={accelDecel.value} s={s} />,
+    unit.turningTime != null && hide.field('turningTime') && expert && <DotRow key="turningTime" label="Turning Time" value={`${unit.turningTime} s`} s={s} />,
+    accelDecel && hide.field('accelDecel') && expert && <DotRow key="ad" label={accelDecel.label} value={accelDecel.value} s={s} />,
     unit.sailing     != null && hide.field('sailing')     && <DotRow key="sail" label="Sailing" value={unit.sailing} s={s} />,
   ].filter(Boolean);
 
