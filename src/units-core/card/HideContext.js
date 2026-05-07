@@ -35,7 +35,7 @@ export const FIELD_IDS = [
   // Mobility
   'speed', 'forestSpeed', 'swimSpeed', 'roadSpeed',
   'autonomy', 'fuel', 'refuelTime', 'altitude', 'turnRadius',
-  'accelDecel', 'sailing',
+  'turningTime', 'accelDecel', 'sailing',
   // Optics
   'stealth', 'optics', 'seaOptics', 'airStealth', 'airOptics',
   // Armor
