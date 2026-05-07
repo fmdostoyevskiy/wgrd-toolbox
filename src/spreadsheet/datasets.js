@@ -914,7 +914,7 @@ export const DATASETS = {
       { key: 'stab',     label: 'STAB',      type: 'pct',  width: 65,  heat: 'high' },
       { key: 'shot',     label: 'SHOT RLD',  type: 'num',  width: 80,  heat: 'low'  },
       { key: 'salvoLen', label: 'SALVO LEN', type: 'num',  width: 90,  heat: 'high' },
-      { key: 'turreted', label: 'TURRETED',  type: 'bool', width: 80,  heat: null   },
+      { key: 'turreted', label: 'TURRETED',  type: 'bool-good', width: 80,  heat: null   },
       { key: 'salvo',    label: 'SALVO RLD', type: 'num',  width: 90,  heat: 'low'  },
       { key: 'armorF',   label: 'F ARM',     type: 'num',  width: 65,  heat: 'high' },
       { key: 'speed',    label: 'SPEED',     type: 'num',  width: 70,  heat: 'high' },
