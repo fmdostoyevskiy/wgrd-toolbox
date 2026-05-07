@@ -344,3 +344,42 @@ body[data-variant="minimal"] .spreadsheet td.heat { background: transparent !imp
 .spreadsheet::-webkit-scrollbar-thumb { background: var(--line-2); border-radius: 0; }
 .spreadsheet::-webkit-scrollbar-thumb:hover { background: var(--text-mute); }
 .spreadsheet::-webkit-scrollbar-corner { background: var(--bg-2); }
+
+/* ============ CATEGORY TAB BAR ============ */
+.tab-bar {
+  flex: 0 0 auto;
+  display: flex;
+  overflow-x: auto;
+  background: var(--bg-2);
+  border-top: 1px solid var(--line);
+  scrollbar-width: none;
+}
+.tab-bar::-webkit-scrollbar { display: none; }
+
+.tab-item {
+  flex: 0 0 auto;
+  display: inline-flex;
+  align-items: center;
+  height: 32px;
+  padding: 0 16px;
+  font-family: var(--mono);
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  text-decoration: none;
+  color: var(--text-dim);
+  border-right: 1px solid var(--line);
+  white-space: nowrap;
+  position: relative;
+  transition: color 80ms, background 80ms;
+}
+.tab-item:hover { color: var(--text); background: var(--bg-3); }
+.tab-item.active { color: var(--text); background: var(--bg); }
+.tab-item.active::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  height: 2px;
+  background: var(--accent);
+}
