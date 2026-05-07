@@ -6,7 +6,7 @@ export function ArmamentSection({ weapons, vet, s }) {
   return (
     <>
       <SectionHeader title="Armament" s={s} />
-      {weapons.slice(0, 3).map((w, i) => (
+      {weapons.map((w, i) => (
         <WeaponBlock key={i} w={w} vet={vet} s={s} />
       ))}
     </>
