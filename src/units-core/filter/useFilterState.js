@@ -6,7 +6,7 @@ const EMPTY_FILTER = { nation: [], spec: [], tab: [], era: [], tag: [], q: '' };
 export function useFilterState(roster) {
   const [f, setF] = useState(EMPTY_FILTER);
   const [tagMode, setTagMode] = useState('OR');
-  const toggleTagMode = useCallback(() => setTagMode(m => m === 'OR' ? 'AND' : 'OR'), []);
+  const toggleTagMode = useCallback(() => setTagMode(m => m === 'OR' ? 'AND' : m === 'AND' ? 'NOT' : 'OR'), []);
 
   const toggle = useCallback((key) => (val) => {
     setF(prev => {
@@ -69,9 +69,10 @@ export function useFilterState(roster) {
         if (sel === 'PRE-85' && !u.era) return false;
       }
       if (f.tag.length) {
-        const check = tagMode === 'AND'
-          ? f.tag.every(t => u.unitTags.includes(t))
-          : f.tag.some(t => u.unitTags.includes(t));
+        let check;
+        if (tagMode === 'AND') check = f.tag.every(t => u.unitTags.includes(t));
+        else if (tagMode === 'NOT') check = f.tag.every(t => !u.unitTags.includes(t));
+        else check = f.tag.some(t => u.unitTags.includes(t));
         if (!check) return false;
       }
       if (q              && !u.name.toLowerCase().includes(q)) return false;
