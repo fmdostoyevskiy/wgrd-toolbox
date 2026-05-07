@@ -18,6 +18,7 @@ export const ROW_HEIGHTS = {
 export const UnitListRow = React.memo(function UnitListRow({
   u, active, pinned, transportsOpen, selectedTransportId,
   onSelect, onToggleTransports, compact = false, packCount = null,
+  transportPackCounts = null,
 }) {
   const t = BROWSER_TOKENS;
   const side = sideOf(u.nation);
@@ -90,6 +91,7 @@ export const UnitListRow = React.memo(function UnitListRow({
               compact={compact}
               onSelect={onSelect}
               parentId={u.id}
+              packCount={transportPackCounts ? (transportPackCounts[tr.id] ?? 0) : null}
             />
           ))}
         </div>
@@ -98,12 +100,14 @@ export const UnitListRow = React.memo(function UnitListRow({
   );
 });
 
-function TransportRow({ tr, active, compact, onSelect, parentId }) {
+function TransportRow({ tr, active, compact, onSelect, parentId, packCount = null }) {
   const t = BROWSER_TOKENS;
   const side = sideOf(tr.nation);
   const color = side === 'signal' ? t.pactTag : t.natoTag;
   const [pressing, setPressing] = useState(false);
   const handleClick = useCallback((e) => { e.stopPropagation(); onSelect(tr.id, true, parentId); }, [onSelect, tr.id, parentId]);
+  const deckMode = packCount !== null;
+  const packsFull = deckMode && packCount >= (tr.maxPacks ?? Infinity);
 
   const bg = pressing
     ? `color-mix(in srgb, ${color} 30%, transparent)`
@@ -130,8 +134,8 @@ function TransportRow({ tr, active, compact, onSelect, parentId }) {
         outline: active ? `1px solid color-mix(in srgb, ${color} 35%, transparent)` : 'none',
         outlineOffset: -1,
       }}>
-      <span style={{ fontSize: 8.5, letterSpacing: '0.1em', color: active ? color : t.dimmer, fontWeight: active ? 700 : 500 }}>
-        {tr.tab}
+      <span style={{ fontSize: 8.5, letterSpacing: deckMode ? 0 : '0.1em', color: packsFull ? '#e55' : active ? color : t.dimmer, fontWeight: active ? 700 : 500, fontVariantNumeric: 'tabular-nums' }}>
+        {deckMode ? `${packCount}/${tr.maxPacks ?? '?'}` : tr.tab}
       </span>
       <span style={{ whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', color: active ? color : t.ink, fontWeight: active ? 600 : 400 }}>
         {tr.name}

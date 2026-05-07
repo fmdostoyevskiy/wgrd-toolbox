@@ -105,11 +105,13 @@ export async function loadData(opts = {}) {
   for (const entry of roster) {
     if (entry.transports.length === 0) continue;
     entry.transports = entry.transports.map(tid => ({
-      id:     tid,
-      name:   units[tid]?.name   ?? tid,
-      nation: units[tid]?.nation ?? '',
-      tab:    units[tid]?.tab    ?? '',
-      cost:   units[tid]?.cost   ?? '',
+      id:       tid,
+      name:     units[tid]?.name     ?? tid,
+      nation:   units[tid]?.nation   ?? '',
+      tab:      units[tid]?.tab      ?? '',
+      cost:     units[tid]?.cost     ?? '',
+      maxPacks: units[tid]?.maxPacks ?? null,
+      avail:    units[tid]?.avail    ?? null,
     }));
   }
 
