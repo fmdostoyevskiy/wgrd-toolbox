@@ -1,5 +1,6 @@
 import { useState, useMemo, useEffect, useCallback } from 'react';
 import { NATION_CODE_MAP, NATION_FLAG_MAP, sideOf } from '@units-core';
+import { CATEGORIES } from './categories.js';
 
 const BASE = import.meta.env.BASE_URL;
 
@@ -251,6 +252,25 @@ function Spreadsheet({ columns, rows, sortKey, sortDir, onSort, heatStats, varia
   );
 }
 
+// ---------- CategoryTabBar ----------
+function CategoryTabBar({ dsKey }) {
+  const category = CATEGORIES.find(cat => cat.items.some(item => item.key === dsKey));
+  if (!category || category.items.length < 2) return null;
+  return (
+    <div className="tab-bar">
+      {category.items.map(item => (
+        <a
+          key={item.key}
+          href={`${BASE}spreadsheet/?ds=${item.key}`}
+          className={'tab-item' + (item.key === dsKey ? ' active' : '')}
+        >
+          {item.label}
+        </a>
+      ))}
+    </div>
+  );
+}
+
 // ---------- PlaceholderTopBar (error/loading states) ----------
 function PlaceholderTopBar({ label, isWeapon }) {
   return (
@@ -261,7 +281,7 @@ function PlaceholderTopBar({ label, isWeapon }) {
 }
 
 // ---------- App ----------
-export function SpreadsheetApp({ dataset }) {
+export function SpreadsheetApp({ dataset, dsKey }) {
   const [rows,       setRows]       = useState(null);
   const [error,      setError]      = useState(null);
   const [search,     setSearch]     = useState('');
@@ -377,10 +397,13 @@ export function SpreadsheetApp({ dataset }) {
       <>
         <PlaceholderTopBar label={dataset.label} isWeapon={dataset.isWeapon} />
         <div className="main">
-          <div className="state-screen">
-            <span className="glyph">◇ ✕ ◇</span>
-            <span>failed to load {dataset.file}</span>
-            <span style={{ color: 'var(--text-mute)', fontSize: 10 }}>{error}</span>
+          <div className="spreadsheet-wrap">
+            <div className="state-screen">
+              <span className="glyph">◇ ✕ ◇</span>
+              <span>failed to load {dataset.file}</span>
+              <span style={{ color: 'var(--text-mute)', fontSize: 10 }}>{error}</span>
+            </div>
+            <CategoryTabBar dsKey={dsKey} />
           </div>
         </div>
       </>
@@ -392,9 +415,12 @@ export function SpreadsheetApp({ dataset }) {
       <>
         <PlaceholderTopBar label={dataset.label} isWeapon={dataset.isWeapon} />
         <div className="main">
-          <div className="state-screen">
-            <span className="glyph">◇ ◆ ◇</span>
-            loading…
+          <div className="spreadsheet-wrap">
+            <div className="state-screen">
+              <span className="glyph">◇ ◆ ◇</span>
+              loading…
+            </div>
+            <CategoryTabBar dsKey={dsKey} />
           </div>
         </div>
       </>
@@ -424,6 +450,7 @@ export function SpreadsheetApp({ dataset }) {
             filters={filters}
             setFilter={setFilter}
           />
+          <CategoryTabBar dsKey={dsKey} />
         </div>
       </div>
     </>

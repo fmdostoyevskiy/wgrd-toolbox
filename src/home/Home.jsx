@@ -1,57 +1,8 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { BROWSER_TOKENS, BMono } from '@units-core';
+import { CATEGORIES } from '../spreadsheet/categories.js';
 
 const BASE = import.meta.env.BASE_URL;
-
-const CATEGORIES = [
-  {
-    label: 'AA',
-    items: [
-      { key: 'planemissileaa', label: 'Plane Missile AA' },
-      { key: 'spaags',         label: 'SPAAG'            },
-      { key: 'manpads',        label: 'Manpad'           },
-    ],
-  },
-  {
-    label: 'Artillery',
-    items: [
-      { key: 'mortar',      label: 'Mortars'        },
-      { key: 'howitzer',    label: 'Howitzers'      },
-      { key: 'hemlrs',      label: 'HE MLRS'        },
-      { key: 'clustermlrs', label: 'Cluster MLRS'   },
-      { key: 'napalmmlrs',  label: 'Napalm MLRS'    },
-    ],
-  },
-  {
-    label: 'Plane',
-    items: [
-      { key: 'asfs',           label: 'ASF'            },
-      { key: 'atgmplanes',     label: 'ATGM Plane'     },
-      { key: 'hebomber',       label: 'HE Bomber'      },
-      { key: 'clusterbombers', label: 'Cluster Bomber' },
-      { key: 'naplmbombers',   label: 'Napalm Bomber'  },
-      { key: 'sead',           label: 'SEAD'           },
-    ],
-  },
-  {
-    label: 'Helicopter',
-    items: [
-      { key: 'helomissileaa',  label: 'Helo Missile AA'              },
-      { key: 'aahelos',        label: 'AA Helo'                      },
-      { key: 'atgmhelos',      label: 'ATGM Helo'                    },
-      { key: 'rocketpodhelos', label: 'Rocket Pod Helo' },
-    ],
-  },
-  {
-    label: 'Ground Attack',
-    items: [
-      { key: 'tanks',         label: 'Tank'          },
-      { key: 'atgmvehicles',  label: 'ATGM Vehicle'  },
-      { key: 'atgminfantry',  label: 'ATGM Infantry' },
-      { key: 'autocannons',   label: 'Autocannons'   },
-    ],
-  },
-];
 
 const MODULES = [
   { id: '01', name: 'ARMORY',       desc: 'UNIT DATABASE',    tag: 'EXTERNAL', href: 'armory/'      },

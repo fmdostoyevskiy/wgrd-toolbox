@@ -427,7 +427,7 @@ export const DATASETS = {
     defaultSort: 'cost',
     presets: [
       { label: 'ACCURATE',   filters: { acc:      { min: '50' } } },
-      { label: 'LONG RANGE', filters: { planeRng: { min: '2450' } } },
+      { label: 'LONG RANGE', filters: { heloRng: { min: '2450' } } },
       { label: 'REGULAR',    filters: { training: { max: '1' } } },
       { label: 'HIGH DMG',   filters: { dmg:      { min: '4' } } },
     ],
