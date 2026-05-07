@@ -223,20 +223,43 @@ export function DeckBrowser({ roster, units, deckState }) {
     return map;
   }, [cards]);
 
+  const transportPackCounts = useMemo(() => {
+    const map = {};
+    for (const c of cards) {
+      if (c.transportId) map[c.transportId] = (map[c.transportId] ?? 0) + 1;
+    }
+    return map;
+  }, [cards]);
+
   const packsInDeck = selected ? (packCounts[selected] ?? 0) : 0;
-  const maxPacksReached = unit != null && packsInDeck >= (unit.maxPacks ?? Infinity);
+  const transportPacksInDeck = selectedTransport ? (transportPackCounts[selectedTransport] ?? 0) : 0;
+  const maxPacksReached = unit != null && (
+    packsInDeck >= (unit.maxPacks ?? Infinity) ||
+    (selectedTransport != null && transportPacksInDeck >= (units[selectedTransport]?.maxPacks ?? Infinity))
+  );
+
+  const transportAvail = selectedTransport
+    ? applyAvailBonus(units[selectedTransport]?.avail ?? null, availBonus)
+    : null;
+  const displayAvail = avail && transportAvail
+    ? avail.map((a, i) => Math.min(a, transportAvail[i] ?? 0))
+    : avail;
 
   const handleVetAdd = useCallback((vetIdx) => {
-    if (!selected || !avail || avail[vetIdx] === 0) return;
+    if (!selected || !displayAvail || displayAvail[vetIdx] === 0) return;
     const unitEntry = deckRoster.find(u => u.id === selected);
     if (packsInDeck >= (unitEntry?.maxPacks ?? Infinity)) return;
     let transport = selectedTransport;
     if (!transport && unitEntry?.transports?.length > 0) {
       transport = unitEntry.transports[0].id;
     }
+    if (transport) {
+      const tPacks = transportPackCounts[transport] ?? 0;
+      if (tPacks >= (units[transport]?.maxPacks ?? Infinity)) return;
+    }
     addCard(selected, vetIdx, transport);
     setVet(vetIdx);
-  }, [selected, avail, packsInDeck, selectedTransport, deckRoster, addCard]);
+  }, [selected, displayAvail, packsInDeck, selectedTransport, deckRoster, addCard, transportPackCounts, units]);
 
   const handleSelectTab = useCallback((tab) => {
     setShowOverview(false);
@@ -420,6 +443,7 @@ export function DeckBrowser({ roster, units, deckState }) {
                         onSelect={selectUnit}
                         onToggleTransports={toggleTransports}
                         packCounts={packCounts}
+                        transportPackCounts={transportPackCounts}
                       />
                     )}
                   </div>
@@ -451,7 +475,7 @@ export function DeckBrowser({ roster, units, deckState }) {
                   <DeckCardSlot
                     unit={unit}
                     cardUnit={cardUnit}
-                    avail={avail}
+                    avail={displayAvail}
                     vet={vet}
                     onVetAdd={handleVetAdd}
                     specForCard={specForCard}
