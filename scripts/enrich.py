@@ -483,13 +483,8 @@ def handle_merge_duplicate_weapons(units, rows, data_dir):
 # Data-patch handlers (file-driven, unique logic)
 # ===========================================================================
 
-# firesupport.tsv columns (0-indexed, header row skipped):
-#   0:Name  1:Unit  2:HE  3:AP  4:Range  5:Acc.  6:Stab.
-#   7:Salvo  8:Shot Reload  9:Salvo Reload  10:Turret
-
-def handle_firesupport(units, rows, data_dir):
-    label = 'firesupport'
-    dump_dict = {}   # nameId -> weapon object (deduplication)
+def handle_turreted_weapons(units, rows, data_dir):
+    count = 0
     unmatched = []
 
     for row in rows:
@@ -497,65 +492,24 @@ def handle_firesupport(units, rows, data_dir):
             continue
 
         raw_name   = row[0].strip()
-        acc_raw    = row[5].strip().rstrip('%') if len(row) > 5 else ''
-        stab_raw   = row[6].strip().rstrip('%') if len(row) > 6 else ''
-        turret_col = row[-1].strip() if row else ''
+        turret_col = row[1].strip() if len(row) > 1 else ''
 
-        try:
-            acc_csv = int(acc_raw) if acc_raw else None
-        except ValueError:
-            acc_csv = None
-        try:
-            stab_csv = int(stab_raw) if stab_raw else None
-        except ValueError:
-            stab_csv = None
-
-        for base_name, variant in parse_names(raw_name):
+        for base_name, _ in parse_names(raw_name):
             matches = find_weapons_across_units(units, base_name)
             if not matches:
                 print(f'  [H1] WARNING: weapon "{base_name}" not found in JSON')
                 unmatched.append(base_name)
                 continue
 
-            if variant:
-                filtered = [
-                    (u, w) for u, w in matches
-                    if (acc_csv is None or w.get('acc') == acc_csv)
-                    and (stab_csv is None or w.get('stab') == stab_csv)
-                ]
-                if not filtered:
-                    print(f'  [H1] WARNING: weapon "{base_name}" — no match for '
-                          f'acc={acc_csv}, stab={stab_csv} (variant {variant})')
-                    unmatched.append(f'{base_name} {variant}')
-                    # Fall back: apply labels to all same-name weapons but do NOT
-                    # rename them — renaming would break subsequent lookups for
-                    # other variants of the same base weapon name.
-                    for _, w in matches:
-                        add_to_spreadsheet(w, label)
-                        if turret_col == 'Y':
-                            w['turreted'] = True
-                        elif turret_col == 'N':
-                            w['turreted'] = False
-                        key = w.get('nameId') or w.get('name')
-                        if key not in dump_dict:
-                            dump_dict[key] = w
-                    continue
-                for _, w in filtered:
-                    w['name'] = f'{base_name} {variant}'
-                matches = filtered
-
             for _, w in matches:
-                add_to_spreadsheet(w, label)
                 if turret_col == 'Y':
                     w['turreted'] = True
+                    count += 1
                 elif turret_col == 'N':
                     w['turreted'] = False
-                key = w.get('nameId') or w.get('name')
-                if key not in dump_dict:
-                    dump_dict[key] = w
+                    count += 1
 
-    save_json(os.path.join(data_dir, 'firesupport.json'), list(dump_dict.values()))
-    print(f'  [H1] Fire Support: tagged {len(dump_dict)} unique weapons')
+    print(f'  [H1] Turreted Weapons: set turreted on {count} weapon(s)')
     return unmatched
 
 
@@ -1319,7 +1273,8 @@ HANDLERS = [
     ('Trailing Spaces', handle_trailing_spaces,  None),
     ('Split-ID Weapons',        handle_split_id_weapons,         None),
     ('Merge Duplicate Weapons', handle_merge_duplicate_weapons,  None),
-    ('Fire Support',    handle_firesupport,  'firesupport.tsv'),
+    ('Turreted Weapons', handle_turreted_weapons, 'turreted_weapons.tsv'),
+    ('Turret',           handle_turret,           'turrets.tsv'),
     ('SPAAG',           handle_spaag,         None),
     ('HE MLRS',         handle_hemlrs,        'hemlrs.txt'),
     ('Cluster MLRS',    handle_clustermlrs,   None),
@@ -1350,7 +1305,6 @@ HANDLERS = [
     ('GL',              handle_gl,             None),
     ('ATGM Tag',        handle_atgm_tag,       None),
     ('BOMB Tag',        handle_bomb_tag,       None),
-    ('Turret',          handle_turret,         'turrets.tsv'),
     ('Deck Indices',    handle_deck_indices,   'deck_indices.json'),
     ('Unit Tags',       handle_unit_tags,      None),
 ]

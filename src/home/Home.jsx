@@ -50,12 +50,6 @@ const CATEGORIES = [
       { key: 'atgminfantry',  label: 'ATGM Infantry' },
     ],
   },
-  {
-    label: 'Ground Attack - INCOMPLETE',
-    items: [
-      { key: 'firesupport',    label: 'Fire Support - INCOMPLETE' },
-    ],
-  },
 ];
 
 export function Home() {

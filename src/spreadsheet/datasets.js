@@ -940,40 +940,4 @@ export const DATASETS = {
     },
   },
 
-  // ── Fire Support (weapons) ─────────────────────────────────────────────────
-  firesupport: {
-    label: 'Fire Support',
-    file: 'firesupport.json',
-    isWeapon: true,
-    defaultSort: 'rng',
-    columns: [
-      { key: 'name',       label: 'NAME',       type: 'text', width: 220, heat: null   },
-      { key: 'caliber',    label: 'CALIBER',    type: 'text', width: 80,  heat: null   },
-      { key: 'he',         label: 'HE',         type: 'num',  width: 65,  heat: 'high' },
-      { key: 'ap',         label: 'AP',         type: 'num',  width: 65,  heat: 'high' },
-      { key: 'rng',        label: 'RNG',        type: 'num',  width: 90,  heat: 'high' },
-      { key: 'acc',        label: 'ACC',        type: 'pct',  width: 65,  heat: 'high' },
-      { key: 'stab',       label: 'STAB',       type: 'pct',  width: 65,  heat: 'high' },
-      { key: 'shot',       label: 'SHOT',       type: 'num',  width: 65,  heat: 'low'  },
-      { key: 'salvo',      label: 'SALVO RLD',  type: 'num',  width: 90,  heat: 'low'  },
-      { key: 'salvoLen',   label: 'SALVO LEN',  type: 'num',  width: 90,  heat: 'high' },
-      { key: 'turreted',   label: 'TURRETED',   type: 'text', width: 85,  heat: null   },
-    ],
-    transform(w) {
-      return {
-        name:     w.name,
-        caliber:  w.caliber ?? null,
-        he:       w.dmg ?? null,
-        ap:       w.ap  ?? null,
-        rng:      w.rng_g ?? null,
-        acc:      w.acc ?? null,
-        stab:     w.stab ?? null,
-        shot:     w.shotReload ?? null,
-        salvo:    w.salvoReload ?? null,
-        salvoLen: w.salvoLen ?? null,
-        turreted: w.turreted != null ? (w.turreted ? 'Y' : 'N') : null,
-      };
-    },
-  },
-
 };
