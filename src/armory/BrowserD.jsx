@@ -5,6 +5,7 @@ import {
   COALITIONS, COALITION_NATIONS, COALITION_FLAG_MAP,
   SPECS, TABS,
   writeUnitToUrl, useFilterState, UnitList,
+  ExpertModeContext,
 } from '@units-core';
 import { useWindowWidth } from './useWindowWidth.js';
 import { Seg } from './Seg.jsx';
@@ -47,6 +48,8 @@ export function BrowserD({ roster, units, initialUnit }) {
 
   const [selected, setSelected] = useState(initialUnit ?? null);
   const [pinned,   setPinned]   = useState([]);
+  const [expert,   setExpert]   = useState(false);
+  const expertCtx = useMemo(() => ({ expert, toggleExpert: () => setExpert(e => !e) }), [expert]);
   const [expandedTransports, setExpandedTransports] = useState(() => new Set());
   const [listOpen, setListOpen] = useState(true);
 
@@ -96,6 +99,7 @@ export function BrowserD({ roster, units, initialUnit }) {
   const pactActive = PACT_NATIONS_ORDERED.length > 0 && PACT_NATIONS_ORDERED.every(n => f.nation.includes(n));
 
   return (
+    <ExpertModeContext.Provider value={expertCtx}>
     <div style={{
       width: '100%', height: '100%', background: t.bg, color: t.ink,
       ...BMono, fontSize: 12,
@@ -186,6 +190,7 @@ export function BrowserD({ roster, units, initialUnit }) {
         </div>
       </div>
     </div>
+    </ExpertModeContext.Provider>
   );
 }
 
