@@ -8,6 +8,7 @@ import { OpticsSection, hasOptics } from './sections/OpticsSection.jsx';
 import { ArmorSection } from './sections/ArmorSection.jsx';
 import { ArmamentSection } from './sections/ArmamentSection.jsx';
 import { HideContext, makeHide } from './HideContext.js';
+import { useExpertMode } from './ExpertModeContext.js';
 
 const CARD_FONT = 'var(--wrd-mono, "JetBrains Mono", ui-monospace, Menlo, monospace)';
 
@@ -112,6 +113,23 @@ function TitleBlock({ unit, s }) {
   );
 }
 
+function ExpertModeFooter({ s }) {
+  const { expert, toggleExpert } = useExpertMode();
+  return (
+    <div style={{ marginTop: 8, display: 'flex', justifyContent: 'flex-end' }}>
+      <button onClick={toggleExpert} style={{
+        background: 'transparent',
+        color: expert ? s.accent : s.dim,
+        border: `1px solid ${expert ? s.accent : s.rule}`,
+        fontFamily: 'inherit', fontSize: 9, letterSpacing: '0.14em',
+        padding: '2px 8px', cursor: 'pointer',
+      }}>
+        {expert ? 'EXPERT ✓' : 'EXPERT'}
+      </button>
+    </div>
+  );
+}
+
 export function V2Card({ unit, avail: availProp, vetIdx, setVetIdx, theme = 'tactical', hide, deckMode, maxPacksReached }) {
   const avail = availProp ?? unit.avail;
   const s     = { ...(V2_THEMES[theme] ?? V2_THEMES.tactical), font: CARD_FONT };
@@ -151,6 +169,7 @@ export function V2Card({ unit, avail: availProp, vetIdx, setVetIdx, theme = 'tac
           {hideCtx.section('optics')   && !isFob && hasOptics(unit)   && <OpticsSection   unit={unit} s={s} />}
           {hideCtx.section('armor')    && showArmor   && <ArmorSection    armor={unit.armor} s={s} />}
           {hideCtx.section('armament') && showWeapons && <ArmamentSection weapons={unit.weapons} vet={vet} s={s} />}
+          <ExpertModeFooter s={s} />
         </div>
       </div>
     </HideContext.Provider>

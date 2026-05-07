@@ -1045,19 +1045,20 @@ def _extract_unit_mobility(unit_obj: dict, instances: dict, unit: dict):
     if fuel_move is not None:
         unit["autonomy"] = fuel_move
 
-    # Vehicle transport flag and turning time
+    # Vehicle transport flag
     if unit_type == "Vehicle":
         unit["isTransport"] = has_module_class(unit_obj, instances, "TTransporterModuleDescriptor")
-        turning_time = prop(mouv_mod, "TempsDemiTour")
-        if turning_time is not None:
-            unit["turningTime"] = turning_time
 
-    # Helicopter and ship acceleration/deceleration
-    if unit_type in ("Helicopter", "Ship"):
-        max_accel = prop(mouv_mod, "MaxAcceleration")
-        max_decel = prop(mouv_mod, "MaxDeceleration")
-        if max_accel is not None: unit["maxAcceleration"] = to_meters_dist(max_accel)
-        if max_decel is not None: unit["maxDeceleration"] = to_meters_dist(max_decel)
+    # Turning time (all unit types)
+    turning_time = prop(mouv_mod, "TempsDemiTour")
+    if turning_time is not None:
+        unit["turningTime"] = turning_time
+
+    # Acceleration/deceleration (all unit types)
+    max_accel = prop(mouv_mod, "MaxAcceleration")
+    max_decel = prop(mouv_mod, "MaxDeceleration")
+    if max_accel is not None: unit["maxAcceleration"] = to_meters_dist(max_accel)
+    if max_decel is not None: unit["maxDeceleration"] = to_meters_dist(max_decel)
 
     # Plane: altitude and turning radius
     if unit_type == "Plane":
