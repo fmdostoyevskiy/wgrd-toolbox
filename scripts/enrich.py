@@ -1223,6 +1223,48 @@ def handle_atgminfantry(units, rows, data_dir):
 # Post-processing handlers
 # ===========================================================================
 
+def handle_deck_indices(units, deck_data, data_dir):
+    """
+    Stamp deckIndex, deckCat, and deckSide onto units from deck_indices.json.
+
+    deck_indices.json is produced by:
+        python scripts/extract.py <ndfbin> --extract-deck --deck-file data/deck_indices.json
+
+    Fields added to each matched unit:
+        deckIndex  int         10-bit index used in binary deck codes
+        deckCat    'A'|'B'|'C' transport category (A=naval inf, B=ground inf, C=standalone)
+        deckSide   'BLUFOR'|'REDFOR'
+    """
+    if not isinstance(deck_data, dict):
+        print('  [H30] Deck Indices: unexpected format — skipping')
+        return []
+
+    id_map = {}
+    for entry in deck_data.get('blufor', []):
+        id_map[entry['id']] = {
+            'deckIndex': entry['index'],
+            'deckCat':   entry['cat'],
+            'deckSide':  'BLUFOR',
+        }
+    for entry in deck_data.get('redfor', []):
+        id_map[entry['id']] = {
+            'deckIndex': entry['index'],
+            'deckCat':   entry['cat'],
+            'deckSide':  'REDFOR',
+        }
+
+    count = 0
+    for unit in units:
+        entry = id_map.get(unit.get('id', ''))
+        if entry:
+            unit.update(entry)
+            count += 1
+
+    print(f'  [H30] Deck Indices: stamped {count}/{len(units)} units '
+          f'({len(id_map)} entries in deck_indices.json)')
+    return []
+
+
 def handle_unit_tags(units, rows, data_dir):
     for unit in units:
         utype = unit.get('type', '')
@@ -1309,6 +1351,7 @@ HANDLERS = [
     ('ATGM Tag',        handle_atgm_tag,       None),
     ('BOMB Tag',        handle_bomb_tag,       None),
     ('Turret',          handle_turret,         'turrets.tsv'),
+    ('Deck Indices',    handle_deck_indices,   'deck_indices.json'),
     ('Unit Tags',       handle_unit_tags,      None),
 ]
 
@@ -1371,10 +1414,13 @@ def main():
             if not os.path.exists(file_path):
                 print(f'  [SKIP] {input_file} not found — skipping {display_name}\n')
                 continue
-            rows = parse_file(file_path)
-            # firesupport.tsv has a header row — detect and skip it
-            if rows and rows[0][0].strip().lower() in ('name', 'weapon', 'unit name'):
-                rows = rows[1:]
+            if input_file.endswith('.json'):
+                rows = load_json(file_path)  # parsed dict/list, not TSV rows
+            else:
+                rows = parse_file(file_path)
+                # firesupport.tsv has a header row — detect and skip it
+                if rows and rows[0][0].strip().lower() in ('name', 'weapon', 'unit name'):
+                    rows = rows[1:]
 
         unmatched = handler_fn(units, rows, out_dir)
         if unmatched:

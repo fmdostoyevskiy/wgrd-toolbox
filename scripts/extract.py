@@ -11,6 +11,8 @@ Modes:
   --classes           List all class names
   --extract           Output schema-conforming JSON to stdout
   --extract-raw       Dump raw unit objects for debugging
+  --extract-deck      Extract deck code serialization indices (TShowRoomDeckSerializer)
+  --inspect-deck-serializer  Dump TShowRoomDeckSerializer for debugging
 
 Usage (Windows PowerShell):
   python extract_wrd.py everythingdecompressed.ndfbin --inspect DRAGONER > out.txt
@@ -1315,6 +1317,167 @@ def cmd_extract(instances: dict, dic: dict):
     print(f"Extracted {len(results)} units.", file=sys.stderr)
 
 
+def cmd_extract_deck(instances: dict):
+    """Extract deck serialization indices from TShowRoomDeckSerializer.
+
+    Outputs a JSON object with:
+      - blufor/redfor: ordered lists of {index, descriptorId, transportCategory}
+      - transportCategory: "A" (naval: unit+transport+craft), "B" (ground: unit+transport), "C" (standalone)
+    The index is the 10-bit value used in the binary deck code.
+    """
+    # Nation codes (9-bit values) — fixed constants per the game format
+    NATION_CODES = {
+        "US": 6, "UK": 14, "FR": 22, "RFA": 30, "CAN": 38,
+        "DAN": 46, "SWE": 54, "NOR": 62, "ANZ": 70, "JAP": 78, "ROK": 86,
+        "Eurocorps": 88, "Scandinavia": 89, "Commonwealth": 90,
+        "Blue Dragons": 91, "BLUFOR Mixed": 94,
+        "RDA": 134, "URSS": 142, "POL": 150, "TCH": 158,
+        "CHI": 166, "NK": 174,
+        "Red Dragons": 180, "Eastern Bloc": 181, "REDFOR Mixed": 182,
+    }
+
+    # Find the TShowRoomDeckSerializer instance
+    serializer = None
+    for obj in instances.values():
+        if obj["_class"] == "TShowRoomDeckSerializer":
+            serializer = obj
+            break
+
+    if serializer is None:
+        print("ERROR: TShowRoomDeckSerializer not found in ndfbin.", file=sys.stderr)
+        sys.exit(1)
+
+    ser_props = serializer["properties"]
+
+    otan_ids = ser_props.get("OtanUnitIds")
+    pact_ids = ser_props.get("PactUnitIds")
+
+    if otan_ids is None or pact_ids is None:
+        print(f"TShowRoomDeckSerializer properties: {list(ser_props.keys())}", file=sys.stderr)
+        print("ERROR: OtanUnitIds or PactUnitIds not found.", file=sys.stderr)
+        sys.exit(1)
+
+    # Build transport category lookup
+    # For each unit that has transports, check if any transport has Sailing set (= naval = Category A)
+    # Units with transports but no sailing = Category B
+    # Units without transports = Category C
+    def get_transport_category(unit_obj):
+        unit_type = infer_unit_type(unit_obj, instances)
+        if unit_type != "Infantry":
+            return "C"
+
+        transport_mod = get_module(unit_obj, instances, "Transportable")
+        transport_refs = prop(transport_mod, "TransportListAvailableForSpawn", [])
+        if not isinstance(transport_refs, list) or len(transport_refs) == 0:
+            return "C"
+
+        # Check if any transport is a naval vessel (has Sailing property set)
+        has_sailing_transport = False
+        for ref in transport_refs:
+            t_obj = resolve_ref(instances, ref)
+            if t_obj is None:
+                continue
+            type_unit_mod = get_module(t_obj, instances, "TypeUnit")
+            sailing = prop(type_unit_mod, "Sailing")
+            if sailing:
+                has_sailing_transport = True
+                break
+
+        return "A" if has_sailing_transport else "B"
+
+    def process_side(id_list):
+        """Process a list of unit references into deck index entries.
+
+        Entries may be bare ints/strings/obj_refs, or MapList-style dicts
+        {'key': deck_index, 'value': unit_ref} where key IS the 10-bit index.
+        """
+        results = []
+        for i, entry in enumerate(id_list):
+            unit_obj = None
+            deck_index = i  # fallback when the list is a plain ordered list
+
+            # Unwrap MapList entry: {key: actual_deck_index, value: unit_ref}
+            actual_entry = entry
+            if isinstance(entry, dict) and "key" in entry and "value" in entry:
+                deck_index = entry["key"]
+                actual_entry = entry["value"]
+
+            if isinstance(actual_entry, int):
+                desc_id = actual_entry
+                for obj in instances.values():
+                    if obj["_class"] in UNIT_CLASS_NAMES:
+                        if obj["properties"].get("DescriptorId") == actual_entry:
+                            unit_obj = obj
+                            break
+            elif isinstance(actual_entry, dict) and "obj_ref" in actual_entry:
+                unit_obj = resolve_ref(instances, actual_entry)
+                if unit_obj:
+                    desc_id = unit_obj["properties"].get("DescriptorId")
+                else:
+                    continue
+            elif isinstance(actual_entry, str):
+                desc_id = actual_entry
+                for obj in instances.values():
+                    if obj["_class"] in UNIT_CLASS_NAMES:
+                        if obj["properties"].get("DescriptorId") == actual_entry:
+                            unit_obj = obj
+                            break
+            else:
+                print(f"  Skipping unknown entry type at index {i}: {type(actual_entry).__name__} = {repr(entry)[:100]}", file=sys.stderr)
+                continue
+
+            cat = get_transport_category(unit_obj) if unit_obj else "C"
+            results.append({"index": deck_index, "id": desc_id, "cat": cat})
+        return results
+
+    print(f"OtanUnitIds: {len(otan_ids)} entries, PactUnitIds: {len(pact_ids)} entries", file=sys.stderr)
+
+    # Show first few entries for debugging
+    if otan_ids:
+        print(f"  First OTAN entry type: {type(otan_ids[0]).__name__} = {repr(otan_ids[0])[:100]}", file=sys.stderr)
+    if pact_ids:
+        print(f"  First PACT entry type: {type(pact_ids[0]).__name__} = {repr(pact_ids[0])[:100]}", file=sys.stderr)
+
+    blufor = process_side(otan_ids)
+    redfor = process_side(pact_ids)
+
+    # Also extract Nationalities and Coalitions if present (for reference/validation)
+    extra = {}
+    for key in ("Nationalities", "CountriesNATO", "CountriesPACT", "Coalitions",
+                "UnitTypes", "Categories", "MaxNbSuperTransports", "MaxNbTransports"):
+        val = ser_props.get(key)
+        if val is not None:
+            extra[key] = val
+
+    result = {
+        "nationCodes": NATION_CODES,
+        "blufor": blufor,
+        "redfor": redfor,
+        "serializer": extra,
+    }
+    print(json.dumps(result, indent=2, ensure_ascii=True))
+    print(f"Deck indices extracted: {len(blufor)} BLUFOR, {len(redfor)} REDFOR.", file=sys.stderr)
+
+
+def cmd_inspect_deck_serializer(instances: dict):
+    """Dump TShowRoomDeckSerializer properties for debugging."""
+    for obj in instances.values():
+        if obj["_class"] == "TShowRoomDeckSerializer":
+            print(f"Found TShowRoomDeckSerializer at index {obj['_index']}")
+            print(f"Properties: {list(obj['properties'].keys())}")
+            for k, v in obj["properties"].items():
+                if isinstance(v, list):
+                    print(f"\n  {k}: list with {len(v)} entries")
+                    for item in v[:5]:
+                        print(f"    {json.dumps(item)}")
+                    if len(v) > 5:
+                        print(f"    ... ({len(v) - 5} more)")
+                else:
+                    print(f"\n  {k}: {json.dumps(v)}")
+            return
+    print("TShowRoomDeckSerializer not found.", file=sys.stderr)
+
+
 def cmd_extract_raw(instances: dict):
     results = [obj for obj in instances.values() if obj["_class"] in UNIT_CLASS_NAMES]
     print(json.dumps(results, indent=2, ensure_ascii=True))
@@ -1353,11 +1516,18 @@ def main():
     parser.add_argument("ndfbin")
     parser.add_argument("--dic", metavar="PATH",
                         help="Path to unites.dic for weapon/unit display name lookup")
+    parser.add_argument("--deck-file", metavar="PATH",
+                        help="Write --extract-deck output to this file (UTF-16 LE) "
+                             "instead of stdout. Example: data/deck_indices.json")
     grp = parser.add_mutually_exclusive_group(required=True)
     grp.add_argument("--inspect",     metavar="ALIAS")
     grp.add_argument("--classes",     action="store_true")
     grp.add_argument("--extract",     action="store_true")
     grp.add_argument("--extract-raw", action="store_true")
+    grp.add_argument("--extract-deck", action="store_true",
+                     help="Extract deck serialization indices (unit ordering for deck codes)")
+    grp.add_argument("--inspect-deck-serializer", action="store_true",
+                     help="Dump TShowRoomDeckSerializer properties for debugging")
     args = parser.parse_args()
     instances, classes = load_file(args.ndfbin)
 
@@ -1378,6 +1548,27 @@ def main():
         cmd_extract(instances, dic)
     elif args.extract_raw:
         cmd_extract_raw(instances)
+    elif args.extract_deck:
+        if args.deck_file:
+            import os
+            os.makedirs(os.path.dirname(os.path.abspath(args.deck_file)), exist_ok=True)
+            result_str = None
+            # Temporarily capture stdout so we can write to file instead
+            import io
+            _old_stdout = sys.stdout
+            sys.stdout = io.StringIO()
+            try:
+                cmd_extract_deck(instances)
+                result_str = sys.stdout.getvalue()
+            finally:
+                sys.stdout = _old_stdout
+            with open(args.deck_file, 'w', encoding='utf-16') as f:
+                f.write(result_str)
+            print(f"Deck indices written to {args.deck_file}", file=sys.stderr)
+        else:
+            cmd_extract_deck(instances)
+    elif args.inspect_deck_serializer:
+        cmd_inspect_deck_serializer(instances)
 
 
 if __name__ == '__main__':

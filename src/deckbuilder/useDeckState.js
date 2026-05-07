@@ -95,8 +95,8 @@ export function useDeckState(units) {
 
   const deckCode = useMemo(() => {
     if (!config) return '';
-    return encodeDeck(config, cards);
-  }, [config, cards]);
+    return encodeDeck(config, cards, units);
+  }, [config, cards, units]);
 
   const startDeck = useCallback((choice, spec, era) => {
     setConfig({ choice, spec, era });
