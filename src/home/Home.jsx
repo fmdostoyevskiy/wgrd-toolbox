@@ -36,9 +36,9 @@ const CATEGORIES = [
   {
     label: 'Helicopter',
     items: [
-      { key: 'helomissileaa',  label: 'Helo Missile AA'            },
-      { key: 'aahelos',        label: 'AA Helo'                    },
-      { key: 'atgmhelos',      label: 'ATGM Helo'                  },
+      { key: 'helomissileaa',  label: 'Helo Missile AA'              },
+      { key: 'aahelos',        label: 'AA Helo'                      },
+      { key: 'atgmhelos',      label: 'ATGM Helo'                    },
       { key: 'rocketpodhelos', label: 'Rocket Pod Helo' },
     ],
   },
@@ -51,6 +51,13 @@ const CATEGORIES = [
       { key: 'autocannons',   label: 'Autocannons'   },
     ],
   },
+];
+
+const MODULES = [
+  { id: '01', name: 'ARMORY',       desc: 'UNIT DATABASE',    tag: 'EXTERNAL', href: 'armory/'      },
+  { id: '02', name: 'DECKBUILDER',  desc: 'DECK COMPOSER',    tag: 'EXTERNAL', href: 'deckbuilder/' },
+  { id: '03', name: 'AP DAMAGE',    desc: 'PENETRATION CALC', tag: 'EXTERNAL', href: 'apdamage/'    },
+  { id: '04', name: 'SPREADSHEETS', desc: 'REFERENCE TABLES', tag: 'ARCHIVE',  href: null           },
 ];
 
 export function Home() {
@@ -67,106 +74,179 @@ export function Home() {
     return () => document.removeEventListener('mousedown', onDown);
   }, [open]);
 
-  const rowBase = {
-    display: 'flex', justifyContent: 'space-between', alignItems: 'baseline',
-    padding: '10px 14px',
-    border: `1px solid ${t.rule}`,
-    background: t.surface,
-    color: t.ink, textDecoration: 'none',
-    fontSize: 13, letterSpacing: '0.18em', textTransform: 'uppercase',
+  const moduleGrid = {
+    display: 'grid',
+    gridTemplateColumns: '96px 1fr 48px',
+    borderBottom: `1px solid ${t.rule}`,
     cursor: 'pointer',
+    textDecoration: 'none',
+    color: t.ink,
   };
 
-  const rowSmall = {
-    display: 'flex', justifyContent: 'center', alignItems: 'baseline',
-    padding: '6px 14px',
-    borderTop: 'none', borderLeft: 'none', borderRight: 'none',
-    borderBottom: `1px solid ${t.rule}`,
-    background: t.bg,
-    color: t.dimmer, textDecoration: 'none',
-    fontSize: 11, letterSpacing: '0.14em', textTransform: 'uppercase',
-    cursor: 'pointer',
+  const numCell = {
+    background: t.surface,
+    display: 'flex', flexDirection: 'column',
+    justifyContent: 'center', alignItems: 'center',
+    borderRight: `1px solid ${t.rule}`,
+    padding: '20px 0',
+    gap: 0,
+  };
+
+  const arrowCell = {
+    display: 'flex', justifyContent: 'center', alignItems: 'center',
+    borderLeft: `1px solid ${t.rule}`,
+    fontSize: 22, color: t.dimmer,
   };
 
   return (
-    <div style={{
-      ...BMono,
-      width: '100%', height: '100%',
-      background: t.bg, color: t.ink,
-      display: 'flex', alignItems: 'center', justifyContent: 'flex-start',
-      flexDirection: 'column', gap: 4,
-      paddingTop: 40,
-    }}>
-      <div style={{ fontSize: 18, letterSpacing: '0.32em', color: t.ink, fontWeight: 600, marginBottom: 24 }}>
-        WRD<span style={{ color: t.accent, marginLeft: 6 }}>TOOLBOX</span>
-      </div>
+    <div style={{ ...BMono, width: '100%', height: '100%', display: 'flex', flexDirection: 'column', background: t.bg, color: t.ink, overflow: 'hidden' }}>
 
-      {/* Armory */}
-      <a href={`${BASE}armory/`} style={{ ...rowBase, minWidth: 280 }}>
-        <span style={{ color: t.accent }}>Armory</span>
-        <span style={{ color: t.dimmer, fontSize: 10, letterSpacing: '0.18em' }}>unit reference</span>
-      </a>
+      {/* Main scrollable content */}
+      <div style={{ flex: 1, overflow: 'auto', padding: '40px 56px' }}>
 
-      {/* Deck Builder */}
-      <a href={`${BASE}deckbuilder/`} style={{ ...rowBase, minWidth: 280 }}>
-        <span style={{ color: t.accent }}>Deck Builder</span>
-        <span style={{ color: t.dimmer, fontSize: 10, letterSpacing: '0.18em' }}>build &amp; export decks · <span style={{ color: '#e55' }}>WIP</span></span>
-      </a>
-
-      {/* AP Damage Calculator */}
-      <a href={`${BASE}apdamage/`} style={{ ...rowBase, minWidth: 280 }}>
-        <span style={{ color: t.accent }}>AP Damage</span>
-        <span style={{ color: t.dimmer, fontSize: 10, letterSpacing: '0.18em' }}>damage calculator</span>
-      </a>
-
-      {/* Spreadsheets dropdown */}
-      <div ref={wrapRef} style={{ position: 'relative', minWidth: 280 }}>
-        <div
-          onClick={() => setOpen(o => !o)}
-          style={{ ...rowBase }}
-        >
-          <span style={{ color: open ? t.accent : t.ink }}>Spreadsheets</span>
-          <span style={{ color: t.dimmer, fontSize: 10, letterSpacing: '0.18em' }}>
-            {open ? '▲' : '▼'}
-          </span>
+        {/* Document header */}
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', marginBottom: 32 }}>
+          <div>
+            <div style={{ fontSize: 11, letterSpacing: '0.3em', color: t.dim, marginBottom: 10 }}>
+              DOC. № WRD-TLBX-2026-001
+            </div>
+            <div style={{ fontSize: 56, fontWeight: 600, lineHeight: 1, letterSpacing: '0.04em', marginBottom: 12 }}>
+              WRD <span style={{ color: t.accent2 }}>/</span> TOOLS
+            </div>
+            <div style={{ fontSize: 13, letterSpacing: '0.22em', color: t.dim }}>
+              WARGAME : RED DRAGON — OPERATOR TOOLBOX
+            </div>
+          </div>
+          <div style={{ textAlign: 'right', fontSize: 11, letterSpacing: '0.18em', color: t.dim, lineHeight: 2.2, paddingBottom: 2 }}>
+            <div>SECTOR: NATO</div>
+            <div>ISSUE: 1.0</div>
+            <div>STATUS: <span style={{ color: t.ok }}>● LIVE</span></div>
+          </div>
         </div>
 
-        {open && (
-          <div style={{
-            position: 'absolute', top: '100%', left: 0, right: 0,
-            background: t.bg, border: `1px solid ${t.rule}`, borderTop: 'none',
-            zIndex: 10, maxHeight: 420, overflowY: 'auto',
-          }}>
-            {CATEGORIES.map((cat, ci) => (
-              <React.Fragment key={cat.label}>
-                <div style={{
-                  padding: '5px 14px 3px',
-                  fontSize: 9, letterSpacing: '0.2em', textTransform: 'uppercase',
-                  color: t.accent,
-                  borderBottom: `1px solid ${t.rule}`,
-                  borderTop: ci === 0 ? 'none' : `1px solid ${t.rule}`,
-                  background: t.surface,
-                }}>
-                  {cat.label}
+        {/* Module index */}
+        <div style={{ fontSize: 11, letterSpacing: '0.22em', color: t.dim, padding: '10px 0', borderBottom: `1px solid ${t.rule}`, marginBottom: 0 }}>
+          ▼ MODULE INDEX — 0{MODULES.length} ENTRIES
+        </div>
+
+        <div ref={wrapRef} style={{ borderTop: `1px solid ${t.rule}` }}>
+          {MODULES.map((mod) => {
+            const isSpreadsheets = mod.id === '04';
+            const isOpen = isSpreadsheets && open;
+
+            const inner = (
+              <>
+                {/* Number cell */}
+                <div style={numCell}>
+                  <span style={{ fontSize: 10, letterSpacing: '0.1em', color: t.dimmer, lineHeight: 1, marginBottom: 2 }}>M·</span>
+                  <span style={{ fontSize: 38, fontWeight: 600, lineHeight: 1, color: t.accent2 }}>{mod.id}</span>
                 </div>
-                {cat.items.map(s => (
-                  <a
-                    key={s.key}
-                    href={`${BASE}spreadsheet/?ds=${s.key}`}
-                    style={rowSmall}
+
+                {/* Content cell */}
+                <div style={{ padding: '24px 32px', display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
+                  <div style={{ fontSize: 28, fontWeight: 500, letterSpacing: '0.05em', lineHeight: 1 }}>{mod.name}</div>
+                  <div style={{ fontSize: 11, letterSpacing: '0.2em', color: t.dim, marginTop: 6 }}>
+                    {mod.desc}
+                    <span style={{ color: t.dimmer }}> · {mod.tag}</span>
+                  </div>
+                </div>
+
+                {/* Arrow cell */}
+                <div style={arrowCell}>
+                  {isSpreadsheets ? (isOpen ? '▾' : '▸') : '↗'}
+                </div>
+              </>
+            );
+
+            if (isSpreadsheets) {
+              return (
+                <React.Fragment key={mod.id}>
+                  <div
+                    style={{ ...moduleGrid, cursor: 'pointer' }}
+                    onClick={() => setOpen(o => !o)}
                   >
-                    <span>{s.label}</span>
-                  </a>
-                ))}
-              </React.Fragment>
-            ))}
+                    {inner}
+                  </div>
+                  {isOpen && (
+                    <div>
+                      {CATEGORIES.map((cat) => (
+                        <React.Fragment key={cat.label}>
+                          {/* Category header — same grid, accent label in content column */}
+                          <div style={{
+                            display: 'grid', gridTemplateColumns: '96px 1fr 48px',
+                            borderBottom: `1px solid ${t.rule}`,
+                            background: t.surface,
+                          }}>
+                            <div style={{ borderRight: `1px solid ${t.rule}` }} />
+                            <div style={{
+                              padding: '5px 32px 4px',
+                              fontSize: 9, letterSpacing: '0.24em', textTransform: 'uppercase',
+                              color: t.accent,
+                            }}>
+                              {cat.label}
+                            </div>
+                            <div style={{ borderLeft: `1px solid ${t.rule}` }} />
+                          </div>
+                          {/* Items */}
+                          {cat.items.map(s => (
+                            <a
+                              key={s.key}
+                              href={`${BASE}spreadsheet/?ds=${s.key}`}
+                              style={{
+                                display: 'grid', gridTemplateColumns: '96px 1fr 48px',
+                                borderBottom: `1px solid ${t.rule}`,
+                                textDecoration: 'none', color: t.ink,
+                              }}
+                            >
+                              <div style={{ borderRight: `1px solid ${t.rule}` }} />
+                              <div style={{
+                                padding: '8px 32px',
+                                fontSize: 11, letterSpacing: '0.18em', textTransform: 'uppercase',
+                                color: t.dim,
+                              }}>
+                                {s.label}
+                              </div>
+                              <div style={{
+                                display: 'flex', justifyContent: 'center', alignItems: 'center',
+                                borderLeft: `1px solid ${t.rule}`,
+                                fontSize: 14, color: t.dimmer,
+                              }}>↗</div>
+                            </a>
+                          ))}
+                        </React.Fragment>
+                      ))}
+                    </div>
+                  )}
+                </React.Fragment>
+              );
+            }
+
+            return (
+              <a key={mod.id} href={`${BASE}${mod.href}`} style={moduleGrid}>
+                {inner}
+              </a>
+            );
+          })}
+        </div>
+
+        {/* Footer */}
+        <div style={{
+          display: 'flex', justifyContent: 'space-between', alignItems: 'center',
+          padding: '16px 0',
+          fontSize: 11, letterSpacing: '0.2em',
+          color: t.dimmer,
+          borderTop: `1px solid ${t.rule}`,
+        }}>
+          <div style={{ display: 'flex', gap: 28 }}>
+            <a href="https://github.com/fmdostoyevskiy/wgrd-toolbox" target="_blank" rel="noreferrer" style={{ color: t.dimmer, textDecoration: 'none' }}>⌗ GITHUB</a>
+            <a href="https://github.com/fmdostoyevskiy/wgrd-toolbox" target="_blank" rel="noreferrer" style={{ color: t.dimmer, textDecoration: 'none' }}>⌗ CONTACT</a>
+            <a href="https://github.com/fmdostoyevskiy/wgrd-toolbox/commits/main/" target="_blank" rel="noreferrer" style={{ color: t.dimmer, textDecoration: 'none' }}>⌗ CHANGELOG</a>
           </div>
-        )}
+          <div>END OF DOCUMENT — PG. 01 / 01</div>
+        </div>
+
       </div>
 
-      <div style={{ fontSize: 9, color: t.dimmer, letterSpacing: '0.24em', marginTop: 20 }}>
-        ◦ WARGAME: RED DRAGON REFERENCE TOOLS
-      </div>
     </div>
   );
 }
