@@ -73,7 +73,7 @@ function fmt(val, col) {
 function TopBar({ label, search, setSearch, total, shown, coalFilter, setCoalFilter, variant, setVariant, isWeapon, presets, filters, onPreset }) {
   return (
     <div className="topbar">
-      <div className="brand">{label} <span className="slash">/</span><span className="sub">WRD</span></div>
+      <a href={BASE} className="brand">{label} <span className="slash">/</span><span className="sub">WRD</span></a>
       {!isWeapon && (
         <>
           <button className={'topbar-btn' + (coalFilter === 'all' ? ' active' : '')} onClick={() => setCoalFilter('all')}>ALL</button>
@@ -119,7 +119,6 @@ function TopBar({ label, search, setSearch, total, shown, coalFilter, setCoalFil
       >
         {variant === 'heatmap' ? '◼ HEATMAP' : '◻ MINIMAL'}
       </button>
-      <a className="topbar-home" href={BASE}>← HOME</a>
     </div>
   );
 }

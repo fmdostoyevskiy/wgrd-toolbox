@@ -5,6 +5,8 @@ import {
   TIER_COLORS,
 } from './damageLogic.js';
 
+const BASE = import.meta.env.BASE_URL;
+
 // Armor 0..23, AP ranges per mode
 const B_ARMOR   = Array.from({ length: 24 }, (_, i) => i);
 const B_AP_HEAT = Array.from({ length: 30 }, (_, i) => i + 1);
@@ -74,10 +76,10 @@ export function OptionB() {
   return (
     <div className="optB">
       <div className="optB-topbar">
-        <div className="optB-title">
+        <a href={BASE} className="optB-title">
           <span className="optB-title-num">DMG</span>
           <span className="optB-title-name">DAMAGE INSPECTOR</span>
-        </div>
+        </a>
         <div className="optB-modes">
           {['HEAT', 'KE'].map(m => (
             <button key={m} className={`optB-mode ${mode === m ? 'on' : ''}`} onClick={() => handleModeSwitch(m)}>
