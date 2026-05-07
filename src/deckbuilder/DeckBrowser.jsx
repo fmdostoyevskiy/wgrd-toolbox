@@ -477,8 +477,14 @@ export function DeckBrowser({ roster, units, deckState }) {
                   <span>Transport: {units[selectedTransport]?.name}</span>
                 )}
               </div>
-              <div style={{ flex: 1, minHeight: 0, position: 'relative', padding: 6, display: 'flex', gap: 14, justifyContent: 'flex-end' }}>
+              <div style={{ flex: 1, minHeight: 0, position: 'relative', padding: 6 }}>
                 <CornerMarks />
+                <div style={{
+                  display: 'grid',
+                  gridTemplateColumns: `repeat(${!isMobile && pinned[0] && pinned[0] !== selected ? 2 : 1}, auto)`,
+                  justifyContent: 'end',
+                  gap: 14, height: '100%',
+                }}>
                 {!isMobile && pinned[0] && pinned[0] !== selected && (
                   <CardSlot
                     unitId={pinned[0]}
@@ -514,6 +520,7 @@ export function DeckBrowser({ roster, units, deckState }) {
                     <span style={{ fontSize: 9 }}>click a unit from the list</span>
                   </div>
                 )}
+                </div>
               </div>
             </div>
           </>
