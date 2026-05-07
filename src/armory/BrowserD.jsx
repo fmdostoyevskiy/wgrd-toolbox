@@ -12,6 +12,8 @@ import { TagDropdown } from './TagDropdown.jsx';
 import { CornerMarks } from './CornerMarks.jsx';
 import { CardPane } from './CardPane.jsx';
 
+const BASE = import.meta.env.BASE_URL;
+
 const NATO_NATIONS = ALL_NATIONS.filter(n => !PACT_NATIONS.has(n));
 const PACT_NATIONS_ORDERED = ALL_NATIONS.filter(n =>  PACT_NATIONS.has(n));
 
@@ -108,9 +110,9 @@ export function BrowserD({ roster, units, initialUnit }) {
         display: 'flex', alignItems: 'center', gap: 14,
         overflowX: 'auto',
       }}>
-        <div style={{ fontSize: 13, letterSpacing: '0.24em', color: t.ink, fontWeight: 600, flexShrink: 0 }}>
+        <a href={BASE} style={{ fontSize: 13, letterSpacing: '0.24em', color: t.ink, fontWeight: 600, flexShrink: 0, textDecoration: 'none' }}>
           ARMORY<span style={{ color: t.accent, marginLeft: 4 }}>/WRD</span>
-        </div>
+        </a>
         <div style={{ width: 1, alignSelf: 'stretch', background: t.rule, flexShrink: 0, margin: '4px 0' }} />
         <CoalBtn label="ALL"  flagSrc={null}                          onClick={() => toggleCoalition(null)}            active={f.nation.length === 0} color={t.accent}  />
         <CoalBtn label="NATO" flagSrc={COALITION_FLAG_MAP['NATO']}    onClick={() => toggleSide(NATO_NATIONS)}         active={natoActive}            color={t.natoTag} />

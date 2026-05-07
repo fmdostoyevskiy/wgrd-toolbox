@@ -155,7 +155,7 @@ body { margin: 0; background: #050810; color: var(--ink-0); font-family: var(--s
   display: flex; align-items: center; justify-content: space-between;
   padding-bottom: 12px; border-bottom: 1px solid var(--line); margin-bottom: 14px;
 }
-.optB-title { display: flex; align-items: center; gap: 10px; }
+.optB-title { display: flex; align-items: center; gap: 10px; text-decoration: none; }
 .optB-title-num {
   font-family: var(--mono); font-size: 11px; color: var(--bg-0);
   background: var(--accent); padding: 3px 8px; letter-spacing: 0.1em;

@@ -138,22 +138,7 @@ body {
 }
 .topbar-count .num { color: var(--text); }
 
-.topbar-home {
-  height: 44px;
-  padding: 0 14px;
-  display: inline-flex;
-  align-items: center;
-  font-family: var(--mono);
-  font-size: 10px;
-  letter-spacing: 0.1em;
-  color: var(--text-mute);
-  background: transparent;
-  border: none;
-  border-left: 1px solid var(--line);
-  cursor: pointer;
-  text-decoration: none;
-}
-.topbar-home:hover { color: var(--text-dim); background: var(--bg-3); }
+a.brand { text-decoration: none; }
 
 /* ============ MAIN LAYOUT ============ */
 .main {
