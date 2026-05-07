@@ -905,6 +905,15 @@ export const DATASETS = {
     file: 'autocannons.json',
     isWeapon: false,
     defaultSort: 'cost',
+    presets: [
+      { label: 'GROUND AC',   filters: { turreted: { text: '–'  } } },
+      { label: 'ACCURATE',    filters: { acc:      { min: '50'  } } },
+      { label: 'FAST',        filters: { speed:    { min: '80'  } } },
+      { label: 'HMG',         filters: { salvoLen: { min: '6'   } } },
+      { label: 'FAST-FIRING', filters: { shot:     { max: '0.6' } } },
+      { label: 'WHEELED',     filters: { moveType: { text: 'wheeled' } } },
+      { label: 'TRACKED',     filters: { moveType: { text: 'tracked' } } },
+    ],
     columns: [
       ...N,
       { key: 'he',       label: 'HE',        type: 'num',  width: 65,  heat: 'high' },

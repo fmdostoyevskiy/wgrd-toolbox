@@ -661,6 +661,8 @@ def handle_asm(units, rows, data_dir):
 def handle_ac(units, rows, data_dir):
     count = 0
     for unit in units:
+        if unit.get('type') not in ('Vehicle', 'Helicopter'):
+            continue
         for w in unit.get('weapons', []):
             if w.get('category') != 'Gun':
                 continue
