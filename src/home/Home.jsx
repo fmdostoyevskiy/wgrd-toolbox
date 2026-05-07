@@ -48,6 +48,7 @@ const CATEGORIES = [
       { key: 'tanks',         label: 'Tank'          },
       { key: 'atgmvehicles',  label: 'ATGM Vehicle'  },
       { key: 'atgminfantry',  label: 'ATGM Infantry' },
+      { key: 'autocannons',   label: 'Autocannons'   },
     ],
   },
 ];

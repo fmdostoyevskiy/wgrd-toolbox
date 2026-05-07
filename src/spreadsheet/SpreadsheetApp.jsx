@@ -60,10 +60,10 @@ function heatColor(val, stats, intensity) {
 
 // ---------- fmt ----------
 function fmt(val, col) {
+  if (val === null || val === undefined || val === '') return <span className="muted">–</span>;
   if (BOOL_TYPES.has(col.type)) {
     return val ? 'Y' : 'N';
   }
-  if (val === null || val === undefined || val === '') return <span className="muted">–</span>;
   if (col.type === 'pct') return `${val}%`;
   if (col.type === 'num') return Number.isInteger(val) ? val.toLocaleString() : String(val);
   return val;
@@ -205,11 +205,11 @@ function Spreadsheet({ columns, rows, sortKey, sortDir, onSort, heatStats, varia
                   const bg = showHeat ? heatColor(val, heatStats[col.key], intensity) : null;
                   if (bg) style.background = bg;
 
-                  if (col.type === 'bool') {
+                  if (col.type === 'bool' && val != null) {
                     style.color = val ? 'var(--accent-pact)' : 'var(--accent-green)';
                     style.fontWeight = 600;
                   }
-                  if (col.type === 'bool-good') {
+                  if (col.type === 'bool-good' && val != null) {
                     style.color = val ? 'var(--accent-green)' : 'var(--accent-pact)';
                     style.fontWeight = 600;
                   }
@@ -323,7 +323,10 @@ export function SpreadsheetApp({ dataset }) {
           const q = f.text.toLowerCase();
           const isBoolCol = BOOL_TYPES.has(col.type);
           r = r.filter(row => {
-            const v = isBoolCol ? (row[key] ? 'y' : 'n') : String(row[key] ?? '').toLowerCase();
+            const raw = row[key];
+            const v = isBoolCol
+              ? (raw == null ? '–' : (raw ? 'y' : 'n'))
+              : String(raw ?? '').toLowerCase();
             return v.includes(q);
           });
         }
