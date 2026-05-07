@@ -501,7 +501,9 @@ def handle_turreted_weapons(units, rows, data_dir):
                 unmatched.append(base_name)
                 continue
 
-            for _, w in matches:
+            for unit, w in matches:
+                if unit.get('type') != 'Helicopter':
+                    continue
                 if turret_col == 'Y':
                     w['turreted'] = True
                     count += 1
@@ -673,9 +675,14 @@ def handle_ac(units, rows, data_dir):
             if not (AC_RANGE_MIN <= rng_g <= AC_RANGE_MAX):
                 continue
             count += ensure_weapon_tag(w, 'AC')
-    save_json(os.path.join(data_dir, 'ac.json'),
-              [u for u in units if any('AC' in w.get('tag', []) for w in u.get('weapons', []))])
-    print(f'  [H23] AC: tagged {count} weapon(s)')
+    ac_units = []
+    for unit in units:
+        if any('AC' in w.get('tag', []) for w in unit.get('weapons', [])):
+            add_to_spreadsheet(unit, 'Autocannon')
+            ac_units.append(unit)
+    save_json(os.path.join(data_dir, 'ac.json'), ac_units)
+    save_json(os.path.join(data_dir, 'autocannons.json'), ac_units)
+    print(f'  [H23] AC: tagged {count} weapon(s), {len(ac_units)} unit(s)')
     return []
 
 
