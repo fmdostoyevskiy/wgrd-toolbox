@@ -26,6 +26,7 @@ export function hasMobility(unit) {
       || unit.altitude != null
       || unit.roadSpeed != null
       || unit.turnRadius != null
+      || unit.turningTime != null
       || unit.maxAcceleration != null
       || unit.maxDeceleration != null
       || unit.sailing != null;
@@ -56,6 +57,7 @@ export function MobilitySection({ unit, s }) {
     unit.refuelTime  != null && hide.field('refuelTime')  && <DotRow key="refuel" label="Refuel Time" value={`${unit.refuelTime} s`} s={s} />,
     unit.altitude    != null && hide.field('altitude')    && <DotRow key="alt" label="Altitude" value={`${unit.altitude} m`} s={s} />,
     unit.turnRadius  != null && hide.field('turnRadius')  && <DotRow key="turn" label="Turn Radius" value={`${unit.turnRadius} m`} s={s} />,
+    unit.turningTime != null && hide.field('turningTime') && <DotRow key="turningTime" label="Turning Time" value={`${unit.turningTime} s`} s={s} />,
     accelDecel && hide.field('accelDecel') && <DotRow key="ad" label={accelDecel.label} value={accelDecel.value} s={s} />,
     unit.sailing     != null && hide.field('sailing')     && <DotRow key="sail" label="Sailing" value={unit.sailing} s={s} />,
   ].filter(Boolean);
