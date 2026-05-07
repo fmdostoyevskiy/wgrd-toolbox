@@ -76,7 +76,7 @@ export const TagDropdown = React.memo(function TagDropdown({ weaponTags, unitTag
           fontSize: 10.5, letterSpacing: '0.14em',
           textAlign: 'left', cursor: 'pointer', flex: 1,
         }}>ALL</button>
-        {selected.length > 1 && (
+        {selected.length > 0 && (
           <button onClick={onTagMode} style={{
             ...BMono,
             background: 'transparent',

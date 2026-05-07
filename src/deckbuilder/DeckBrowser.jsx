@@ -102,7 +102,7 @@ export function DeckBrowser({ roster, units, deckState }) {
   // --- Filter state (simplified from useFilterState, no coalition toggle) ---
   const [f, setF] = useState({ nation: [], spec: [], tab: [], era: [], tag: [], q: '' });
   const [tagMode, setTagMode] = useState('OR');
-  const toggleTagMode = useCallback(() => setTagMode(m => m === 'OR' ? 'AND' : 'OR'), []);
+  const toggleTagMode = useCallback(() => setTagMode(m => m === 'OR' ? 'AND' : m === 'AND' ? 'NOT' : 'OR'), []);
   const [showOverview, setShowOverview] = useState(true);
 
   const toggle = useCallback((key) => (val) => {
@@ -135,9 +135,10 @@ export function DeckBrowser({ roster, units, deckState }) {
       if (f.spec.length   && !u.specs.some(s => f.spec.includes(s))) return false;
       if (f.tab.length    && !f.tab.includes(u.tab)) return false;
       if (f.tag.length) {
-        const check = tagMode === 'AND'
-          ? f.tag.every(t => u.unitTags.includes(t))
-          : f.tag.some(t => u.unitTags.includes(t));
+        let check;
+        if (tagMode === 'AND') check = f.tag.every(t => u.unitTags.includes(t));
+        else if (tagMode === 'NOT') check = f.tag.every(t => !u.unitTags.includes(t));
+        else check = f.tag.some(t => u.unitTags.includes(t));
         if (!check) return false;
       }
       if (q && !u.name.toLowerCase().includes(q)) return false;
