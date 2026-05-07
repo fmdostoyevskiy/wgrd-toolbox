@@ -39,7 +39,7 @@ const CATEGORIES = [
       { key: 'helomissileaa',  label: 'Helo Missile AA'            },
       { key: 'aahelos',        label: 'AA Helo'                    },
       { key: 'atgmhelos',      label: 'ATGM Helo'                  },
-      { key: 'rocketpodhelos', label: 'Rocket Pod Helo - INCOMPLETE' },
+      { key: 'rocketpodhelos', label: 'Rocket Pod Helo' },
     ],
   },
   {
