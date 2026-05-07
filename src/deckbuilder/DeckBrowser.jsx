@@ -10,6 +10,7 @@ import { useWindowWidth } from '../armory/useWindowWidth.js';
 import { Seg } from '../armory/Seg.jsx';
 import { TagDropdown } from '../armory/TagDropdown.jsx';
 import { CornerMarks } from '../armory/CornerMarks.jsx';
+import { CardSlot } from '../armory/CardSlot.jsx';
 import { OverviewTab } from './OverviewTab.jsx';
 import { DeckBar } from './DeckBar.jsx';
 import { classifyDeckChoice } from './deckConstants.js';
@@ -149,9 +150,16 @@ export function DeckBrowser({ roster, units, deckState }) {
   const [displayUnitId, setDisplayUnitId] = useState(null);
   const [expandedTransports, setExpandedTransports] = useState(() => new Set());
   const [listOpen, setListOpen]         = useState(true);
+  const [pinned, setPinned]             = useState([]);
 
   const winWidth = useWindowWidth();
   const isMobile = winWidth < MOBILE_BREAKPOINT;
+
+  useEffect(() => { if (isMobile) setPinned([]); }, [isMobile]);
+
+  const togglePin = useCallback((id) => {
+    setPinned(p => p.includes(id) ? [] : [id]);
+  }, []);
 
   const selectUnit = useCallback((id, isTransport = false, parentId = null) => {
     if (isTransport) {
@@ -415,7 +423,7 @@ export function DeckBrowser({ roster, units, deckState }) {
                         rows={filtered}
                         selectedId={selected}
                         selectedTransportId={selectedTransport}
-                        pinnedIds={[]}
+                        pinnedIds={pinned}
                         expandedIds={expandedTransports}
                         onSelect={selectUnit}
                         onToggleTransports={toggleTransports}
@@ -445,8 +453,17 @@ export function DeckBrowser({ roster, units, deckState }) {
                   <span>Transport: {units[selectedTransport]?.name}</span>
                 )}
               </div>
-              <div style={{ flex: 1, minHeight: 0, position: 'relative', padding: 6, display: 'flex' }}>
+              <div style={{ flex: 1, minHeight: 0, position: 'relative', padding: 6, display: 'flex', gap: 14, justifyContent: 'flex-end' }}>
                 <CornerMarks />
+                {!isMobile && pinned[0] && pinned[0] !== selected && (
+                  <CardSlot
+                    unitId={pinned[0]}
+                    units={units}
+                    isPinned={true}
+                    onTogglePin={() => togglePin(pinned[0])}
+                    selectedSpec={specForCard}
+                  />
+                )}
                 {selected && unit ? (
                   <DeckCardSlot
                     unit={unit}
@@ -457,6 +474,8 @@ export function DeckBrowser({ roster, units, deckState }) {
                     specForCard={specForCard}
                     tabSlots={tabSlots}
                     maxPacksReached={maxPacksReached}
+                    isPinned={pinned.includes(selected)}
+                    onTogglePin={() => togglePin(selected)}
                   />
                 ) : (
                   <div className="armory-card-frame" style={{
@@ -489,12 +508,12 @@ export function DeckBrowser({ roster, units, deckState }) {
   );
 }
 
-function DeckCardSlot({ unit, cardUnit, avail, vet, onVetAdd, specForCard, tabSlots, maxPacksReached }) {
+function DeckCardSlot({ unit, cardUnit, avail, vet, onVetAdd, specForCard, tabSlots, maxPacksReached, isPinned, onTogglePin }) {
   const t = BROWSER_TOKENS;
   const tabFull = tabSlots[unit.tab]?.used >= tabSlots[unit.tab]?.total;
 
   return (
-    <div className="armory-card-frame" style={{ display: 'flex', flexDirection: 'column' }}>
+    <div className="armory-card-frame" style={{ display: 'flex', flexDirection: 'column', position: 'relative' }}>
       <div style={{ flex: 1, minHeight: 0, overflow: 'hidden' }}>
         <V2Card
           unit={cardUnit}
@@ -514,6 +533,16 @@ function DeckCardSlot({ unit, cardUnit, avail, vet, onVetAdd, specForCard, tabSl
         }}>
           {unit.tab} TAB FULL
         </div>
+      )}
+      {onTogglePin && (
+        <button onClick={onTogglePin} style={{
+          ...BMono,
+          position: 'absolute', top: 8, right: 8, zIndex: 2,
+          background: 'rgba(0,0,0,0.4)', color: t.dim,
+          border: `1px solid ${t.rule}`,
+          padding: '2px 6px', fontSize: 10, letterSpacing: '0.1em',
+          cursor: 'pointer',
+        }}>{isPinned ? 'UNPIN ✕' : 'PIN'}</button>
       )}
     </div>
   );
