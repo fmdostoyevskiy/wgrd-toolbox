@@ -899,6 +899,47 @@ export const DATASETS = {
     },
   },
 
+  // ── Autocannons ────────────────────────────────────────────────────────────
+  autocannons: {
+    label: 'Autocannons',
+    file: 'autocannons.json',
+    isWeapon: false,
+    defaultSort: 'cost',
+    columns: [
+      ...N,
+      { key: 'he',       label: 'HE',        type: 'num',  width: 65,  heat: 'high' },
+      { key: 'ap',       label: 'AP',        type: 'num',  width: 65,  heat: 'high' },
+      { key: 'rng',      label: 'GND RNG',   type: 'num',  width: 85,  heat: 'high' },
+      { key: 'acc',      label: 'ACC',       type: 'pct',  width: 65,  heat: 'high' },
+      { key: 'stab',     label: 'STAB',      type: 'pct',  width: 65,  heat: 'high' },
+      { key: 'shot',     label: 'SHOT RLD',  type: 'num',  width: 80,  heat: 'low'  },
+      { key: 'salvoLen', label: 'SALVO LEN', type: 'num',  width: 90,  heat: 'high' },
+      { key: 'turreted', label: 'TURRETED',  type: 'bool', width: 80,  heat: null   },
+      { key: 'salvo',    label: 'SALVO RLD', type: 'num',  width: 90,  heat: 'low'  },
+      { key: 'armorF',   label: 'F ARM',     type: 'num',  width: 65,  heat: 'high' },
+      { key: 'speed',    label: 'SPEED',     type: 'num',  width: 70,  heat: 'high' },
+      { key: 'moveType', label: 'TYPE',      type: 'text', width: 80,  heat: null   },
+    ],
+    transform(u) {
+      const ac = top(u, w => w.tag?.includes('AC'), 'rng_g');
+      return {
+        ...base(u),
+        he:       wf(ac, 'dmg'),
+        ap:       wf(ac, 'ap'),
+        rng:      wf(ac, 'rng_g'),
+        acc:      wf(ac, 'acc'),
+        stab:     wf(ac, 'stab'),
+        shot:     wf(ac, 'shotReload'),
+        salvoLen: wf(ac, 'salvoLen'),
+        turreted: ac?.turreted ?? null,
+        salvo:    wf(ac, 'salvoReload'),
+        armorF:   u.armor?.F ?? null,
+        speed:    u.speed ?? null,
+        moveType: u.motionType ?? null,
+      };
+    },
+  },
+
   // ── SEAD ───────────────────────────────────────────────────────────────────
   sead: {
     label: 'SEAD',
