@@ -686,25 +686,25 @@ function DeckListSection({ cards, total, units, onRemove, onSelect }) {
       borderBottom: `1px solid ${t.rule}`,
     }}>
       {/* Header */}
-      <div style={{
-        display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-        padding: '4px 10px',
-        borderBottom: open ? `1px solid ${t.rule}` : 'none',
-      }}>
+      <div
+        onClick={() => setOpen(o => !o)}
+        style={{
+          display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+          padding: '4px 10px',
+          borderBottom: open ? `1px solid ${t.rule}` : 'none',
+          cursor: 'pointer',
+        }}
+      >
         <span style={{ fontSize: 10, letterSpacing: '0.14em', color: t.accent }}>
           IN DECK
           <span style={{ color: t.dim, marginLeft: 6, fontVariantNumeric: 'tabular-nums' }}>
             {cards.length}<span style={{ opacity: 0.5 }}>/</span>{total}
           </span>
         </span>
-        <button
-          onClick={() => setOpen(o => !o)}
-          style={{
-            ...BMono, background: 'transparent', color: t.dimmer,
-            border: 'none', padding: '2px 4px', fontSize: 10,
-            cursor: 'pointer', lineHeight: 1,
-          }}
-        >{open ? '▴' : '▾'}</button>
+        <span style={{
+          ...BMono, color: t.dimmer,
+          padding: '2px 4px', fontSize: 10, lineHeight: 1,
+        }}>{open ? '▴' : '▾'}</span>
       </div>
       {/* Rows */}
       {open && cards.map(card => (
