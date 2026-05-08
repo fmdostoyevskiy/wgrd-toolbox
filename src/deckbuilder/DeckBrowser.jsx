@@ -513,7 +513,7 @@ export function DeckBrowser({ roster, units, deckState }) {
                     tabSlots={tabSlots}
                     maxPacksReached={maxPacksReached}
                     isPinned={pinned.includes(selected)}
-                    onTogglePin={() => togglePin(selected)}
+                    onTogglePin={isMobile ? null : () => togglePin(selected)}
                   />
                 ) : (
                   <div className="armory-card-frame" style={{
