@@ -1,4 +1,4 @@
-import { useState, useMemo, useEffect, useCallback } from 'react';
+import { useState, useMemo, useEffect, useCallback, Fragment } from 'react';
 import { NATION_CODE_MAP, NATION_FLAG_MAP, sideOf } from '@units-core';
 import { CATEGORIES } from './categories.js';
 
@@ -253,18 +253,21 @@ function Spreadsheet({ columns, rows, sortKey, sortDir, onSort, heatStats, varia
 
 // ---------- CategoryTabBar ----------
 function CategoryTabBar({ dsKey }) {
-  const category = CATEGORIES.find(cat => cat.items.some(item => item.key === dsKey));
-  if (!category || category.items.length < 2) return null;
   return (
     <div className="tab-bar">
-      {category.items.map(item => (
-        <a
-          key={item.key}
-          href={`${BASE}spreadsheet/?ds=${item.key}`}
-          className={'tab-item' + (item.key === dsKey ? ' active' : '')}
-        >
-          {item.label}
-        </a>
+      {CATEGORIES.map(cat => (
+        <Fragment key={cat.label}>
+          <span className="tab-category-label">{cat.label}</span>
+          {cat.items.map(item => (
+            <a
+              key={item.key}
+              href={`${BASE}spreadsheet/?ds=${item.key}`}
+              className={'tab-item' + (item.key === dsKey ? ' active' : '')}
+            >
+              {item.label}
+            </a>
+          ))}
+        </Fragment>
       ))}
     </div>
   );
