@@ -478,15 +478,6 @@ export function DeckBrowser({ roster, units, deckState }) {
                   justifyContent: 'end',
                   gap: 14, height: '100%',
                 }}>
-                {!isMobile && pinned[0] && pinned[0] !== selected && (
-                  <CardSlot
-                    unitId={pinned[0]}
-                    units={units}
-                    isPinned={true}
-                    onTogglePin={() => togglePin(pinned[0])}
-                    selectedSpec={specForCard}
-                  />
-                )}
                 {selected && unit ? (
                   <DeckCardSlot
                     unit={unit}
@@ -512,6 +503,15 @@ export function DeckBrowser({ roster, units, deckState }) {
                     <span>◦ SELECT A UNIT</span>
                     <span style={{ fontSize: 9 }}>click a unit from the list</span>
                   </div>
+                )}
+                {!isMobile && pinned[0] && pinned[0] !== selected && (
+                  <CardSlot
+                    unitId={pinned[0]}
+                    units={units}
+                    isPinned={true}
+                    onTogglePin={() => togglePin(pinned[0])}
+                    selectedSpec={specForCard}
+                  />
                 )}
                 </div>
               </div>
