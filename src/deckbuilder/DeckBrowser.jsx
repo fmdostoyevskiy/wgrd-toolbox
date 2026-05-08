@@ -9,7 +9,6 @@ import { VET_TIERS } from '@units-core/constants/veterancy.js';
 import { useWindowWidth } from '../armory/useWindowWidth.js';
 import { Seg } from '../armory/Seg.jsx';
 import { TagDropdown } from '../armory/TagDropdown.jsx';
-import { CornerMarks } from '../armory/CornerMarks.jsx';
 import { CardSlot } from '../armory/CardSlot.jsx';
 import { OverviewTab } from './OverviewTab.jsx';
 import { DeckBar } from './DeckBar.jsx';
@@ -468,24 +467,11 @@ export function DeckBrowser({ roster, units, deckState }) {
 
             {/* Card pane */}
             <div style={{
-              padding: 18, minHeight: 0,
+              padding: 14, minHeight: 0,
               display: 'flex', flexDirection: 'column', gap: 10,
               position: 'relative',
             }}>
-              <div style={{
-                display: 'flex', alignItems: 'center', gap: 10,
-                fontSize: 10, letterSpacing: '0.22em', color: t.dimmer,
-                flexShrink: 0,
-              }}>
-                <span style={{ color: t.accent }}>◉</span>
-                <span>SELECT VETERANCY TO ADD</span>
-                <div style={{ flex: 1, borderTop: `1px solid ${t.rule}` }} />
-                {selectedTransport && (
-                  <span>Transport: {units[selectedTransport]?.name}</span>
-                )}
-              </div>
-              <div style={{ flex: 1, minHeight: 0, position: 'relative', padding: 6 }}>
-                <CornerMarks />
+              <div style={{ flex: 1, minHeight: 0, position: 'relative', padding: 5 }}>
                 <div style={{
                   display: 'grid',
                   gridTemplateColumns: `repeat(${!isMobile && pinned[0] && pinned[0] !== selected ? 2 : 1}, auto)`,
