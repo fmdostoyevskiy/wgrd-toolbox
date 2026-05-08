@@ -665,6 +665,11 @@ export const DATASETS = {
     file: 'asfs.json',
     isWeapon: false,
     defaultSort: 'cost',
+    presets: [
+      { label: 'ANTI-PLANE',      filters: { m1Plane: { min: '7000' } } },
+      { label: 'DOUBLE MISSILE',  filters: { m2Plane: { min: '3500' } } },
+      { label: 'HELO HUNTER',     filters: { m1Helo: { min: '2100' }, m2Helo: { min: '2100' } } },
+    ],
     columns: [
       ...N,
       { key: 'ecm',      label: 'ECM',        type: 'pct',       width: 65,  heat: 'high' },
