@@ -42,6 +42,8 @@ const NATION_BITS = {
   'ROK':  '000101001100',
   'HOL':  '000101101100',
   'ISR':  '000110001100',
+  'SA':   '000111101100',
+  'ITA':  '001000001100',
   // BLUFOR coalitions
   'Eurocorps':    '001000100000',
   'Scandinavia':  '001000100001',
