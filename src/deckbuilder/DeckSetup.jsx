@@ -155,16 +155,17 @@ export function DeckSetup({ onStart, onImport }) {
       display: 'flex', alignItems: 'center', justifyContent: 'flex-start',
       flexDirection: 'column', paddingTop: 40,
       overflow: 'hidden auto',
+      boxSizing: 'border-box',
     }}>
       <div style={{ fontSize: 16, letterSpacing: '0.28em', fontWeight: 600, marginBottom: 30 }}>
         DECK<span style={{ color: t.accent, marginLeft: 6 }}>BUILDER</span>
       </div>
 
-      <div style={{ maxWidth: 700, width: '100%', padding: '0 24px' }}>
+      <div style={{ maxWidth: 700, width: '100%', padding: '0 24px', boxSizing: 'border-box' }}>
         {/* Side */}
         <div style={sectionStyle}>
           <div style={labelStyle}>Side</div>
-          <div style={{ display: 'flex', gap: 8 }}>
+          <div className="ds-side-row">
             {[['nato', 'NATO', COALITION_FLAG_MAP['NATO']], ['pact', 'PACT', COALITION_FLAG_MAP['PACT']]].map(([val, label, flag]) => (
               <button
                 key={val}
@@ -230,18 +231,14 @@ export function DeckSetup({ onStart, onImport }) {
 
         {/* Era + Specialization table */}
         <div style={sectionStyle}>
-          <div style={{
-            display: 'grid',
-            gridTemplateColumns: 'auto auto 1fr',
-            border: `1px solid ${t.rule}`,
-          }}>
+          <div className="ds-era-spec-grid" style={{ border: `1px solid ${t.rule}` }}>
             {/* Headers */}
-            <div style={{ ...labelStyle, marginBottom: 0, padding: '5px 14px', borderBottom: `1px solid ${t.rule}`, borderRight: `1px solid ${t.rule}` }}>Era</div>
-            <div style={{ ...labelStyle, marginBottom: 0, padding: '5px 14px', borderBottom: `1px solid ${t.rule}`, borderRight: `1px solid ${t.rule}` }}>Specialization</div>
-            <div style={{ ...labelStyle, marginBottom: 0, padding: '5px 14px', borderBottom: `1px solid ${t.rule}` }}>Bonuses</div>
+            <div className="ds-era-header" style={{ ...labelStyle, marginBottom: 0, padding: '5px 14px', borderBottom: `1px solid ${t.rule}`, borderRight: `1px solid ${t.rule}` }}>Era</div>
+            <div className="ds-spec-header" style={{ ...labelStyle, marginBottom: 0, padding: '5px 14px', borderBottom: `1px solid ${t.rule}`, borderRight: `1px solid ${t.rule}` }}>Specialization</div>
+            <div className="ds-bonus-header" style={{ ...labelStyle, marginBottom: 0, padding: '5px 14px', borderBottom: `1px solid ${t.rule}` }}>Bonuses</div>
 
             {/* Era buttons */}
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 6, padding: '10px 12px', borderRight: `1px solid ${t.rule}` }}>
+            <div className="ds-era-body" style={{ display: 'flex', flexDirection: 'column', gap: 6, padding: '10px 12px', borderRight: `1px solid ${t.rule}` }}>
               {ERAS.map(e => (
                 <button
                   key={e.id}
@@ -261,7 +258,7 @@ export function DeckSetup({ onStart, onImport }) {
             </div>
 
             {/* Spec buttons */}
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', alignContent: 'start', gap: 6, padding: '10px 12px', borderRight: `1px solid ${t.rule}` }}>
+            <div className="ds-spec-body" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', alignContent: 'start', gap: 6, padding: '10px 12px', borderRight: `1px solid ${t.rule}` }}>
               {DECK_SPECS.map(s => (
                 <button
                   key={s.label}
@@ -280,7 +277,7 @@ export function DeckSetup({ onStart, onImport }) {
             </div>
 
             {/* Bonus panel */}
-            <div style={{ padding: '4px 0' }}>
+            <div className="ds-bonus-body" style={{ padding: '4px 0' }}>
               <BonusPanel spec={spec} era={era} choice={choice} />
             </div>
           </div>
@@ -288,7 +285,7 @@ export function DeckSetup({ onStart, onImport }) {
 
         {/* Start */}
         <div style={{ marginTop: 24, marginBottom: 40 }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+          <div className="ds-import-row">
             <button
               onClick={handleStart}
               disabled={!canStart}
@@ -305,6 +302,7 @@ export function DeckSetup({ onStart, onImport }) {
               BUILD DECK
             </button>
             <input
+              className="ds-import-input"
               value={importCode}
               onChange={e => { setImportCode(e.target.value); setImportError(false); }}
               onKeyDown={e => e.key === 'Enter' && handleImport()}
@@ -315,7 +313,7 @@ export function DeckSetup({ onStart, onImport }) {
                 color: t.text,
                 border: `1px solid ${importError ? '#e05' : t.rule}`,
                 padding: '10px 12px', fontSize: 12,
-                width: 220, outline: 'none',
+                outline: 'none',
               }}
             />
             <button

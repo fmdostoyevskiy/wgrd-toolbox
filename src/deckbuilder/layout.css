@@ -69,6 +69,75 @@
 
 @media (max-width: 700px) {
   .ov-tab-row {
-    grid-template-columns: 90px 1fr;
+    grid-template-columns: 1fr;
+  }
+
+  /* Label stacks above cards: drop the vertical divider, add a horizontal one */
+  .ov-tab-row > :first-child {
+    border-right: none !important;
+    border-bottom: 1px solid var(--ov-rule, #252b38);
+  }
+
+  /* Cards stack vertically instead of scrolling horizontally */
+  .ov-tab-row > :last-child {
+    flex-direction: column;
+  }
+
+  .ov-tab-row > :last-child .ov-card {
+    flex: none;
+    width: 100%;
+    height: 44px;
+  }
+}
+
+/* DeckSetup new-deck form: era/spec/bonus selection grid */
+.ds-era-spec-grid {
+  display: grid;
+  grid-template-columns: auto auto 1fr;
+}
+
+/* DeckSetup new-deck form: side (NATO/PACT) selector */
+.ds-side-row {
+  display: flex;
+  gap: 8px;
+}
+
+/* DeckSetup new-deck form: start/import action row */
+.ds-import-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.ds-import-input {
+  width: 220px;
+}
+
+@media (max-width: 550px) {
+  /* Stack era → spec → bonuses vertically, reordering from the default
+     grid order (era-hdr, spec-hdr, bonus-hdr, era-body, spec-body, bonus-body)
+     into (era-hdr, era-body, spec-hdr, spec-body, bonus-hdr, bonus-body). */
+  .ds-era-spec-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .ds-era-header   { order: 1; border-right: none !important; }
+  .ds-era-body     { order: 2; border-right: none !important; }
+  .ds-spec-header  { order: 3; border-right: none !important; border-top: 1px solid var(--wrd-rule); }
+  .ds-spec-body    { order: 4; border-right: none !important; }
+  .ds-bonus-header { order: 5; border-top: 1px solid var(--wrd-rule); }
+  .ds-bonus-body   { order: 6; }
+
+  .ds-side-row {
+    flex-direction: column;
+  }
+
+  .ds-import-row {
+    flex-wrap: wrap;
+  }
+
+  .ds-import-input {
+    width: 100%;
+    box-sizing: border-box;
   }
 }
