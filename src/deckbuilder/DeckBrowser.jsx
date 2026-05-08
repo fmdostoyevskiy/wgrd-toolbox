@@ -441,6 +441,16 @@ export function DeckBrowser({ roster, units, deckState }) {
                     />
                   </div>
 
+                  {f.tab.length === 1 && tabSlots[f.tab[0]]?.cards.length > 0 && (
+                    <DeckListSection
+                      cards={tabSlots[f.tab[0]].cards}
+                      total={tabSlots[f.tab[0]].total}
+                      units={units}
+                      onRemove={removeCard}
+                      onSelect={selectUnit}
+                    />
+                  )}
+
                   <div style={{ flex: 1, minHeight: 0 }}>
                     {filtered.length === 0 ? (
                       <div style={{
@@ -599,5 +609,102 @@ function FilterSelect({ value, active, onChange, items }) {
       }}>
       {items.map(([v, label]) => <option key={label} value={v}>{label}</option>)}
     </select>
+  );
+}
+
+function DeckListRow({ card, units, onRemove, onSelect }) {
+  const t = BROWSER_TOKENS;
+  const u = units?.[card.unitId];
+  const transport = card.transportId ? units?.[card.transportId] : null;
+
+  return (
+    <div style={{
+      ...BMono,
+      borderBottom: `1px solid ${t.rule}`,
+      borderLeft: `2px solid ${t.accent}`,
+    }}>
+      <div style={{
+        display: 'grid', gridTemplateColumns: '30px 1fr 42px',
+        alignItems: 'center', gap: 6,
+        padding: '4px 10px',
+        fontSize: 11.5, color: t.ink,
+      }}>
+        <span style={{ display: 'inline-flex', gap: 0 }}>
+          {Array.from({ length: 5 }, (_, i) => (
+            <span key={i} style={{
+              color: i <= card.vet ? '#ffd166' : 'rgba(255,209,102,0.18)',
+              fontSize: 8, lineHeight: 1, width: 5, textAlign: 'center',
+            }}>›</span>
+          ))}
+        </span>
+        <div
+          onClick={() => onSelect?.(card.unitId)}
+          style={{
+            minWidth: 0, cursor: onSelect ? 'pointer' : 'default',
+            whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis',
+          }}
+        >
+          {u?.name ?? card.unitId}
+          {transport && (
+            <span
+              onClick={(e) => { e.stopPropagation(); onSelect?.(card.transportId, true, card.unitId); }}
+              style={{ color: t.dimmer, fontSize: 10, marginLeft: 5, cursor: onSelect ? 'pointer' : 'default' }}
+            >
+              · {transport.name}
+            </span>
+          )}
+        </div>
+        <span style={{ display: 'flex', justifyContent: 'flex-end' }}>
+          <button
+            onClick={(e) => { e.stopPropagation(); onRemove(card.key); }}
+            style={{
+              ...BMono,
+              background: 'transparent', color: t.dimmer,
+              border: 'none', padding: '2px 4px', fontSize: 11,
+              cursor: 'pointer', lineHeight: 1,
+            }}
+          >✕</button>
+        </span>
+      </div>
+    </div>
+  );
+}
+
+function DeckListSection({ cards, total, units, onRemove, onSelect }) {
+  const t = BROWSER_TOKENS;
+  const [open, setOpen] = React.useState(true);
+
+  return (
+    <div style={{
+      flexShrink: 0,
+      background: `color-mix(in srgb, ${t.accent} 5%, ${t.surface})`,
+      borderBottom: `1px solid ${t.rule}`,
+    }}>
+      {/* Header */}
+      <div style={{
+        display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+        padding: '4px 10px',
+        borderBottom: open ? `1px solid ${t.rule}` : 'none',
+      }}>
+        <span style={{ fontSize: 10, letterSpacing: '0.14em', color: t.accent }}>
+          IN DECK
+          <span style={{ color: t.dim, marginLeft: 6, fontVariantNumeric: 'tabular-nums' }}>
+            {cards.length}<span style={{ opacity: 0.5 }}>/</span>{total}
+          </span>
+        </span>
+        <button
+          onClick={() => setOpen(o => !o)}
+          style={{
+            ...BMono, background: 'transparent', color: t.dimmer,
+            border: 'none', padding: '2px 4px', fontSize: 10,
+            cursor: 'pointer', lineHeight: 1,
+          }}
+        >{open ? '▴' : '▾'}</button>
+      </div>
+      {/* Rows */}
+      {open && cards.map(card => (
+        <DeckListRow key={card.key} card={card} units={units} onRemove={onRemove} onSelect={onSelect} />
+      ))}
+    </div>
   );
 }
