@@ -1,8 +1,10 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { BROWSER_TOKENS, BMono } from '@units-core';
 import { CATEGORIES } from '../spreadsheet/categories.js';
+import { useWindowWidth } from '../armory/useWindowWidth.js';
 
 const BASE = import.meta.env.BASE_URL;
+const SMALL_BREAKPOINT = 600;
 
 const MODULES = [
   { id: '01', name: 'ARMORY',       desc: 'UNIT DATABASE',    tag: 'EXTERNAL', href: 'armory/'      },
@@ -15,6 +17,8 @@ export function Home() {
   const t = BROWSER_TOKENS;
   const [open, setOpen] = useState(false);
   const wrapRef = useRef(null);
+  const winWidth = useWindowWidth();
+  const isSmall  = winWidth < SMALL_BREAKPOINT;
 
   useEffect(() => {
     if (!open) return;
@@ -25,9 +29,11 @@ export function Home() {
     return () => document.removeEventListener('mousedown', onDown);
   }, [open]);
 
+  const gridCols = isSmall ? '60px 1fr 36px' : '96px 1fr 48px';
+
   const moduleGrid = {
     display: 'grid',
-    gridTemplateColumns: '96px 1fr 48px',
+    gridTemplateColumns: gridCols,
     borderBottom: `1px solid ${t.rule}`,
     cursor: 'pointer',
     textDecoration: 'none',
@@ -39,40 +45,42 @@ export function Home() {
     display: 'flex', flexDirection: 'column',
     justifyContent: 'center', alignItems: 'center',
     borderRight: `1px solid ${t.rule}`,
-    padding: '20px 0',
+    padding: isSmall ? '14px 0' : '20px 0',
     gap: 0,
   };
 
   const arrowCell = {
     display: 'flex', justifyContent: 'center', alignItems: 'center',
     borderLeft: `1px solid ${t.rule}`,
-    fontSize: 22, color: t.dimmer,
+    fontSize: isSmall ? 17 : 22, color: t.dimmer,
   };
 
   return (
     <div style={{ ...BMono, width: '100%', height: '100%', display: 'flex', flexDirection: 'column', background: t.bg, color: t.ink, overflow: 'hidden' }}>
 
       {/* Main scrollable content */}
-      <div style={{ flex: 1, overflow: 'auto', padding: '40px 56px' }}>
+      <div style={{ flex: 1, overflow: 'auto', padding: isSmall ? '24px 20px' : '40px 56px' }}>
 
         {/* Document header */}
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', marginBottom: 32 }}>
+        <div style={{ display: 'flex', flexDirection: isSmall ? 'column' : 'row', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 32 }}>
           <div>
             <div style={{ fontSize: 11, letterSpacing: '0.3em', color: t.dim, marginBottom: 10 }}>
               DOC. № WRD-TLBX-2026-001
             </div>
-            <div style={{ fontSize: 56, fontWeight: 600, lineHeight: 1, letterSpacing: '0.04em', marginBottom: 12 }}>
+            <div style={{ fontSize: isSmall ? 36 : 56, fontWeight: 600, lineHeight: 1, letterSpacing: '0.04em', marginBottom: 12 }}>
               WRD <span style={{ color: t.accent2 }}>/</span> TOOLS
             </div>
             <div style={{ fontSize: 13, letterSpacing: '0.22em', color: t.dim }}>
               WARGAME : RED DRAGON — OPERATOR TOOLBOX
             </div>
           </div>
-          <div style={{ textAlign: 'right', fontSize: 11, letterSpacing: '0.18em', color: t.dim, lineHeight: 2.2, paddingBottom: 2 }}>
-            <div>SECTOR: NATO</div>
-            <div>ISSUE: 1.0</div>
-            <div>STATUS: <span style={{ color: t.ok }}>● LIVE</span></div>
-          </div>
+          {!isSmall && (
+            <div style={{ textAlign: 'right', fontSize: 11, letterSpacing: '0.18em', color: t.dim, lineHeight: 2.2, paddingBottom: 2 }}>
+              <div>SECTOR: NATO</div>
+              <div>ISSUE: 1.0</div>
+              <div>STATUS: <span style={{ color: t.ok }}>● LIVE</span></div>
+            </div>
+          )}
         </div>
 
         {/* Module index */}
@@ -90,12 +98,12 @@ export function Home() {
                 {/* Number cell */}
                 <div style={numCell}>
                   <span style={{ fontSize: 10, letterSpacing: '0.1em', color: t.dimmer, lineHeight: 1, marginBottom: 2 }}>M·</span>
-                  <span style={{ fontSize: 38, fontWeight: 600, lineHeight: 1, color: t.accent2 }}>{mod.id}</span>
+                  <span style={{ fontSize: isSmall ? 26 : 38, fontWeight: 600, lineHeight: 1, color: t.accent2 }}>{mod.id}</span>
                 </div>
 
                 {/* Content cell */}
-                <div style={{ padding: '24px 32px', display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
-                  <div style={{ fontSize: 28, fontWeight: 500, letterSpacing: '0.05em', lineHeight: 1 }}>{mod.name}</div>
+                <div style={{ padding: isSmall ? '14px 16px' : '24px 32px', display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
+                  <div style={{ fontSize: isSmall ? 20 : 28, fontWeight: 500, letterSpacing: '0.05em', lineHeight: 1 }}>{mod.name}</div>
                   <div style={{ fontSize: 11, letterSpacing: '0.2em', color: t.dim, marginTop: 6 }}>
                     {mod.desc}
                     <span style={{ color: t.dimmer }}> · {mod.tag}</span>
@@ -124,13 +132,13 @@ export function Home() {
                         <React.Fragment key={cat.label}>
                           {/* Category header — same grid, accent label in content column */}
                           <div style={{
-                            display: 'grid', gridTemplateColumns: '96px 1fr 48px',
+                            display: 'grid', gridTemplateColumns: gridCols,
                             borderBottom: `1px solid ${t.rule}`,
                             background: t.surface,
                           }}>
                             <div style={{ borderRight: `1px solid ${t.rule}` }} />
                             <div style={{
-                              padding: '5px 32px 4px',
+                              padding: isSmall ? '4px 16px 3px' : '5px 32px 4px',
                               fontSize: 9, letterSpacing: '0.24em', textTransform: 'uppercase',
                               color: t.accent,
                             }}>
@@ -144,14 +152,14 @@ export function Home() {
                               key={s.key}
                               href={`${BASE}spreadsheet/?ds=${s.key}`}
                               style={{
-                                display: 'grid', gridTemplateColumns: '96px 1fr 48px',
+                                display: 'grid', gridTemplateColumns: gridCols,
                                 borderBottom: `1px solid ${t.rule}`,
                                 textDecoration: 'none', color: t.ink,
                               }}
                             >
                               <div style={{ borderRight: `1px solid ${t.rule}` }} />
                               <div style={{
-                                padding: '8px 32px',
+                                padding: isSmall ? '6px 16px' : '8px 32px',
                                 fontSize: 11, letterSpacing: '0.18em', textTransform: 'uppercase',
                                 color: t.dim,
                               }}>
@@ -182,18 +190,20 @@ export function Home() {
 
         {/* Footer */}
         <div style={{
-          display: 'flex', justifyContent: 'space-between', alignItems: 'center',
+          display: 'flex', flexDirection: isSmall ? 'column' : 'row',
+          justifyContent: 'space-between', alignItems: isSmall ? 'flex-start' : 'center',
+          gap: isSmall ? 8 : 0,
           padding: '16px 0',
           fontSize: 11, letterSpacing: '0.2em',
           color: t.dimmer,
           borderTop: `1px solid ${t.rule}`,
         }}>
-          <div style={{ display: 'flex', gap: 28 }}>
+          <div style={{ display: 'flex', gap: isSmall ? 18 : 28 }}>
             <a href="https://github.com/fmdostoyevskiy/wgrd-toolbox" target="_blank" rel="noreferrer" style={{ color: t.dimmer, textDecoration: 'none' }}>⌗ GITHUB</a>
             <a href="https://github.com/fmdostoyevskiy/wgrd-toolbox" target="_blank" rel="noreferrer" style={{ color: t.dimmer, textDecoration: 'none' }}>⌗ CONTACT</a>
             <a href="https://github.com/fmdostoyevskiy/wgrd-toolbox/commits/main/" target="_blank" rel="noreferrer" style={{ color: t.dimmer, textDecoration: 'none' }}>⌗ CHANGELOG</a>
           </div>
-          <div>END OF DOCUMENT — PG. 01 / 01</div>
+          {!isSmall && <div>END OF DOCUMENT — PG. 01 / 01</div>}
         </div>
 
       </div>
