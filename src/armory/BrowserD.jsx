@@ -42,6 +42,7 @@ const NATION_OPTIONS = ALL_NATIONS.flatMap((code, i, arr) => {
 });
 
 const MOBILE_BREAKPOINT = 900;
+const SMALL_BREAKPOINT = 600;
 
 export function BrowserD({ roster, units, initialUnit }) {
   const t = BROWSER_TOKENS;
@@ -56,6 +57,7 @@ export function BrowserD({ roster, units, initialUnit }) {
 
   const winWidth = useWindowWidth();
   const isMobile = winWidth < MOBILE_BREAKPOINT;
+  const isSmall = winWidth < SMALL_BREAKPOINT;
 
   useEffect(() => { if (isMobile) setPinned([]); }, [isMobile]);
 
@@ -106,36 +108,43 @@ export function BrowserD({ roster, units, initialUnit }) {
       ...BMono, fontSize: 12,
       display: 'flex', flexDirection: 'column', overflow: 'hidden',
     }}>
-      <div style={{
-        flexShrink: 0, padding: '4px 18px',
-        borderBottom: `1px solid ${t.rule}`,
-        background: t.surface,
-        display: 'flex', alignItems: 'center', gap: 14,
-        overflowX: 'auto',
-      }}>
-        <a href={BASE} style={{ fontSize: 13, letterSpacing: '0.24em', color: t.ink, fontWeight: 600, flexShrink: 0, textDecoration: 'none' }}>
-          ARMORY<span style={{ color: t.accent, marginLeft: 4 }}>/WRD</span>
-        </a>
-        <div style={{ width: 1, alignSelf: 'stretch', background: t.rule, flexShrink: 0, margin: '4px 0' }} />
-        <CoalBtn label="ALL"  flagSrc={null}                          onClick={() => toggleCoalition(null)}            active={f.nation.length === 0} color={t.accent}  />
-        <CoalBtn label="NATO" flagSrc={COALITION_FLAG_MAP['NATO']}    onClick={() => toggleSide(NATO_NATIONS)}         active={natoActive}            color={t.natoTag} />
-        <CoalBtn label="PACT" flagSrc={COALITION_FLAG_MAP['PACT']}    onClick={() => toggleSide(PACT_NATIONS_ORDERED)} active={pactActive}            color={t.pactTag} />
-        <div style={{ width: 1, alignSelf: 'stretch', background: t.rule, margin: '4px 2px', flexShrink: 0 }} />
-        {COALITIONS.map(name => {
-          const members = COALITION_NATIONS[name];
-          const active  = members.length > 0 && members.every(n => f.nation.includes(n));
-          return <CoalBtn key={name} label={name} flagSrc={COALITION_FLAG_MAP[name]} onClick={() => toggleCoalition(name)} active={active} color={t.accent} />;
-        })}
-      </div>
+      {(!isSmall || listOpen) && (
+        <>
+          <div style={{
+            flexShrink: 0, padding: '4px 18px',
+            borderBottom: `1px solid ${t.rule}`,
+            background: t.surface,
+            display: 'flex', alignItems: 'center', gap: 14,
+            overflowX: 'auto',
+          }}>
+            <a href={BASE} style={{ fontSize: 13, letterSpacing: '0.24em', color: t.ink, fontWeight: 600, flexShrink: 0, textDecoration: 'none' }}>
+              ARMORY<span style={{ color: t.accent, marginLeft: 4 }}>/WRD</span>
+            </a>
+            <div style={{ width: 1, alignSelf: 'stretch', background: t.rule, flexShrink: 0, margin: '4px 0' }} />
+            <CoalBtn label="ALL"  flagSrc={null}                          onClick={() => toggleCoalition(null)}            active={f.nation.length === 0} color={t.accent}  />
+            <CoalBtn label="NATO" flagSrc={COALITION_FLAG_MAP['NATO']}    onClick={() => toggleSide(NATO_NATIONS)}         active={natoActive}            color={t.natoTag} />
+            <CoalBtn label="PACT" flagSrc={COALITION_FLAG_MAP['PACT']}    onClick={() => toggleSide(PACT_NATIONS_ORDERED)} active={pactActive}            color={t.pactTag} />
+            <div style={{ width: 1, alignSelf: 'stretch', background: t.rule, margin: '4px 2px', flexShrink: 0 }} />
+            {COALITIONS.map(name => {
+              const members = COALITION_NATIONS[name];
+              const active  = members.length > 0 && members.every(n => f.nation.includes(n));
+              return <CoalBtn key={name} label={name} flagSrc={COALITION_FLAG_MAP[name]} onClick={() => toggleCoalition(name)} active={active} color={t.accent} />;
+            })}
+          </div>
 
-      <div style={{ flexShrink: 0, background: t.surface }}>
-        <Seg label="NATION" options={NATION_OPTIONS} selected={f.nation} onToggle={toggle('nation')} onSolo={solo('nation')} />
-        <Seg label="TAB"    options={TABS}           selected={f.tab}    onToggle={select('tab')}    onSolo={solo('tab')} />
-      </div>
+          <div style={{ flexShrink: 0, background: t.surface }}>
+            <Seg label="NATION" options={NATION_OPTIONS} selected={f.nation} onToggle={toggle('nation')} onSolo={solo('nation')} />
+            <Seg label="TAB"    options={TABS}           selected={f.tab}    onToggle={select('tab')}    onSolo={solo('tab')} />
+          </div>
+        </>
+      )}
 
       <div style={{
         flex: 1, display: 'grid',
-        gridTemplateColumns: listOpen ? '290px 1fr' : '32px 1fr', minHeight: 0,
+        gridTemplateColumns: isSmall
+          ? (listOpen ? '1fr' : '32px 1fr')
+          : (listOpen ? '290px 1fr' : '32px 1fr'),
+        minHeight: 0,
       }}>
         <ListPane
           listOpen={listOpen}
@@ -161,23 +170,25 @@ export function BrowserD({ roster, units, initialUnit }) {
           onToggleTransports={toggleTransports}
         />
 
-        <div style={{
-          padding: 14, minHeight: 0,
-          display: 'flex', flexDirection: 'column', gap: 10,
-          position: 'relative',
-        }}>
-          <div style={{ flex: 1, minHeight: 0, position: 'relative', padding: 5 }}>
-            <CardPane
-              selectedId={selected}
-              pinnedIds={pinned}
-              onTogglePin={togglePin}
-              units={units}
-              slots={2}
-              selectedSpec={f.spec[0] ?? null}
-              noPins={isMobile}
-            />
+        {(!isSmall || !listOpen) && (
+          <div style={{
+            padding: isSmall ? 0 : 14, minHeight: 0,
+            display: 'flex', flexDirection: 'column', gap: 10,
+            position: 'relative',
+          }}>
+            <div style={{ flex: 1, minHeight: 0, position: 'relative', padding: isSmall ? 0 : 5 }}>
+              <CardPane
+                selectedId={selected}
+                pinnedIds={pinned}
+                onTogglePin={togglePin}
+                units={units}
+                slots={2}
+                selectedSpec={f.spec[0] ?? null}
+                noPins={isMobile}
+              />
+            </div>
           </div>
-        </div>
+        )}
       </div>
     </div>
     </ExpertModeContext.Provider>

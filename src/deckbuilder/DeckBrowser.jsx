@@ -35,6 +35,7 @@ const UNIT_TAG_GROUPS = [
 ];
 
 const MOBILE_BREAKPOINT = 900;
+const SMALL_BREAKPOINT = 600;
 
 function shiftAvail(avail, shift) {
   if (!shift || !avail) return avail;
@@ -160,6 +161,7 @@ export function DeckBrowser({ roster, units, deckState }) {
 
   const winWidth = useWindowWidth();
   const isMobile = winWidth < MOBILE_BREAKPOINT;
+  const isSmall = winWidth < SMALL_BREAKPOINT;
 
   useEffect(() => { if (isMobile) setPinned([]); }, [isMobile]);
 
@@ -305,24 +307,27 @@ export function DeckBrowser({ roster, units, deckState }) {
       display: 'flex', flexDirection: 'column', overflow: 'hidden',
     }}>
       {/* Header bar - no coalition filter, just title + deck info */}
-      <div style={{
-        flexShrink: 0, padding: '4px 18px',
-        borderBottom: `1px solid ${t.rule}`,
-        background: t.surface,
-        display: 'flex', alignItems: 'center', gap: 14,
-      }}>
-        <a href={BASE} style={{ fontSize: 13, letterSpacing: '0.24em', fontWeight: 600, flexShrink: 0, textDecoration: 'none', color: 'inherit' }}>
-          DECK<span style={{ color: t.accent, marginLeft: 4 }}>BUILDER</span>
-        </a>
-        <div style={{ width: 1, alignSelf: 'stretch', background: t.rule, flexShrink: 0, margin: '4px 0' }} />
-        <span style={{ fontSize: 10, color: t.dimmer, letterSpacing: '0.1em' }}>
-          {config.choice}
-          {config.spec ? ` · ${config.spec}` : ' · General'}
-          {` · Era ${config.era}`}
-        </span>
-      </div>
+      {(!isSmall || showOverview || listOpen) && (
+        <div style={{
+          flexShrink: 0, padding: '4px 18px',
+          borderBottom: `1px solid ${t.rule}`,
+          background: t.surface,
+          display: 'flex', alignItems: 'center', gap: 14,
+        }}>
+          <a href={BASE} style={{ fontSize: 13, letterSpacing: '0.24em', fontWeight: 600, flexShrink: 0, textDecoration: 'none', color: 'inherit' }}>
+            DECK<span style={{ color: t.accent, marginLeft: 4 }}>BUILDER</span>
+          </a>
+          <div style={{ width: 1, alignSelf: 'stretch', background: t.rule, flexShrink: 0, margin: '4px 0' }} />
+          <span style={{ fontSize: 10, color: t.dimmer, letterSpacing: '0.1em' }}>
+            {config.choice}
+            {config.spec ? ` · ${config.spec}` : ' · General'}
+            {` · Era ${config.era}`}
+          </span>
+        </div>
+      )}
 
       {/* Nation + Tab filter bars */}
+      {(!isSmall || showOverview || listOpen) && (
       <div style={{ flexShrink: 0, background: t.surface }}>
         {nations.length > 1 && (
           <Seg label="NATION" options={nationOptions} selected={f.nation} onToggle={toggle('nation')} onSolo={solo('nation')} />
@@ -363,13 +368,16 @@ export function DeckBrowser({ roster, units, deckState }) {
           })}
         </div>
       </div>
+      )}
 
       {/* Main content */}
       <div style={{
         flex: 1, display: 'grid',
         gridTemplateColumns: showOverview
           ? '1fr'
-          : (listOpen ? '290px 1fr' : '32px 1fr'),
+          : isSmall
+            ? (listOpen ? '1fr' : '32px 1fr')
+            : (listOpen ? '290px 1fr' : '32px 1fr'),
         minHeight: 0,
       }}>
         {showOverview ? (
@@ -481,12 +489,13 @@ export function DeckBrowser({ roster, units, deckState }) {
             </div>
 
             {/* Card pane */}
+            {(!isSmall || !listOpen) && (
             <div style={{
-              padding: 14, minHeight: 0,
+              padding: isSmall ? 0 : 14, minHeight: 0,
               display: 'flex', flexDirection: 'column', gap: 10,
               position: 'relative',
             }}>
-              <div style={{ flex: 1, minHeight: 0, position: 'relative', padding: 5 }}>
+              <div style={{ flex: 1, minHeight: 0, position: 'relative', padding: isSmall ? 0 : 5 }}>
                 <div style={{
                   display: 'grid',
                   gridTemplateColumns: `repeat(${!isMobile && pinned[0] && pinned[0] !== selected ? 2 : 1}, auto)`,
@@ -531,6 +540,7 @@ export function DeckBrowser({ roster, units, deckState }) {
                 </div>
               </div>
             </div>
+            )}
           </>
         )}
       </div>
