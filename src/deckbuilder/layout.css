@@ -12,6 +12,13 @@
   position: relative;
 }
 
+.deck-bar-copy-narrow { display: none; }
+
+@media (max-width: 600px) {
+  .deck-bar-code-wide  { display: none !important; }
+  .deck-bar-copy-narrow { display: block; }
+}
+
 .deck-bar {
   flex-shrink: 0;
   display: flex;

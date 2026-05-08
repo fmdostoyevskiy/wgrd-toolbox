@@ -15,28 +15,39 @@ export function DeckBar({ deckCode, usedAP, totalAP, onClear, onReset }) {
       borderTop: `1px solid ${t.rule}`,
       color: t.ink,
     }}>
-      <span style={{ fontSize: 10, letterSpacing: '0.16em', color: t.dimmer, flexShrink: 0 }}>
-        DECK CODE
-      </span>
-      <input
-        readOnly
-        value={deckCode}
-        onClick={e => e.target.select()}
-        style={{
-          ...BMono,
-          background: t.bg,
-          color: t.ink,
-          borderColor: t.rule,
-        }}
-      />
+      <div className="deck-bar-code-wide" style={{ display: 'contents' }}>
+        <span style={{ fontSize: 10, letterSpacing: '0.16em', color: t.dimmer, flexShrink: 0 }}>
+          DECK CODE
+        </span>
+        <input
+          readOnly
+          value={deckCode}
+          onClick={e => e.target.select()}
+          style={{
+            ...BMono,
+            background: t.bg,
+            color: t.ink,
+            borderColor: t.rule,
+          }}
+        />
+        <button
+          onClick={copyCode}
+          style={{
+            ...BMono, background: 'transparent', color: t.dim,
+            border: `1px solid ${t.rule}`, padding: '4px 10px',
+            fontSize: 10, cursor: 'pointer', flexShrink: 0,
+          }}
+        >COPY</button>
+      </div>
       <button
+        className="deck-bar-copy-narrow"
         onClick={copyCode}
         style={{
           ...BMono, background: 'transparent', color: t.dim,
           border: `1px solid ${t.rule}`, padding: '4px 10px',
           fontSize: 10, cursor: 'pointer', flexShrink: 0,
         }}
-      >COPY</button>
+      >COPY DECK CODE</button>
 
       <div style={{ width: 1, alignSelf: 'stretch', background: t.rule, margin: '2px 4px', flexShrink: 0 }} />
 
