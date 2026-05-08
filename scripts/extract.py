@@ -836,7 +836,7 @@ def extract_weapons(unit_obj: dict, instances: dict, dic: Optional[dict] = None,
     if not isinstance(turret_list, list):
         return weapons
 
-    for turret_ref in turret_list:
+    for turret_idx, turret_ref in enumerate(turret_list):
         turret = resolve_ref(instances, turret_ref)
         if turret is None:
             continue
@@ -852,6 +852,8 @@ def extract_weapons(unit_obj: dict, instances: dict, dic: Optional[dict] = None,
             weapon = extract_weapon(mw, instances, turret_class, dic, is_plane)
             if weapon is None:
                 continue
+
+            weapon["turret_index"] = turret_idx
 
             # Resolve ammo count: WeaponManager.Salves[SalvoStockIndex] * NbTirParSalves
             # Source: armory getAmmo()

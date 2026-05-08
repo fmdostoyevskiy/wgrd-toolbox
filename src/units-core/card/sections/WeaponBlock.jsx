@@ -46,7 +46,7 @@ function vet_accuracy(base, level) {
   return Math.ceil(result * 100);
 }
 
-export function WeaponBlock({ w, vet, s }) {
+export function WeaponBlock({ w, vet, s, sharedTurrets }) {
   const hide = useHide();
   const { expert } = useExpertMode();
   const tags    = w.tag ?? [];
@@ -118,6 +118,10 @@ export function WeaponBlock({ w, vet, s }) {
         )}
         {hide.field('weaponTurreted') && w.turreted === false && (
           <DotRow label="Turreted" value="NO" accent={RED} tooltip="This gun can't fire without rotating the hull." s={s} dense />
+        )}
+
+        {hide.field('weaponTurretIndex') && sharedTurrets?.has(w.turret_index) && (
+          <DotRow label="Turret Group" value={w.turret_index} tooltip="Weapons with the same turret group can't fire at the same time." s={s} dense />
         )}
 
         {hide.field('weaponAp') && w.ap != null && w.category !== 'Artillery' && (

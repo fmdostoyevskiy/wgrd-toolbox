@@ -45,5 +45,5 @@ export const FIELD_IDS = [
   'weaponAp', 'weaponHe', 'weaponSuppress', 'weaponDispersion',
   'weaponDmgRadius', 'weaponSuppRadius', 'weaponMissileSpeed',
   'weaponAimTime', 'weaponRof', 'weaponSalvoSize', 'weaponNoise', 'weaponMissileAccel',
-  'weaponRearm', 'weaponSupply', 'weaponTurreted',
+  'weaponRearm', 'weaponSupply', 'weaponTurreted', 'weaponTurretIndex',
 ];
