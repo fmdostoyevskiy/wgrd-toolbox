@@ -1208,6 +1208,9 @@ def handle_atgminfantry(units, rows, data_dir):
 # Post-processing handlers
 # ===========================================================================
 
+PACT_NATIONS = {'URSS', 'RDA', 'POL', 'FIN', 'YUG', 'TCH', 'CHI', 'NK'}
+
+
 def handle_deck_indices(units, deck_data, data_dir):
     """
     Stamp deckIndex, deckCat, and deckSide onto units from deck_indices.json.
@@ -1224,19 +1227,25 @@ def handle_deck_indices(units, deck_data, data_dir):
         print('  [H30] Deck Indices: unexpected format — skipping')
         return []
 
+    nation_by_id = {u['id']: u.get('nation', '') for u in units if 'id' in u}
+
     id_map = {}
     for entry in deck_data.get('blufor', []):
-        id_map[entry['id']] = {
-            'deckIndex': entry['index'],
-            'deckCat':   entry['cat'],
-            'deckSide':  'BLUFOR',
-        }
+        uid = entry['id']
+        if nation_by_id.get(uid, '') not in PACT_NATIONS:
+            id_map[uid] = {
+                'deckIndex': entry['index'],
+                'deckCat':   entry['cat'],
+                'deckSide':  'BLUFOR',
+            }
     for entry in deck_data.get('redfor', []):
-        id_map[entry['id']] = {
-            'deckIndex': entry['index'],
-            'deckCat':   entry['cat'],
-            'deckSide':  'REDFOR',
-        }
+        uid = entry['id']
+        if nation_by_id.get(uid, '') in PACT_NATIONS:
+            id_map[uid] = {
+                'deckIndex': entry['index'],
+                'deckCat':   entry['cat'],
+                'deckSide':  'REDFOR',
+            }
 
     count = 0
     for unit in units:
