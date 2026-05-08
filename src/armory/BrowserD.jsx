@@ -10,7 +10,6 @@ import {
 import { useWindowWidth } from './useWindowWidth.js';
 import { Seg } from './Seg.jsx';
 import { TagDropdown } from './TagDropdown.jsx';
-import { CornerMarks } from './CornerMarks.jsx';
 import { CardPane } from './CardPane.jsx';
 
 const BASE = import.meta.env.BASE_URL;
@@ -163,22 +162,11 @@ export function BrowserD({ roster, units, initialUnit }) {
         />
 
         <div style={{
-          padding: 18, minHeight: 0,
+          padding: 14, minHeight: 0,
           display: 'flex', flexDirection: 'column', gap: 10,
           position: 'relative',
         }}>
-          <div style={{
-            display: 'flex', alignItems: 'center', gap: 10,
-            fontSize: 10, letterSpacing: '0.22em', color: t.dimmer,
-            flexShrink: 0,
-          }}>
-            <span style={{ color: t.accent }}>◉</span>
-            <span>WORKSPACE</span>
-            <div style={{ flex: 1, borderTop: `1px solid ${t.rule}` }} />
-            {!isMobile && <span>{pinned.length} PINNED</span>}
-          </div>
-          <div style={{ flex: 1, minHeight: 0, position: 'relative', padding: 6 }}>
-            <CornerMarks />
+          <div style={{ flex: 1, minHeight: 0, position: 'relative', padding: 5 }}>
             <CardPane
               selectedId={selected}
               pinnedIds={pinned}
