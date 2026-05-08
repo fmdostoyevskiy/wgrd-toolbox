@@ -1,0 +1,149 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "WRD Deck Collection",
+  "version": "1.0.0",
+  "authors": [
+    {
+      "name": "F. M. Dostoyevskiy",
+      "bio": "The creator of this tool.",
+      "decks": [
+        {
+          "name": "Blue Dragons",
+          "code": "@Ij8CAbUXJZmLlM0HOhVH1Zsxls2bUUbk2xFKfhICKgyWZDITUELtCmQum2BH9QuGgRoEISUkxrXi3Y1NrJbVYrFrpJ7ynEND",
+          "nation": "BLUEDRAGONS",
+          "specialization": "General",
+          "era": "None",
+          "format": "10v10"
+        },
+        {
+          "name": "Commonwealth",
+          "code": "@Ii8CAewQKZSHZMeIwmeAtQlDRs6DT2yhp8ZQnpBnTSknsprJhQ0KKtKx4sEhfR4kHdggQt0LdOXQIVdpBBQYCF4=",
+          "nation": "CMW",
+          "specialization": "General",
+          "era": "None",
+          "format": "10v10"
+        },
+        {
+          "name": "Eurocorps",
+          "code": "@Ig8BwcZpZNaYZGgQ2h2oQbMj4MzxjGZ5sRMgTDlRoYwVKRfsX6hnIeiW8F3kRxDSWysoyAQULlSRUc2qxWMao10tZJ",
+          "nation": "EURO",
+          "specialization": "General",
+          "era": "None",
+          "format": "10v10"
+        },
+        {
+          "name": "Israel",
+          "code": "@GM8CTAF/xhnD5Qzfy4OwUcHYWmB7/nDSBihnCEwEf8oOKGxgyoJqDCifInSKKgkoVqIKigYjqHRf0YUmJAiyoFKEbhI1ktqsVi10prg=",
+          "nation": "ISR",
+          "specialization": "General",
+          "era": "None",
+          "format": "10v10"
+        },
+        {
+          "name": "Italy",
+          "code": "@IM8CDXO3ystb9Xbt+rNW/dmLROx1wVYu1ssfXKXRdzzcVXGVvTbpW8Vp3bFWGVf1bZW5VgXXZXZNgjckV3VxFXhV8VhA",
+          "nation": "ITA",
+          "specialization": "General",
+          "era": "None",
+          "format": "10v10"
+        },
+        {
+          "name": "Landjut",
+          "code": "@Im8CSGtwzH84YA1MMWNopjgkWxwTTmzI+DM8YxmebERHFt6b6jIIgiGch6sfKQ+1wRb0dChRFvhRcVGhiiaOVHJ0oA==",
+          "nation": "LAND",
+          "specialization": "General",
+          "era": "None",
+          "format": "10v10"
+        },
+        {
+          "name": "Dutch-German Corps",
+          "code": "@Ip8CCa0wwea6xPWfEAakjghj4t27uWzI+DM8YwutTqkO5PQSH2uBLej8EM5j5bwEZAiOTykQRP4JgS+gP3TvSo4=",
+          "nation": "NLGR",
+          "specialization": "General",
+          "era": "None",
+          "format": "10v10"
+        },
+        {
+          "name": "NORAD",
+          "code": "@Io8BycckJQOYBHEKYmSkhIMiQpoI5kzwFpbGicIm6JaVBEHoYmjCRVaWWVZIn6CCiyIqKSaWmonbJ6mzIcRKKA==",
+          "nation": "NORAD",
+          "specialization": "General",
+          "era": "None",
+          "format": "10v10"
+        },
+        {
+          "name": "Blue Mech",
+          "code": "@IskCya0wyEKe0wzh8rt2+THiMKxdrTDN/KPOYxQzhCRSn4IrT8JbpOKRdm05bgXRpJiQEXeoqJUkieKKAaqFkhWLFvCmwszJvCxQb0JbC9Svya410g==",
+          "nation": "OTAN",
+          "specialization": "Mechanized",
+          "era": "None",
+          "format": "10v10"
+        },
+        {
+          "name": "South Africa Motorized",
+          "code": "@HsEDFUurRp3RWVApI6gUmlRqKuodJJTmkkqDRWU4orKiUVdIqYOnlJlVVVUVHDRh1qdcVVE0aNIRW51WdKHSlUtNZ1V9VkVHXTJVNVNDRd1PdU3WEA==",
+          "nation": "SA",
+          "specialization": "Motorized",
+          "era": "None",
+          "format": "10v10"
+        },
+        {
+          "name": "Scandinavia",
+          "code": "@Ih8CUIU9rcEi1uCacWOF0Ia3DI8Jk0zpzEbY2hnhcSispvKb2nSluBdGGLR0MYfGBppCbaW3ls7bSnOIzJbUVAA=",
+          "nation": "SCAND",
+          "specialization": "General",
+          "era": "None",
+          "format": "10v10"
+        },
+        {
+          "name": "Scandinavia Mechanized",
+          "code": "@IhkC0IU9pY2i0CaRgQ1uGQlTJo8Jk0eFxLZ01ZOAcMnKmTRqTMIvidLGBxh8dDGAJtpbemjorKbymkRtab+mzltRUAW+FuBdGGMg",
+          "nation": "SCAND",
+          "specialization": "Mechanized",
+          "era": "None",
+          "format": "10v10"
+        },
+        {
+          "name": "Red Dragon",
+          "code": "@Uk8CUL4xqDgQBhwQeRbGXacgutN5mUopRaFuY5jBC8hKpBaWi0lIqyEAyiIaILUjFEGyK4itFEMRESAlAwT8hsA=",
+          "nation": "REDDRAGONS",
+          "specialization": "General",
+          "era": "None",
+          "format": "10v10"
+        },
+        {
+          "name": "Eastern Bloc Moto",
+          "code": "@UlEDim03LMeahiEHa1Xj6ZBimRWRqIrI1EUoRCKUHZCDHwimx9RViw2pg1CUqO1KdYjWjKJUiy2s9iPYP0KBKzInifkJoKzUeNIJSCUrBEHaoybBqRA=",
+          "nation": "NSWP",
+          "specialization": "Motorized",
+          "era": "None",
+          "format": "10v10"
+        },
+        {
+          "name": "USSR",
+          "code": "@Qs8imtMKxymtMKxyknYVhyknYVhyiYEwrFmKxp3C+07hfKdArpOp5iOcVjIcE9rTCs1phWRPCBUgDQsUP8nsRMWUFlFQWUUYitJ2gmpFKQH2maJYaNShsIjQQg==",
+          "nation": "URSS",
+          "specialization": "General",
+          "era": "None",
+          "format": "10v10"
+        },
+        {
+          "name": "Entente",
+          "code": "@Ur8CkQYphdC4tOocW3TPEasjUNWRqC515Rc88pundg3TuyRri5UrNTui7wu+RBy7VLPLmU3JN2Lr0rot0bdSJ4vOD0WiNpEaiGhYqPA=",
+          "nation": "YUGVAK",
+          "specialization": "General",
+          "era": "None",
+          "format": "10v10"
+        },
+        {
+          "name": "Entente",
+          "code": "@UrMBi6FxaIMUwkCNKnUOLbp3YN07so3CKzjco3aK6bdUppLPJryJ4vOD0Ss2OZLlW5ZN7Tsy3QvGLvEQdGuTzEsQIjCRAA==",
+          "nation": "YUGVAK",
+          "specialization": "Armored",
+          "era": "None",
+          "format": "10v10"
+        }
+      ]
+    }
+  ]
+}

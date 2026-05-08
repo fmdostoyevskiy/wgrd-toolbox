@@ -21,6 +21,7 @@ export default defineConfig({
         deckbuilder: path.resolve(__dirname, 'deckbuilder/index.html'),
         spreadsheet: path.resolve(__dirname, 'spreadsheet/index.html'),
         apdamage:    path.resolve(__dirname, 'apdamage/index.html'),
+        decks:       path.resolve(__dirname, 'decks/index.html'),
       },
     },
   },
