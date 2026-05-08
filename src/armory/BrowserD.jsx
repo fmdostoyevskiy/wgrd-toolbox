@@ -245,12 +245,15 @@ function ListPane({
           title={listOpen ? 'Collapse list' : 'Expand list'}
           style={{
             ...BMono,
-            background: 'transparent', color: t.dim,
-            border: 'none', padding: '2px 4px',
-            fontSize: 12, cursor: 'pointer',
+            background: t.surface2,
+            color: t.accent,
+            border: `1px solid ${t.ruleStrong}`,
+            borderRadius: 2,
+            padding: '2px 5px',
+            fontSize: 11, cursor: 'pointer',
             flexShrink: 0, lineHeight: 1,
           }}
-        >{listOpen ? '◀' : '▶'}</button>
+        >{listOpen ? '« HIDE' : '»'}</button>
       </div>
 
       {listOpen && (
