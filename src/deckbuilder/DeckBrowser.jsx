@@ -84,7 +84,11 @@ export function DeckBrowser({ roster, units, deckState }) {
   const deckRoster = useMemo(() => {
     return roster.filter(u => {
       if (transportIds.has(u.id)) return false;
-      if (!nations.includes(u.nation)) return false;
+      if (u.tab !== 'NAV') {
+        if (!nations.includes(u.nation)) return false;
+      } else if (nations.length > 0 && sideOf(u.nation) !== sideOf(nations[0])) {
+        return false;
+      }
       if (isAlliance && units[u.id]?.prototype) return false;
       if (config.era === 'B' && u.era !== 'PRE-80' && u.era !== 'PRE-85' && u.era != null) return false;
       if (config.era === 'C' && u.era !== 'PRE-80') return false;
