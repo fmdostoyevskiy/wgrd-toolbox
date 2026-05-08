@@ -56,7 +56,8 @@ html, body {
 @media (max-width: 899px) {
   #root {
     width: 100vw;
-    height: 100vh;
+    height: 100vh;    /* fallback for browsers without dvh support */
+    height: 100dvh;   /* shrinks when browser toolbar is visible */
     transform: none;
   }
 }
