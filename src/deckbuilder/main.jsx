@@ -38,10 +38,11 @@ async function init() {
   }
 
   const { roster, units } = data;
+  const initialCode = new URLSearchParams(window.location.search).get('deck') ?? undefined;
 
   root.render(
     <div style={{ width: '100%', height: '100%' }}>
-      <DeckBuilder roster={roster} units={units} />
+      <DeckBuilder roster={roster} units={units} initialCode={initialCode} />
     </div>
   );
 }
