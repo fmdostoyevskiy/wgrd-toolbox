@@ -1,10 +1,10 @@
-import { useState, useMemo, useCallback } from 'react';
+import { useState, useMemo, useCallback, useEffect } from 'react';
 import { PACT_NATIONS } from '@units-core';
 import {
   SLOT_COSTS, BASE_AP, DECK_TYPE_AP, ERA_AP, CHOICE_AVAIL,
   classifyDeckChoice, nationsForChoice,
 } from './deckConstants.js';
-import { encodeDeck } from './deckCodec.js';
+import { encodeDeck, decodeDeck } from './deckCodec.js';
 
 let nextKey = 1;
 
@@ -108,6 +108,22 @@ export function useDeckState(units) {
     setCards([]);
   }, []);
 
+  useEffect(() => {
+    const p = new URLSearchParams();
+    if (deckCode) p.set('deck', deckCode);
+    const qs = p.toString();
+    history.replaceState(null, '', qs ? `?${qs}` : location.pathname);
+  }, [deckCode]);
+
+  const loadDeck = useCallback((code) => {
+    const decoded = decodeDeck(code.trim(), units);
+    if (!decoded) return false;
+    const freshCards = decoded.cards.map(c => ({ ...c, key: nextKey++ }));
+    setConfig({ choice: decoded.choice, spec: decoded.spec, era: decoded.era });
+    setCards(freshCards);
+    return true;
+  }, [units]);
+
   return {
     config,
     cards,
@@ -123,6 +139,7 @@ export function useDeckState(units) {
     clearDeck,
     startDeck,
     resetDeck,
+    loadDeck,
     costMatrix,
   };
 }

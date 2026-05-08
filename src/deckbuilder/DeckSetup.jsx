@@ -89,12 +89,14 @@ const PACT_COALS = COALITIONS.filter(name => {
   return members.some(n => PACT_NATIONS.has(n));
 });
 
-export function DeckSetup({ onStart }) {
+export function DeckSetup({ onStart, onImport }) {
   const t = BROWSER_TOKENS;
-  const [side, setSide]     = useState('nato');
-  const [choice, setChoice] = useState(null);
-  const [era, setEra]       = useState('A');
-  const [spec, setSpec]     = useState(null);
+  const [side, setSide]         = useState('nato');
+  const [choice, setChoice]     = useState(null);
+  const [era, setEra]           = useState('A');
+  const [spec, setSpec]         = useState(null);
+  const [importCode, setImportCode] = useState('');
+  const [importError, setImportError] = useState(false);
 
   const nations = side === 'nato' ? NATO_NATIONS : PACT_NATIONS_LIST;
   const coals   = side === 'nato' ? NATO_COALS : PACT_COALS;
@@ -105,6 +107,15 @@ export function DeckSetup({ onStart }) {
   function handleStart() {
     if (!canStart) return;
     onStart(choice, spec, era);
+  }
+
+  function handleImport() {
+    if (!importCode.trim()) return;
+    const ok = onImport(importCode);
+    if (!ok) {
+      setImportError(true);
+      setTimeout(() => setImportError(false), 1200);
+    }
   }
 
   const sectionStyle = {
@@ -277,21 +288,52 @@ export function DeckSetup({ onStart }) {
 
         {/* Start */}
         <div style={{ marginTop: 24, marginBottom: 40 }}>
-          <button
-            onClick={handleStart}
-            disabled={!canStart}
-            style={{
-              ...BMono,
-              background: canStart ? t.accent : t.rule,
-              color: canStart ? t.bg : t.dimmer,
-              border: 'none',
-              padding: '10px 32px', fontSize: 13, letterSpacing: '0.2em',
-              cursor: canStart ? 'pointer' : 'not-allowed',
-              fontWeight: 600,
-            }}
-          >
-            BUILD DECK
-          </button>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+            <button
+              onClick={handleStart}
+              disabled={!canStart}
+              style={{
+                ...BMono,
+                background: canStart ? t.accent : t.rule,
+                color: canStart ? t.bg : t.dimmer,
+                border: 'none',
+                padding: '10px 32px', fontSize: 13, letterSpacing: '0.2em',
+                cursor: canStart ? 'pointer' : 'not-allowed',
+                fontWeight: 600,
+              }}
+            >
+              BUILD DECK
+            </button>
+            <input
+              value={importCode}
+              onChange={e => { setImportCode(e.target.value); setImportError(false); }}
+              onKeyDown={e => e.key === 'Enter' && handleImport()}
+              placeholder="or paste deck code…"
+              style={{
+                ...BMono,
+                background: t.bg,
+                color: t.text,
+                border: `1px solid ${importError ? '#e05' : t.rule}`,
+                padding: '10px 12px', fontSize: 12,
+                width: 220, outline: 'none',
+              }}
+            />
+            <button
+              onClick={handleImport}
+              disabled={!importCode.trim()}
+              style={{
+                ...BMono,
+                background: importCode.trim() ? t.accent : t.rule,
+                color: importCode.trim() ? t.bg : t.dimmer,
+                border: 'none',
+                padding: '10px 18px', fontSize: 13, letterSpacing: '0.2em',
+                cursor: importCode.trim() ? 'pointer' : 'not-allowed',
+                fontWeight: 600,
+              }}
+            >
+              IMPORT
+            </button>
+          </div>
         </div>
       </div>
     </div>
