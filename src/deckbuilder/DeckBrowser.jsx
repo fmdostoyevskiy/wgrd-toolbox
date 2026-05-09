@@ -441,7 +441,7 @@ export function DeckBrowser({ roster, units, deckState }) {
               {listOpen && (
                 <>
                   <div style={{
-                    display: 'flex', alignItems: 'stretch',
+                    display: 'flex', alignItems: 'stretch', justifyContent: 'flex-end',
                     borderBottom: `1px solid ${t.rule}`,
                     background: `color-mix(in srgb, ${t.surface} 80%, black)`,
                     flexShrink: 0,
