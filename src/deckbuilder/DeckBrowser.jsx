@@ -2,8 +2,9 @@ import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import {
   BROWSER_TOKENS, BMono,
   NATION_FLAG_MAP, COALITION_FLAG_MAP,
-  SPECS, TABS,
+  TABS,
   UnitList, V2Card, sideOf, SPEC_VET_BONUS, FlagImg,
+  ExpertModeContext,
 } from '@units-core';
 import { VET_TIERS } from '@units-core/constants/veterancy.js';
 import { useWindowWidth } from '../armory/useWindowWidth.js';
@@ -73,6 +74,9 @@ export function DeckBrowser({ roster, units, deckState }) {
 
   const isAlliance = deckType === 'alliance';
 
+  const [expert, setExpert] = useState(false);
+  const expertCtx = useMemo(() => ({ expert, toggleExpert: () => setExpert(e => !e) }), [expert]);
+
   const transportIds = useMemo(() => {
     const ids = new Set();
     for (const u of roster) {
@@ -106,7 +110,7 @@ export function DeckBrowser({ roster, units, deckState }) {
   }, [roster, nations, isAlliance, config?.era, config?.spec, units]);
 
   // --- Filter state (simplified from useFilterState, no coalition toggle) ---
-  const [f, setF] = useState({ nation: [], spec: [], tab: [], era: [], tag: [], q: '' });
+  const [f, setF] = useState({ nation: [], tab: [], era: [], tag: [], q: '' });
   const [tagMode, setTagMode] = useState('OR');
   const toggleTagMode = useCallback(() => setTagMode(m => m === 'OR' ? 'AND' : m === 'AND' ? 'NOT' : 'OR'), []);
   const [showOverview, setShowOverview] = useState(true);
@@ -138,7 +142,6 @@ export function DeckBrowser({ roster, units, deckState }) {
     const q = f.q.toLowerCase();
     return deckRoster.filter(u => {
       if (f.nation.length && !f.nation.includes(u.nation)) return false;
-      if (f.spec.length   && !u.specs.some(s => f.spec.includes(s))) return false;
       if (f.tab.length    && !f.tab.includes(u.tab)) return false;
       if (f.tag.length) {
         let check;
@@ -301,6 +304,7 @@ export function DeckBrowser({ roster, units, deckState }) {
   }, []);
 
   return (
+    <ExpertModeContext.Provider value={expertCtx}>
     <div style={{
       width: '100%', height: '100%', background: t.bg, color: t.ink,
       ...BMono, fontSize: 12,
@@ -442,11 +446,6 @@ export function DeckBrowser({ roster, units, deckState }) {
                     background: `color-mix(in srgb, ${t.surface} 80%, black)`,
                     flexShrink: 0,
                   }}>
-                    <FilterSelect
-                      value={f.spec[0] ?? ''} active={f.spec.length > 0}
-                      onChange={v => select('spec')(v || null)}
-                      items={[['', 'SPEC: ALL'], ...SPECS.map(s => [s, s.toUpperCase()])]}
-                    />
                     <TagDropdown
                       weaponTags={allWeaponTags} unitTags={allOwnTags}
                       selected={f.tag} onToggle={toggle('tag')}
@@ -554,6 +553,7 @@ export function DeckBrowser({ roster, units, deckState }) {
         onReset={resetDeck}
       />
     </div>
+    </ExpertModeContext.Provider>
   );
 }
 
@@ -594,36 +594,6 @@ function DeckCardSlot({ unit, cardUnit, avail, vet, onVetAdd, specForCard, tabSl
         }}>{isPinned ? 'UNPIN ✕' : 'PIN'}</button>
       )}
     </div>
-  );
-}
-
-const FILTER_SELECT_BASE = {
-  ...BMono,
-  flex: 1,
-  background: 'transparent',
-  border: 'none',
-  padding: '4px 6px',
-  fontSize: 10,
-  letterSpacing: '0.12em',
-  cursor: 'pointer',
-  outline: 'none',
-};
-
-function FilterSelect({ value, active, onChange, items }) {
-  const t = BROWSER_TOKENS;
-  return (
-    <select
-      value={value}
-      onChange={e => onChange(e.target.value)}
-      style={{
-        ...FILTER_SELECT_BASE,
-        color: active ? t.accent : t.dim,
-        borderRight: `1px solid ${t.rule}`,
-        borderBottom: `2px solid ${active ? t.accent : 'transparent'}`,
-        borderTop: '2px solid transparent',
-      }}>
-      {items.map(([v, label]) => <option key={label} value={v}>{label}</option>)}
-    </select>
   );
 }
 
