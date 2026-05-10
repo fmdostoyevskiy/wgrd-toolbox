@@ -457,6 +457,8 @@ def handle_merge_duplicate_weapons(units, rows, data_dir):
                 # Merge w into base
                 base_aim       = base.get('aimTime')
                 w_aim          = w.get('aimTime')
+                base_rng_g     = base.get('rng_g')
+                w_rng_g        = w.get('rng_g')
                 base_tags_orig = set(base.get('tag', []))
                 w_tags_orig    = set(w.get('tag', []))
 
@@ -492,6 +494,23 @@ def handle_merge_duplicate_weapons(units, rows, data_dir):
                         base['aimTimeAP'] = w_aim
                         base['aimTimeHE'] = base_aim
                         base.pop('aimTime', None)
+
+                # Split rng_g into AP/HE variants for Gun weapons when the two
+                # weapons differ in both their AP value and their ground range.
+                if (base.get('ap') != w.get('ap')
+                        and base.get('category') == 'Gun'
+                        and base_rng_g is not None and w_rng_g is not None
+                        and base_rng_g != w_rng_g):
+                    base_is_ap = bool(base_tags_orig & {'KE', 'HEAT'})
+                    w_is_ap    = bool(w_tags_orig    & {'KE', 'HEAT'})
+                    if base_is_ap and not w_is_ap:
+                        base['rng_gAP'] = base_rng_g
+                        base['rng_gHE'] = w_rng_g
+                        base.pop('rng_g', None)
+                    elif w_is_ap and not base_is_ap:
+                        base['rng_gAP'] = w_rng_g
+                        base['rng_gHE'] = base_rng_g
+                        base.pop('rng_g', None)
 
                 total_merged += 1
 

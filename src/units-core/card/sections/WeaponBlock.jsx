@@ -19,7 +19,10 @@ function rangeRows(w, s) {
   switch (w.category) {
     case 'Gun':
       return [
-        w.rng_g > 0 && <DotRow key="rg" label="Range G" value={`${w.rng_g} m`} s={s} dense />,
+        w.rng_gAP != null
+          ? <DotRow key="rg-ap" label="Range G AP" value={`${w.rng_gAP} m`} s={s} dense />
+          : (w.rng_g > 0 && <DotRow key="rg" label="Range G" value={`${w.rng_g} m`} s={s} dense />),
+        w.rng_gHE != null && <DotRow key="rg-he" label="Range G HE" value={`${w.rng_gHE} m`} s={s} dense />,
         w.rng_h > 0 && <DotRow key="rh" label="Range H" value={`${w.rng_h} m`} s={s} dense />,
         w.rng_a > 0 && <DotRow key="ra" label="Range A" value={`${w.rng_a} m`} s={s} dense />,
       ];
