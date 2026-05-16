@@ -46,6 +46,9 @@ export function CardSlot({ unitId, units, isPinned, onTogglePin, selectedSpec })
     const savedDisplays = hideList.map(e => e.style.display);
     hideList.forEach(e => { e.style.display = 'none'; });
 
+    // scrollHeight is spec-defined as the full content height regardless of the
+    // container's own height, so it's the correct measurement even when the card
+    // has a fixed height and content scrolls below the fold.
     const titleH = kids.length > 1 ? kids[0].offsetHeight : 0;
     const fullH  = titleH + (scrollContainer?.scrollHeight ?? 0);
 
@@ -54,13 +57,20 @@ export function CardSlot({ unitId, units, isPinned, onTogglePin, selectedSpec })
       elAspectRatio:  el.style.aspectRatio,
       rootHeight:     v2root.style.height,
       rootOverflow:   v2root.style.overflow,
+      scrollFlex:     scrollContainer?.style.flex ?? '',
+      scrollHeight:   scrollContainer?.style.height ?? '',
       scrollOverflow: scrollContainer?.style.overflowY ?? '',
     };
-    el.style.height       = fullH + 'px';
-    el.style.aspectRatio  = 'auto';
-    v2root.style.height   = fullH + 'px';
+
+    el.style.height      = fullH + 'px';
+    el.style.aspectRatio = 'auto';
+    v2root.style.height  = fullH + 'px';
     v2root.style.overflow = 'visible';
-    if (scrollContainer) scrollContainer.style.overflowY = 'visible';
+    if (scrollContainer) {
+      scrollContainer.style.flex      = 'none';
+      scrollContainer.style.height    = 'auto';
+      scrollContainer.style.overflowY = 'visible';
+    }
 
     try {
       const dataUrl = await toPng(el, { pixelRatio: 2 });
@@ -72,7 +82,11 @@ export function CardSlot({ unitId, units, isPinned, onTogglePin, selectedSpec })
       el.style.aspectRatio  = orig.elAspectRatio;
       v2root.style.height   = orig.rootHeight;
       v2root.style.overflow = orig.rootOverflow;
-      if (scrollContainer) scrollContainer.style.overflowY = orig.scrollOverflow;
+      if (scrollContainer) {
+        scrollContainer.style.flex      = orig.scrollFlex;
+        scrollContainer.style.height    = orig.scrollHeight;
+        scrollContainer.style.overflowY = orig.scrollOverflow;
+      }
       hideList.forEach((e, i) => { e.style.display = savedDisplays[i]; });
     }
   }
