@@ -108,7 +108,7 @@ export const DATASETS = {
       { key: 'optics',     label: 'GND OPT',  type: 'num',       width: 75,  heat: 'high' },
     ],
     transform(u) {
-      const gun = top(u, w => w.category === 'Gun' && (w.rng_g ?? 0) >= 1925 && !(w.rng_h ?? 0) && (w.dmg ?? 0) >= 2 && (w.ap ?? 0) >= 6 && (u.health ?? 0) >= 5 && (u.armor?.S ?? 0) >= 2, 'ap');
+      const gun = top(u, w => w.category === 'Gun' && (w.rng_g ?? w.rng_gAP ?? 0) >= 1575 && !(w.rng_h ?? 0) && (w.dmg ?? 0) >= 2, 'ap');
       const tag = gun?.tag ?? [];
       return {
         ...base(u),
@@ -121,7 +121,7 @@ export const DATASETS = {
         auto:       tag.includes('AL'),
         acc:        wf(gun, 'acc'),
         stab:       wf(gun, 'stab'),
-        rng:        wf(gun, 'rng_g'),
+        rng:        wf(gun, 'rng_g') ?? wf(gun, 'rng_gAP'),
         speed:      u.speed ?? null,
         motionType: u.motionType ?? null,
         optics:     u.optics ?? null,

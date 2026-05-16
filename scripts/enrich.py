@@ -26,7 +26,7 @@ import unicodedata
 
 # Range thresholds (game distance units)
 MORTAR_MAX_RANGE = 9100
-TANK_GUN_MIN_RANGE = 1925
+TANK_GUN_MIN_RANGE = 1575
 AC_RANGE_MIN = 1400
 AC_RANGE_MAX = 1925
 MG_RANGE_MAX = 1225
@@ -64,6 +64,8 @@ _SPLIT_ID_CANON = {
     '9af3700e146edd04': 'dff8340db3381c03',
     # OF-40 Mk.2 — OTO Melara 105mm M52
     'd1f66c56d4601903': '4d177d5b38424c07',
+    # T-72M — 2A46 (second gun mis-named "2A26" in source data)
+    'c7b00c0000000000': '47b10c0000000000',
 }
 
 _TYPE_TAG = {
