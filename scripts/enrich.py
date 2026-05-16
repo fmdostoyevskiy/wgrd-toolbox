@@ -1032,6 +1032,8 @@ def handle_naplmbomber(units, rows, data_dir):
 
 def handle_tank(units, rows, data_dir):
     def pred(u):
+        if u.get('tab') == 'TNK':
+            return True
         if u.get('type') != 'Vehicle' or u.get('command'):
             return False
         if (u.get('health') or 0) < TANK_MIN_HEALTH:
