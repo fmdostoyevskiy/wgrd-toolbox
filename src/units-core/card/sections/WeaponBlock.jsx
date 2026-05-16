@@ -200,7 +200,7 @@ export function WeaponBlock({ w, vet, s, sharedTurrets, weaponIdx, onCapture }) 
           <DotRow label="Salvo Size" value={w.salvoLen} s={s} dense />
         )}
 
-        {hide.field('weaponNoise') && (w.category === 'Gun' || w.category === 'Missile') && w.noise != null && expert && (
+        {hide.field('weaponNoise') && w.noise != null && expert && (
           <DotRow label="Noise" value={w.noise.toFixed(1)}
             tooltip="The factor by which your stealth is decreased when the weapon fires."
             s={s} dense />
