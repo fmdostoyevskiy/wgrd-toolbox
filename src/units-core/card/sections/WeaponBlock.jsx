@@ -6,6 +6,7 @@ import {
 } from '../../format/weapon.js';
 import { useHide } from '../HideContext.js';
 import { useExpertMode } from '../ExpertModeContext.js';
+import { CaptureButton } from '../primitives/CaptureButton.jsx';
 
 const HEADER_TAG_BLACKLIST = new Set(['KE', 'HEAT', 'STAT', 'AUTO']);
 
@@ -49,7 +50,7 @@ function vet_accuracy(base, level) {
   return Math.ceil(result * 100);
 }
 
-export function WeaponBlock({ w, vet, s, sharedTurrets }) {
+export function WeaponBlock({ w, vet, s, sharedTurrets, weaponIdx, onCapture }) {
   const hide = useHide();
   const { expert } = useExpertMode();
   const tags    = w.tag ?? [];
@@ -74,7 +75,7 @@ export function WeaponBlock({ w, vet, s, sharedTurrets }) {
   const supply = (w.supplyPerShot != null && w.supplyPerShot > 0) ? formatSupply(w) : null;
 
   return (
-    <div style={{ margin: '10px 0 12px', border: `1px solid ${s.rule}`, background: s.paper }}>
+    <div data-weapon-idx={weaponIdx} style={{ margin: '10px 0 12px', border: `1px solid ${s.rule}`, background: s.paper }}>
       <div style={{
         padding: '8px 12px', borderBottom: `1px solid ${s.rule}`,
         background: 'rgba(255,255,255,0.02)',
@@ -84,7 +85,7 @@ export function WeaponBlock({ w, vet, s, sharedTurrets }) {
             fontSize: 13.5, fontWeight: 600, minWidth: 0,
             whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis',
           }}>{w.name}</div>
-          <div style={{ display: 'flex', gap: 5, flexShrink: 0 }}>
+          <div style={{ display: 'flex', gap: 5, flexShrink: 0, alignItems: 'baseline' }}>
             {headerTags.map(tag => (
               <span key={tag} style={{
                 fontSize: 9.5, color: s.ok, border: `1px solid ${s.ok}`,
@@ -93,8 +94,11 @@ export function WeaponBlock({ w, vet, s, sharedTurrets }) {
             ))}
           </div>
         </div>
-        <div style={{ fontSize: 11, color: s.dim, marginTop: 3 }}>
-          {w.caliber != null ? `${w.caliber} × ${w.ammo}` : `× ${w.ammo}`}
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: 3 }}>
+          <div style={{ fontSize: 11, color: s.dim }}>
+            {w.caliber != null ? `${w.caliber} × ${w.ammo}` : `× ${w.ammo}`}
+          </div>
+          <CaptureButton onCapture={onCapture} s={s} />
         </div>
       </div>
 

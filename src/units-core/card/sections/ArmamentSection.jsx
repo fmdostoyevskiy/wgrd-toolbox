@@ -2,7 +2,7 @@ import React from 'react';
 import { SectionHeader } from '../primitives/SectionHeader.jsx';
 import { WeaponBlock } from './WeaponBlock.jsx';
 
-export function ArmamentSection({ weapons, vet, s }) {
+export function ArmamentSection({ weapons, vet, s, onCaptureWeapon }) {
   const sharedTurrets = React.useMemo(() => {
     const counts = {};
     for (const w of weapons) {
@@ -15,7 +15,8 @@ export function ArmamentSection({ weapons, vet, s }) {
     <>
       <SectionHeader title="Armament" s={s} />
       {weapons.map((w, i) => (
-        <WeaponBlock key={i} w={w} vet={vet} s={s} sharedTurrets={sharedTurrets} />
+        <WeaponBlock key={i} weaponIdx={i} w={w} vet={vet} s={s} sharedTurrets={sharedTurrets}
+          onCapture={onCaptureWeapon ? () => onCaptureWeapon(i) : undefined} />
       ))}
     </>
   );

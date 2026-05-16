@@ -130,7 +130,7 @@ function ExpertModeFooter({ s }) {
   );
 }
 
-export function V2Card({ unit, avail: availProp, vetIdx, setVetIdx, theme = 'tactical', hide, deckMode, maxPacksReached }) {
+export function V2Card({ unit, avail: availProp, vetIdx, setVetIdx, theme = 'tactical', hide, deckMode, maxPacksReached, onCaptureGeneral, onCaptureWeapon }) {
   const avail = availProp ?? unit.avail;
   const s     = { ...(V2_THEMES[theme] ?? V2_THEMES.tactical), font: CARD_FONT };
 
@@ -161,15 +161,21 @@ export function V2Card({ unit, avail: availProp, vetIdx, setVetIdx, theme = 'tac
 
         <div style={{ flex: 1, overflowY: 'auto', padding: '4px 18px 18px' }}>
           {hideCtx.section('vet') && (
-            <VetSelector vetIdx={vetIdx} setVetIdx={setVetIdx} avail={avail} s={s} deckMode={deckMode} maxPacksReached={maxPacksReached} hoveredVetIdx={hoveredVet} onVetHover={setHoveredVet} />
+            <div data-section="vet">
+              <VetSelector vetIdx={vetIdx} setVetIdx={setVetIdx} avail={avail} s={s} deckMode={deckMode} maxPacksReached={maxPacksReached} hoveredVetIdx={hoveredVet} onVetHover={setHoveredVet} />
+            </div>
           )}
 
-          {hideCtx.section('general')  && <GeneralSection unit={unit} s={s} />}
+          {hideCtx.section('general')  && <GeneralSection unit={unit} s={s} onCapture={onCaptureGeneral} />}
           {hideCtx.section('mobility') && !isFob && hasMobility(unit) && <MobilitySection unit={unit} s={s} />}
           {hideCtx.section('optics')   && !isFob && hasOptics(unit)   && <OpticsSection   unit={unit} s={s} />}
           {hideCtx.section('armor')    && showArmor   && <ArmorSection    armor={unit.armor} s={s} />}
-          {hideCtx.section('armament') && showWeapons && <ArmamentSection weapons={unit.weapons} vet={vet} s={s} />}
-          <ExpertModeFooter s={s} />
+          {hideCtx.section('armament') && showWeapons && (
+            <div data-section="armament">
+              <ArmamentSection weapons={unit.weapons} vet={vet} s={s} onCaptureWeapon={onCaptureWeapon} />
+            </div>
+          )}
+          <div data-section="expert"><ExpertModeFooter s={s} /></div>
         </div>
       </div>
     </HideContext.Provider>
