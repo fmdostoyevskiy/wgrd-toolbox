@@ -92,7 +92,7 @@ export function Home() {
 
         <div ref={wrapRef} style={{ borderTop: `1px solid ${t.rule}` }}>
           {MODULES.map((mod) => {
-            const isSpreadsheets = mod.id === '04';
+            const isSpreadsheets = mod.id === '05';
             const isOpen = isSpreadsheets && open;
 
             const inner = (
