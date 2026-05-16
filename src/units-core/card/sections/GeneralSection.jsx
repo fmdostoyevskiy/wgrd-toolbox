@@ -1,10 +1,10 @@
 import React from 'react';
 import { DotRow } from '../primitives/DotRow.jsx';
-import { SectionHeader } from '../primitives/SectionHeader.jsx';
+import { CaptureButton } from '../primitives/CaptureButton.jsx';
 import { sizeInfo, ecmColor } from '../../format/tiers.js';
 import { useHide } from '../HideContext.js';
 
-export function GeneralSection({ unit, s }) {
+export function GeneralSection({ unit, s, onCapture }) {
   const hide = useHide();
   const showSize = unit.type !== 'Plane';
   const si = showSize ? sizeInfo(unit.size ?? 0) : null;
@@ -42,7 +42,16 @@ export function GeneralSection({ unit, s }) {
 
   return (
     <>
-      <SectionHeader title="General" s={s} />
+      <div style={{
+        margin: '14px 0 2px', display: 'flex', alignItems: 'baseline', gap: 8,
+        borderBottom: `1.5px solid ${s.ruleStrong}`, paddingBottom: 4,
+      }}>
+        <div style={{
+          fontSize: 12, color: s.ink, letterSpacing: '0.16em',
+          textTransform: 'uppercase', fontWeight: 600, flex: 1,
+        }}>General</div>
+        <CaptureButton onCapture={onCapture} s={s} style={{ flexShrink: 0 }} />
+      </div>
       <div className="sr">{rows}</div>
     </>
   );
