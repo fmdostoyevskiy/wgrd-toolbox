@@ -41,12 +41,12 @@ Ever wanted to send decks to your friends? Ever wanted to build a deck from your
 You can easily share or bookmark decks by copy-pasting the URL in your browser.
 
 Same as the armory essentially, but lets you build out your own deck.
+
+Used Aqarius90's [original deck builder](https://github.com/Aqarius90/FA_WG_Utilities) as reference for building the deck codes.
 ## AP Damage
 <img width="1737" height="923" alt="image" src="https://github.com/user-attachments/assets/7bc28e4a-8027-4456-bb9e-b45b9ec155c0" />
 
 Shows the AP damage spread for both KE and HEAT. Allows you to pick a max range and engagement distance for KE. Focuses specifically on number of shots to kill. Allows you to pin up to two values to see which gun against which armor would kill in fewer shots.
-
-Used Aqarius90's [original deck builder](https://github.com/Aqarius90/FA_WG_Utilities) as reference for building the deck codes.
 ## Optics
 <img width="1838" height="974" alt="image" src="https://github.com/user-attachments/assets/92a201ab-c448-4213-a038-d705e68c0b5f" />
 
