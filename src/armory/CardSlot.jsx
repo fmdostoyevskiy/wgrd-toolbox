@@ -46,26 +46,21 @@ export function CardSlot({ unitId, units, isPinned, onTogglePin, selectedSpec })
     const savedDisplays = hideList.map(e => e.style.display);
     hideList.forEach(e => { e.style.display = 'none'; });
 
-    // Only expand when content is taller than the card — never shrink.
-    const titleH  = kids.length > 1 ? kids[0].offsetHeight : 0;
-    const fullH   = titleH + (scrollContainer?.scrollHeight ?? 0);
-    const needsExpansion = fullH > el.offsetHeight;
+    const titleH = kids.length > 1 ? kids[0].offsetHeight : 0;
+    const fullH  = titleH + (scrollContainer?.scrollHeight ?? 0);
 
-    const orig = needsExpansion ? {
+    const orig = {
       elHeight:       el.style.height,
       elAspectRatio:  el.style.aspectRatio,
       rootHeight:     v2root.style.height,
       rootOverflow:   v2root.style.overflow,
       scrollOverflow: scrollContainer?.style.overflowY ?? '',
-    } : null;
-
-    if (needsExpansion) {
-      el.style.height       = fullH + 'px';
-      el.style.aspectRatio  = 'auto';
-      v2root.style.height   = fullH + 'px';
-      v2root.style.overflow = 'visible';
-      if (scrollContainer) scrollContainer.style.overflowY = 'visible';
-    }
+    };
+    el.style.height       = fullH + 'px';
+    el.style.aspectRatio  = 'auto';
+    v2root.style.height   = fullH + 'px';
+    v2root.style.overflow = 'visible';
+    if (scrollContainer) scrollContainer.style.overflowY = 'visible';
 
     try {
       const dataUrl = await toPng(el, { pixelRatio: 2 });
@@ -73,13 +68,11 @@ export function CardSlot({ unitId, units, isPinned, onTogglePin, selectedSpec })
       const blob = await res.blob();
       await navigator.clipboard.write([new ClipboardItem({ 'image/png': blob })]);
     } finally {
-      if (orig) {
-        el.style.height       = orig.elHeight;
-        el.style.aspectRatio  = orig.elAspectRatio;
-        v2root.style.height   = orig.rootHeight;
-        v2root.style.overflow = orig.rootOverflow;
-        if (scrollContainer) scrollContainer.style.overflowY = orig.scrollOverflow;
-      }
+      el.style.height       = orig.elHeight;
+      el.style.aspectRatio  = orig.elAspectRatio;
+      v2root.style.height   = orig.rootHeight;
+      v2root.style.overflow = orig.rootOverflow;
+      if (scrollContainer) scrollContainer.style.overflowY = orig.scrollOverflow;
       hideList.forEach((e, i) => { e.style.display = savedDisplays[i]; });
     }
   }
