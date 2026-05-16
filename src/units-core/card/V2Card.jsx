@@ -141,7 +141,9 @@ export function V2Card({ unit, avail: availProp, vetIdx, setVetIdx, theme = 'tac
   const hideCtx = useMemo(() => makeHide(hide), [hide]);
 
   const isFob       = unit.type === 'FOB';
-  const showArmor   = unit.armor != null && unit.type !== 'Infantry' && !isFob;
+  const isAirUnit   = unit.type === 'Plane' || unit.type === 'Helicopter';
+  const showArmor   = unit.armor != null && unit.type !== 'Infantry' && !isFob
+    && (!isAirUnit || (unit.armor?.F ?? 0) >= 1);
   const showWeapons = unit.weapons?.length > 0 && !isFob;
 
   return (
