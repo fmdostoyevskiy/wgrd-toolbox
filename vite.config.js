@@ -22,6 +22,7 @@ export default defineConfig({
         spreadsheet: path.resolve(__dirname, 'spreadsheet/index.html'),
         apdamage:    path.resolve(__dirname, 'apdamage/index.html'),
         decks:       path.resolve(__dirname, 'decks/index.html'),
+        optics:      path.resolve(__dirname, 'optics/index.html'),
       },
     },
   },

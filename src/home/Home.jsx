@@ -9,9 +9,10 @@ const SMALL_BREAKPOINT = 600;
 const MODULES = [
   { id: '01', name: 'ARMORY',       desc: 'UNIT DATABASE',    tag: 'EXTERNAL', href: 'armory/'      },
   { id: '02', name: 'DECKBUILDER',  desc: 'DECK COMPOSER',    tag: 'EXTERNAL', href: 'deckbuilder/' },
-  { id: '03', name: 'AP DAMAGE',    desc: 'PENETRATION CALC', tag: 'EXTERNAL', href: 'apdamage/'    },
-  { id: '04', name: 'SPREADSHEETS', desc: 'REFERENCE TABLES', tag: 'ARCHIVE',  href: null           },
-  { id: '05', name: 'DECKS',        desc: 'COMMUNITY ROSTER', tag: 'EXTERNAL', href: 'decks/'       },
+  { id: '03', name: 'AP DAMAGE',    desc: 'PENETRATION CALC',   tag: 'EXTERNAL', href: 'apdamage/'    },
+  { id: '04', name: 'OPTICS',       desc: 'OPTICS VISUALIZER',  tag: 'EXTERNAL', href: 'optics/'      },
+  { id: '05', name: 'SPREADSHEETS', desc: 'REFERENCE TABLES',   tag: 'ARCHIVE',  href: null           },
+  { id: '06', name: 'DECKS',        desc: 'COMMUNITY ROSTER', tag: 'EXTERNAL', href: 'decks/'       },
 ];
 
 export function Home() {

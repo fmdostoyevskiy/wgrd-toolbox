@@ -1,0 +1,140 @@
+/* Optics Visualizer — uses global --wrd-* tokens from src/index.css */
+:root {
+  --bg:     var(--wrd-bg);
+  --bg-2:   var(--wrd-surface);
+  --bg-3:   var(--wrd-surface2);
+  --line:   var(--wrd-rule);
+  --line-2: var(--wrd-rule-strong);
+  --fg:     var(--wrd-ink);
+  --fg-dim: var(--wrd-dim);
+  --fg-low: var(--wrd-dimmer);
+  --mono:   var(--wrd-mono);
+  /* Functional tier colors — stat-card palette */
+  --red:   #f87171;
+  --green: #4ade80;
+  --amber: #e8a852;
+  --teal:  #2dd4bf;
+  /* Interactive selection highlight */
+  --blue:  #5a9eff;
+}
+
+html, body { background: var(--bg); color: var(--fg); margin: 0; font-family: var(--mono); }
+* { box-sizing: border-box; }
+
+/* topbar */
+.topbar {
+  height: 64px;
+  display: flex; align-items: center; gap: 28px;
+  padding: 0 28px;
+  border-bottom: 1px solid var(--line);
+  background: linear-gradient(180deg, var(--bg-2), var(--bg));
+  flex-shrink: 0;
+}
+.topbar .brand {
+  font-family: var(--mono);
+  font-weight: 700;
+  font-size: 18px;
+  letter-spacing: 0.06em;
+  display: flex; align-items: baseline; gap: 8px;
+  text-decoration: none;
+  color: var(--fg);
+}
+.topbar .brand .slash { color: var(--fg-low); font-weight: 300; }
+.topbar .brand .sub   { color: var(--fg-dim); font-weight: 600; }
+.topbar .tabs { display: flex; gap: 0; }
+.topbar .tab {
+  font-family: var(--mono);
+  text-transform: uppercase;
+  font-size: 12px;
+  letter-spacing: 0.18em;
+  color: var(--fg-dim);
+  padding: 8px 14px;
+  cursor: pointer;
+  position: relative;
+  user-select: none;
+}
+.topbar .tab:hover { color: var(--fg); }
+.topbar .tab.active { color: var(--fg); }
+.topbar .tab.active::after {
+  content: ""; position: absolute; left: 14px; right: 14px; bottom: -2px;
+  height: 2px; background: var(--red);
+}
+
+/* chip group */
+.chips { display: flex; flex-wrap: wrap; gap: 1px; background: var(--line); padding: 1px; border: 1px solid var(--line); }
+.chip {
+  font-family: var(--mono);
+  font-size: 11px;
+  letter-spacing: 0.08em;
+  color: var(--fg-dim);
+  padding: 8px 12px;
+  background: var(--bg-2);
+  cursor: pointer;
+  border: 0;
+  flex: 1 1 auto;
+  text-align: center;
+  text-transform: uppercase;
+  transition: background 80ms, color 80ms;
+  white-space: nowrap;
+}
+.chip:hover { color: var(--fg); background: var(--bg-3); }
+.chip.active { color: var(--bg); background: var(--fg); }
+.chip.active.blue { background: var(--blue); color: #051226; }
+
+/* slider */
+.slider {
+  -webkit-appearance: none; appearance: none;
+  width: 100%; background: transparent; height: 22px;
+}
+.slider::-webkit-slider-runnable-track { height: 2px; background: var(--line-2); }
+.slider::-webkit-slider-thumb {
+  -webkit-appearance: none; appearance: none;
+  width: 12px; height: 16px; background: var(--blue); margin-top: -7px; border-radius: 0;
+  cursor: pointer;
+}
+.slider::-moz-range-track { height: 2px; background: var(--line-2); }
+.slider::-moz-range-thumb { width: 12px; height: 16px; background: var(--blue); border: 0; border-radius: 0; cursor: pointer; }
+
+/* view toggle buttons */
+.vbtn {
+  font-family: var(--mono);
+  font-size: 11px;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  padding: 7px 16px;
+  border: 0;
+  cursor: pointer;
+  background: transparent;
+  color: var(--fg-dim);
+  border-bottom: 2px solid transparent;
+  transition: color 80ms, border-color 80ms;
+}
+.vbtn:hover { color: var(--fg); }
+.vbtn.active { color: var(--fg); border-bottom-color: var(--red); }
+
+/* sidebar pick-list buttons */
+.pick-btn {
+  display: flex; justify-content: space-between; align-items: center;
+  font-family: var(--mono);
+  text-transform: uppercase;
+  cursor: pointer;
+  border: 0;
+  width: 100%;
+  transition: background 60ms;
+}
+
+/* sel-hdr */
+.sel-hdr { display: flex; align-items: center; justify-content: space-between; margin-bottom: 5px; }
+.sel-hdr .k { font-family: var(--mono); font-size: 10px; letter-spacing: 0.22em; text-transform: uppercase; color: var(--fg-dim); }
+.sel-hdr .v { font-family: var(--mono); font-size: 9px; letter-spacing: 0.18em; text-transform: uppercase; padding: 2px 6px; border: 1px solid currentColor; }
+.sel-hdr .fixed { color: var(--blue); }
+.sel-hdr .swept { color: var(--fg-low); }
+
+/* hm-cell */
+.hm-cell-inner { display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100%; cursor: crosshair; }
+
+/* utility */
+.mono { font-family: var(--mono); }
+.dim  { color: var(--fg-dim); }
+.low  { color: var(--fg-low); }
+.blue { color: var(--blue); }
