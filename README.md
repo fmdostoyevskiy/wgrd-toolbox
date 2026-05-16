@@ -34,7 +34,7 @@ The only stat that I was not able to add was turning radius on planes, due to it
 
 Works on mobile.
 ## [Deck Builder](https://fmdostoyevskiy.github.io/wgrd-toolbox/deckbuilder/)
-<img width="1011" height="1010" alt="image" src="https://github.com/user-attachments/assets/4d7aad9a-ed72-42a6-8875-fec7ed3b53ec" />
+<img width="1095" height="1031" alt="image" src="https://github.com/user-attachments/assets/f0af1ccf-a233-42b1-92d7-32399bf1965f" />
 
 Ever wanted to send decks to your friends? Ever wanted to build a deck from your phone? Ever wanted to see hidden stats while picking your units?
 
