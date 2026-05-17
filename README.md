@@ -51,7 +51,7 @@ Shows the AP damage spread for both KE and HEAT. Allows you to pick a max range 
 ## [Optics](https://fmdostoyevskiy.github.io/wgrd-toolbox/optics/)
 <img width="1838" height="974" alt="image" src="https://github.com/user-attachments/assets/92a201ab-c448-4213-a038-d705e68c0b5f" />
 
-Shows the spotting ranges for different optics against different stealth pairings. Includes accurate (to the best of my knowlegde) spotting caps for different exceptional ground optics, helicopters, etc. as well as cover bonuses.
+Shows the spotting ranges for different optics against different stealth pairings. Includes accurate (to the best of my knowledge) spotting caps for different exceptional ground optics, helicopters, etc. as well as cover bonuses.
 
 Includes an experimental noise selector as well, but the formula I'm currently using for it seems to be broken, as the behavior of the M-84AN with 2.3 noise on its gun visibly does not correspond to the results.
 
