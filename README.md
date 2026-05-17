@@ -1,3 +1,4 @@
+# Wargame Red Dragons Toolbox
 A collection of tools for Wargame: Red Dragon. Vibe coded with Claude.
 ## Data Extractor
 Two Python programs living under scripts.
