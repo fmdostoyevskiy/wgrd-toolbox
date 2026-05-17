@@ -328,6 +328,7 @@ function readParams() {
     target: ['ground', 'heli', 'plane'].includes(spotter) ? spotter : 'ground',
     O: parseFloat(p.get('o')) || 120,
     S: parseFloat(p.get('s')) || 1.5,
+    lock: p.get('lock') === 'stealth' ? 'stealth' : 'optics',
   };
 }
 
@@ -336,7 +337,7 @@ export function App() {
   const init = React.useMemo(readParams, []);
   const [mode, setMode] = React.useState(init.mode);
   const [view, setView] = React.useState('matrix');
-  const [lock, setLock] = React.useState('optics');
+  const [lock, setLock] = React.useState(init.lock);
   const [O, setO] = React.useState(init.O);
   const [S, setS] = React.useState(init.S);
   const [N, setN] = React.useState(1.0);
@@ -362,8 +363,9 @@ export function App() {
     p.set('spotter', mode === 'ground' ? (spotterHeli ? 'heli' : 'ground') : target);
     p.set('o', O);
     p.set('s', S);
+    p.set('lock', lock);
     history.replaceState(null, '', '?' + p.toString());
-  }, [mode, spotterHeli, target, O, S]);
+  }, [mode, spotterHeli, target, O, S, lock]);
 
   const calc = (o, s) => calcRange({ O: o, S: s, N, C: mode === 'ground' ? C : 1, mode, isHeli: spotterHeli });
 

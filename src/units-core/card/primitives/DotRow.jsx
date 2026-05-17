@@ -1,6 +1,12 @@
 import React from 'react';
 
-export function DotRow({ label, value, accent, tooltip, s, dense = false }) {
+export function DotRow({ label, value, accent, tooltip, href, s, dense = false }) {
+  const valueContent = href
+    ? <a href={href} target="_blank" rel="noopener" style={{
+        color: accent || s.ink, textDecoration: 'none',
+      }}>{value}</a>
+    : value;
+
   return (
     <div className="dr" style={{
       display: 'flex', alignItems: 'center', justifyContent: 'space-between',
@@ -14,8 +20,8 @@ export function DotRow({ label, value, accent, tooltip, s, dense = false }) {
       <span title={tooltip} style={{
         color: accent || s.ink, fontVariantNumeric: 'tabular-nums',
         whiteSpace: 'nowrap', flexShrink: 0,
-        cursor: tooltip ? 'help' : undefined,
-      }}>{value}</span>
+        cursor: tooltip ? 'help' : href ? 'pointer' : undefined,
+      }}>{valueContent}</span>
     </div>
   );
 }
