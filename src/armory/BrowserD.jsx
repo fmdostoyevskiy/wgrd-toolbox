@@ -145,50 +145,81 @@ export function BrowserD({ roster, units, initialUnit }) {
           ? (listOpen ? '1fr' : '32px 1fr')
           : (listOpen ? '290px 1fr' : '32px 1fr'),
         minHeight: 0,
+        position: 'relative',
       }}>
-        <ListPane
-          listOpen={listOpen}
-          setListOpen={setListOpen}
-          q={f.q}
-          setSearch={setSearch}
-          spec={f.spec}
-          onSpec={select('spec')}
-          era={f.era}
-          onEra={select('era')}
-          tag={f.tag}
-          onTag={toggle('tag')}
-          weaponTags={allWeaponTags}
-          unitTags={allOwnTags}
-          tagMode={tagMode}
-          onTagMode={toggleTagMode}
-          filtered={filtered}
-          rosterCount={roster.length}
-          selected={selected}
-          pinnedIds={pinned}
-          expandedTransports={expandedTransports}
-          onSelect={selectUnit}
-          onToggleTransports={toggleTransports}
-        />
-
-        {(!isSmall || !listOpen) && (
+        {isSmall && listOpen ? (
           <div style={{
-            padding: isSmall ? 0 : 14, minHeight: 0,
-            display: 'flex', flexDirection: 'column', gap: 10,
-            position: 'relative',
+            position: 'absolute', top: 0, left: 0, bottom: 0,
+            width: 'calc(100% - 48px)', zIndex: 10,
+            display: 'flex', flexDirection: 'column',
           }}>
-            <div style={{ flex: 1, minHeight: 0, position: 'relative', padding: isSmall ? 0 : 5 }}>
-              <CardPane
-                selectedId={selected}
-                pinnedIds={pinned}
-                onTogglePin={togglePin}
-                units={units}
-                slots={2}
-                selectedSpec={f.spec[0] ?? null}
-                noPins={isMobile}
-              />
-            </div>
+            <ListPane
+              listOpen={listOpen}
+              setListOpen={setListOpen}
+              q={f.q}
+              setSearch={setSearch}
+              spec={f.spec}
+              onSpec={select('spec')}
+              era={f.era}
+              onEra={select('era')}
+              tag={f.tag}
+              onTag={toggle('tag')}
+              weaponTags={allWeaponTags}
+              unitTags={allOwnTags}
+              tagMode={tagMode}
+              onTagMode={toggleTagMode}
+              filtered={filtered}
+              rosterCount={roster.length}
+              selected={selected}
+              pinnedIds={pinned}
+              expandedTransports={expandedTransports}
+              onSelect={selectUnit}
+              onToggleTransports={toggleTransports}
+            />
           </div>
+        ) : (
+          <ListPane
+            listOpen={listOpen}
+            setListOpen={setListOpen}
+            q={f.q}
+            setSearch={setSearch}
+            spec={f.spec}
+            onSpec={select('spec')}
+            era={f.era}
+            onEra={select('era')}
+            tag={f.tag}
+            onTag={toggle('tag')}
+            weaponTags={allWeaponTags}
+            unitTags={allOwnTags}
+            tagMode={tagMode}
+            onTagMode={toggleTagMode}
+            filtered={filtered}
+            rosterCount={roster.length}
+            selected={selected}
+            pinnedIds={pinned}
+            expandedTransports={expandedTransports}
+            onSelect={selectUnit}
+            onToggleTransports={toggleTransports}
+          />
         )}
+
+        <div style={{
+          padding: isSmall ? 0 : 14, minHeight: 0,
+          display: 'flex', flexDirection: 'column', gap: 10,
+          position: 'relative',
+        }}>
+          <div style={{ flex: 1, minHeight: 0, position: 'relative', padding: isSmall ? 0 : 5 }}>
+            <CardPane
+              selectedId={selected}
+              pinnedIds={pinned}
+              onTogglePin={togglePin}
+              units={units}
+              slots={2}
+              selectedSpec={f.spec[0] ?? null}
+              noPins={isMobile}
+            />
+          </div>
+        </div>
       </div>
     </div>
     </ExpertModeContext.Provider>
