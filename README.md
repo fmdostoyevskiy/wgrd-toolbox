@@ -38,7 +38,7 @@ Works on mobile.
 
 Ever wanted to send decks to your friends? Ever wanted to build a deck from your phone? Ever wanted to see hidden stats while picking your units?
 
-You can easily share or bookmark decks by copy-pasting the URL in your browser.
+[Supports](https://fmdostoyevskiy.github.io/wgrd-toolbox/deckbuilder/?deck=%40GM8CTAF%2FxhnD5Qzfy4OwUcHYWmB7%2FnDSBihnCEwEf8oOKGxgyoJqDCifInSKKgkoVqIKigYjqHRf0YUmJAiyoFKEbhI1ktqsVi10prg%3D) [all](https://fmdostoyevskiy.github.io/wgrd-toolbox/deckbuilder/?deck=%40IM8CDXO3ystb9Xbt%2BrNW%2FdmLROx1wVYu1ssfXKXRdzzcVXGVvTbpW8Vp3bFWGVf1bZW5VgXXZXZNgjckV3VxFXhV8VhA) [DLC](https://fmdostoyevskiy.github.io/wgrd-toolbox/deckbuilder/?deck=%40Ur8CkQYphdC4tOocW3TPEasjUNWRqC515Rc88pundg3TuyRri5UrNTui7wu%2BRBy7VLPLmU3JN2Lr0rot0bdSJ4vOD0WiNpEaiGhYqPA%3D) [nations](https://fmdostoyevskiy.github.io/wgrd-toolbox/deckbuilder/?deck=%40Ip8CCa0wwea6xPWfEAakjghj4t27uWzI%2BDM8YwutTqkO5PQSH2uBLej8EM5j5bwEZAiOTykQRP4JgS%2BgP3TvSo4%3D), all specializations and eras with accurate deck bonuses. You can easily share or bookmark decks by copy-pasting the URL in your browser.
 
 Same as the armory essentially, but lets you build out your own deck.
 
