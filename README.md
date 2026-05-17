@@ -19,6 +19,7 @@ Have you ever wondered:
 - How high an [F-15C Eagle](https://fmdostoyevskiy.github.io/wgrd-toolbox/armory/?unit=00000000000000000000000027090000&search=f-15c)'s air optics are compared to a [Tomcat](https://fmdostoyevskiy.github.io/wgrd-toolbox/armory/?unit=000000000200000000000000f2030000&search=tomcat)?
 - Why [Spetsnaz VMF](https://fmdostoyevskiy.github.io/wgrd-toolbox/armory/?unit=0000000000000000000000000d070000&search=spets) don't get spotted when firing while other sniper teams do?
 - [What motorized units have both a grenade launcher and autocannon?](https://fmdostoyevskiy.github.io/wgrd-toolbox/armory/?tags=GL%2CAC&tagLogic=AND&spec=Motorized)
+- [What infantry units have a KE weapon?](https://fmdostoyevskiy.github.io/wgrd-toolbox/armory/?tags=INF%2CKE&tagLogic=AND)
 
 This tool can answer all those questions. I wanted to make something that:
 1. Showed *all* the hidden stats an average player may want to see
