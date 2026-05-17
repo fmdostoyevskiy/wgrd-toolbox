@@ -204,6 +204,7 @@ a.brand { text-decoration: none; }
   opacity: 0;
 }
 .spreadsheet thead th.sorted .sort-indicator { opacity: 1; }
+.spreadsheet thead th.sorted-secondary .sort-indicator { opacity: 1; }
 .spreadsheet thead th.num-col { text-align: center; }
 
 /* Filter row — inline with thead, scrolls with table */

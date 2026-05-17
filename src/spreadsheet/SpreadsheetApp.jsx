@@ -125,7 +125,7 @@ function TopBar({ label, search, setSearch, total, shown, coalFilter, setCoalFil
 }
 
 // ---------- Spreadsheet ----------
-function Spreadsheet({ columns, rows, sortKey, sortDir, onSort, heatStats, variant, filters, setFilter }) {
+function Spreadsheet({ columns, rows, sorts, onSort, heatStats, variant, filters, setFilter }) {
   return (
     <div className="spreadsheet">
       <table>
@@ -133,18 +133,27 @@ function Spreadsheet({ columns, rows, sortKey, sortDir, onSort, heatStats, varia
           {/* Sort header row */}
           <tr>
             {columns.map((col, i) => {
-              const isNum    = col.type === 'num' || col.type === 'pct';
-              const isSticky = i === 0;
-              const sorted   = sortKey === col.key;
+              const isNum       = col.type === 'num' || col.type === 'pct';
+              const isSticky    = i === 0;
+              const sortIdx     = sorts.findIndex(s => s.key === col.key);
+              const isPrimary   = sortIdx === 0;
+              const isSecondary = sortIdx === 1;
+              const sortDir     = sorts[sortIdx]?.dir;
               return (
                 <th
                   key={col.key}
-                  className={[isNum ? 'num-col' : '', isSticky ? 'sticky' : '', sorted ? 'sorted' : ''].join(' ')}
+                  className={[isNum ? 'num-col' : '', isSticky ? 'sticky' : '', isPrimary ? 'sorted' : isSecondary ? 'sorted-secondary' : ''].join(' ')}
                   style={{ width: col.width, minWidth: col.width, maxWidth: col.width }}
                   onClick={() => onSort(col.key)}
                 >
                   {col.label}
-                  <span className="sort-indicator">{sorted ? (sortDir === 'asc' ? '↑' : '↓') : '↕'}</span>
+                  <span className="sort-indicator">
+                    {isPrimary
+                      ? (sortDir === 'asc' ? '1↑' : '1↓')
+                      : isSecondary
+                        ? (sortDir === 'asc' ? '2↑' : '2↓')
+                        : '↕'}
+                  </span>
                 </th>
               );
             })}
@@ -288,12 +297,14 @@ export function SpreadsheetApp({ dataset, dsKey }) {
   const [error,      setError]      = useState(null);
   const [search,     setSearch]     = useState('');
   const [coalFilter, setCoalFilter] = useState('all');
-  const [sortKey,    setSortKey]    = useState(dataset.defaultSort);
   const [filters,    setFilters]    = useState({});
   const [variant,    setVariant]    = useState('heatmap');
 
   const initCol = dataset.columns.find(c => c.key === dataset.defaultSort);
-  const [sortDir, setSortDir] = useState(initCol?.heat === 'low' ? 'asc' : 'desc');
+  const initDir = initCol?.heat === 'low' ? 'asc' : 'desc';
+  const [sorts, setSorts] = useState(
+    dataset.defaultSort ? [{ key: dataset.defaultSort, dir: initDir }] : []
+  );
 
   useEffect(() => {
     document.body.setAttribute('data-variant', variant);
@@ -364,34 +375,44 @@ export function SpreadsheetApp({ dataset, dsKey }) {
       }
     });
 
-    if (sortKey) {
-      const col = dataset.columns.find(c => c.key === sortKey);
+    if (sorts.length > 0) {
       r = [...r].sort((a, b) => {
-        const av = a[sortKey], bv = b[sortKey];
-        if (av === null && bv === null) return 0;
-        if (av === null) return 1;
-        if (bv === null) return -1;
-        if (col && (col.type === 'num' || col.type === 'pct')) {
-          return sortDir === 'asc' ? av - bv : bv - av;
+        for (const { key, dir } of sorts) {
+          const col = dataset.columns.find(c => c.key === key);
+          const av = a[key], bv = b[key];
+          if (av === null && bv === null) continue;
+          if (av === null) return 1;
+          if (bv === null) return -1;
+          let cmp;
+          if (col && (col.type === 'num' || col.type === 'pct')) {
+            cmp = dir === 'asc' ? av - bv : bv - av;
+          } else {
+            cmp = dir === 'asc'
+              ? String(av).localeCompare(String(bv))
+              : String(bv).localeCompare(String(av));
+          }
+          if (cmp !== 0) return cmp;
         }
-        return sortDir === 'asc'
-          ? String(av).localeCompare(String(bv))
-          : String(bv).localeCompare(String(av));
+        return 0;
       });
     }
     return r;
-  }, [rows, coalFilter, search, filters, sortKey, sortDir, dataset]);
+  }, [rows, coalFilter, search, filters, sorts, dataset]);
 
   const heatStats = useMemo(() => rows ? buildHeatmap(rows, dataset.columns) : {}, [rows, dataset]);
 
   function handleSort(key) {
-    if (sortKey === key) {
-      setSortDir(d => d === 'asc' ? 'desc' : 'asc');
-    } else {
-      setSortKey(key);
+    setSorts(prev => {
+      if (prev[0]?.key === key) {
+        return [{ key, dir: prev[0].dir === 'asc' ? 'desc' : 'asc' }, ...prev.slice(1)];
+      }
+      if (prev[1]?.key === key) {
+        return [prev[1], prev[0]];
+      }
       const col = dataset.columns.find(c => c.key === key);
-      setSortDir(col?.heat === 'low' ? 'asc' : 'desc');
-    }
+      const dir = col?.heat === 'low' ? 'asc' : 'desc';
+      return prev[0] ? [prev[0], { key, dir }] : [{ key, dir }];
+    });
   }
 
   if (error) {
@@ -445,7 +466,7 @@ export function SpreadsheetApp({ dataset, dsKey }) {
           <Spreadsheet
             columns={dataset.columns}
             rows={filteredRows}
-            sortKey={sortKey} sortDir={sortDir}
+            sorts={sorts}
             onSort={handleSort}
             heatStats={heatStats}
             variant={variant}
