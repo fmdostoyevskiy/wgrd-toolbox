@@ -26,3 +26,6 @@ export {
 export { SPECS, SPEC_VET_BONUS, SPEC_CODE_MAP } from './constants/specs.js';
 export { TABS } from './constants/tabs.js';
 export { VET_TIERS, VET_TOOLTIPS } from './constants/veterancy.js';
+
+export { ZoomControls } from './zoom/ZoomControls.jsx';
+export { getZoom, setZoom, ZOOM_PRESETS } from './zoom/zoomStore.js';

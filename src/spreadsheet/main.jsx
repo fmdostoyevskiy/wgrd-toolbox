@@ -1,5 +1,7 @@
 import React from 'react';
 import ReactDOM from 'react-dom/client';
+import '@units-core/zoom/zoomStore.js';
+import { ZoomControls } from '@units-core';
 import { SpreadsheetApp } from './SpreadsheetApp.jsx';
 import { DATASETS } from './datasets.js';
 import './styles.css';
@@ -10,6 +12,7 @@ const dataset = DATASETS[dsKey] ?? DATASETS['spaags'];
 
 ReactDOM.createRoot(document.getElementById('root')).render(
   <React.StrictMode>
+    <ZoomControls />
     <SpreadsheetApp dataset={dataset} dsKey={dsKey} />
   </React.StrictMode>
 );
