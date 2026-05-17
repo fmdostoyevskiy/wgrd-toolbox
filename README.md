@@ -11,14 +11,14 @@ Used the [original Armory tool](https://github.com/pvutov/armory)'s code as well
 <img width="1852" height="1196" alt="image" src="https://github.com/user-attachments/assets/1d24ae4c-2be9-49b5-a6cd-2343c6d7630b" />
 
 Have you ever wondered:
-- Whether Formoza can fire their grenade launcher at the same time as their MG?
-- Why an AMX-40 doesn't fire its autocannon at the same time as the main gun when the Keiler can?
-- At what speed a Rooikat travels through a forest?
-- How fast is an Akula's ATGM missile compared to an Mi-28's?
-- What a Patriot's accuracy is at Hardened compared to Veteran?
-- How high an F-15C's air optics are compared to a Tomcat?
-- Why Spetsnaz VMF don't get spotted when firing while other sniper teams do?
-- What units have both a grenade launcher and autocannon?
+- Whether [Formoza](https://fmdostoyevskiy.github.io/wgrd-toolbox/armory/?unit=000000000100000000000000ee030000) can fire their grenade launcher at the same time as their MG?
+- Why an [AMX-40](https://fmdostoyevskiy.github.io/wgrd-toolbox/armory/?unit=00000000000000000000000014040000) doesn't fire its autocannon at the same time as the main gun when the [Keiler](https://fmdostoyevskiy.github.io/wgrd-toolbox/armory/?unit=00000000000000000000000070050000) can?
+- At what speed a [Rooikat 105](https://fmdostoyevskiy.github.io/wgrd-toolbox/armory/?unit=000000000b0000000000000015040000) travels through a forest?
+- How fast is an [Akula](https://fmdostoyevskiy.github.io/wgrd-toolbox/armory/?unit=00000000000000000000000081080000&search=akula)'s ATGM missile compared to an [Mi-28](https://fmdostoyevskiy.github.io/wgrd-toolbox/armory/?unit=00000000000000000000000098080000&search=mi-28)'s?
+- What a [Patriot](https://fmdostoyevskiy.github.io/wgrd-toolbox/armory/?unit=000000000200000000000000ed030000&search=patriot)'s accuracy is at Hardened compared to Veteran?
+- How high an [F-15C Eagle](https://fmdostoyevskiy.github.io/wgrd-toolbox/armory/?unit=00000000000000000000000027090000&search=f-15c)'s air optics are compared to a [Tomcat](https://fmdostoyevskiy.github.io/wgrd-toolbox/armory/?unit=000000000200000000000000f2030000&search=tomcat)?
+- Why [Spetsnaz VMF](https://fmdostoyevskiy.github.io/wgrd-toolbox/armory/?unit=0000000000000000000000000d070000&search=spets) don't get spotted when firing while other sniper teams do?
+- [What motorized units have both a grenade launcher and autocannon?](https://fmdostoyevskiy.github.io/wgrd-toolbox/armory/?tags=GL%2CAC&tagLogic=AND&spec=Motorized)
 
 This tool can answer all those questions. I wanted to make something that:
 1. Showed *all* the hidden stats an average player may want to see
