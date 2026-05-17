@@ -2,7 +2,7 @@ A collection of tools for Wargame: Red Dragon. Vibe coded with Claude.
 ## Data Extractor
 Two Python programs living under scripts.
 
-The first is `scripts/extract.py`. It takes `everything.ndfbin` from the game (decompress it first using [other tools](https://wgrd-cons-tools.readthedocs.io/en/latest/)). This generates a `master.json` file (the most up-to-date copy lives under `data/master.json`). Created by means of an LLM-powered reverse engineering of the desktop armory tool.
+The first is `scripts/extract.py`. It takes `everything.ndfbin` from the game (decompress it first using [other tools](https://wgrd-cons-tools.readthedocs.io/en/latest/)). This generates a `master.json` file (the most up-to-date copy lives in this repository under `data/master.json`).
 
 The second is `scripts/enrich.py`. This takes as input `master.json` and other files living under `data/`. It cleans up game data (trailing spaces in weapon names, special characters in unit names, merging weapons) and adds new data (custom tags, patching in values which can't be extracted from game data, creating spreadsheet lists). Outputs to `public/`, which the other tools then use.
 
@@ -29,7 +29,7 @@ This tool can answer all those questions. I wanted to make something that:
 5. Didn't require installing anything
 6. Didn't require me to constantly host a back end to keep it running
 
-This accomplishes all that. In fact, it shows several values the armory tool did not (true ASM AP,  ship sailing and CIWS, autoloader on AMX-13s and Nana Shikis, absence of turrets on tanks such as the Strv 103 series and presence of turrets on helicopters such as the Mi-24 VP).
+This accomplishes all that. In fact, it shows several values the armory tool did not ([true ASM AP](https://fmdostoyevskiy.github.io/wgrd-toolbox/armory/?unit=000000000100000000000000e8030000), [ship sailing and CIWS](https://fmdostoyevskiy.github.io/wgrd-toolbox/armory/?unit=00000000000000000000000031080000), autoloader on [AMX-13s](https://fmdostoyevskiy.github.io/wgrd-toolbox/armory/?unit=0000000000000000000000000c040000) and [Nana Shikis](https://fmdostoyevskiy.github.io/wgrd-toolbox/armory/?unit=00000000000000000000000084070000), absence of turrets on tanks such as the [Strv 103](https://fmdostoyevskiy.github.io/wgrd-toolbox/armory/?unit=00000000030000000000000014040000) series and presence of turrets on helicopters such as the [Mi-24 VP](https://fmdostoyevskiy.github.io/wgrd-toolbox/armory/?unit=000000000000000000000000aa080000)).
 
 The only stat that I was not able to add was turning radius on planes, due to its absence in the armory and their quantity being too numerous to add manually.
 
