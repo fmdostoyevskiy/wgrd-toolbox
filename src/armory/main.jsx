@@ -2,7 +2,8 @@ import React from 'react';
 import ReactDOM from 'react-dom/client';
 import '../index.css';
 import './layout.css';
-import { loadData, readUnitFromUrl, BROWSER_TOKENS, BMono } from '@units-core';
+import '@units-core/zoom/zoomStore.js';
+import { loadData, readUnitFromUrl, BROWSER_TOKENS, BMono, ZoomControls } from '@units-core';
 import { BrowserD } from './BrowserD.jsx';
 
 function LoadingScreen({ message }) {
@@ -42,6 +43,7 @@ async function init() {
 
   root.render(
     <div style={{ width: '100%', height: '100%' }}>
+      <ZoomControls />
       <BrowserD roster={roster} units={units} initialUnit={initialUnit} />
     </div>
   );

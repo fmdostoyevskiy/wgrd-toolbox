@@ -46,9 +46,9 @@ html, body {
   position: fixed;
   top: 0;
   left: 0;
-  width: calc(100vw / 1.20);
-  height: calc(100vh / 1.20);
-  transform: scale(1.20);
+  width: calc(100vw / var(--wrd-zoom, 1.20));
+  height: calc(100vh / var(--wrd-zoom, 1.20));
+  transform: scale(var(--wrd-zoom, 1.20));
   transform-origin: top left;
 }
 

@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import ReactDOM from 'react-dom/client';
 import '../index.css';
-import { BROWSER_TOKENS, BMono } from '@units-core';
+import '@units-core/zoom/zoomStore.js';
+import { BROWSER_TOKENS, BMono, ZoomControls } from '@units-core';
 import { DecksApp } from './DecksApp.jsx';
 
 const BASE = import.meta.env.BASE_URL;
@@ -42,6 +43,7 @@ async function init() {
 
   root.render(
     <div style={{ width: '100%', height: '100%' }}>
+      <ZoomControls />
       <DecksApp data={data} />
     </div>
   );
