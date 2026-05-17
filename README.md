@@ -2,7 +2,7 @@ A collection of tools for Wargame: Red Dragon. Vibe coded with Claude.
 ## Data Extractor
 Two Python programs living under scripts.
 
-The first is `scripts/extract.py`. It takes `everything.ndfbin` from the game (decompress it first using other tools). This generates a `master.json` file (the most up-to-date copy lives under `data/master.json`). Created by means of an LLM-powered reverse engineering of the desktop armory tool.
+The first is `scripts/extract.py`. It takes `everything.ndfbin` from the game (decompress it first using [other tools](https://wgrd-cons-tools.readthedocs.io/en/latest/)). This generates a `master.json` file (the most up-to-date copy lives under `data/master.json`). Created by means of an LLM-powered reverse engineering of the desktop armory tool.
 
 The second is `scripts/enrich.py`. This takes as input `master.json` and other files living under `data/`. It cleans up game data (trailing spaces in weapon names, special characters in unit names, merging weapons) and adds new data (custom tags, patching in values which can't be extracted from game data, creating spreadsheet lists). Outputs to `public/`, which the other tools then use.
 
