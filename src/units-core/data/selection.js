@@ -13,5 +13,7 @@ export function readUnitFromUrl(roster, units, fallbackId) {
 }
 
 export function writeUnitToUrl(id) {
-  history.replaceState(null, '', `?unit=${encodeURIComponent(id)}`);
+  const p = new URLSearchParams(window.location.search);
+  p.set('unit', id);
+  history.replaceState(null, '', '?' + p.toString());
 }

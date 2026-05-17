@@ -1,12 +1,33 @@
-import { useState, useMemo, useCallback } from 'react';
+import { useState, useMemo, useCallback, useEffect } from 'react';
 import { COALITION_NATIONS } from '../constants/coalitions.js';
 
-const EMPTY_FILTER = { nation: [], spec: [], tab: [], era: [], tag: [], q: '' };
+function readFilterFromUrl() {
+  const p = new URLSearchParams(window.location.search);
+  return {
+    nation: [],
+    tab:    [],
+    spec:   p.get('spec')   ? [p.get('spec')]                        : [],
+    era:    p.get('era')    ? [p.get('era')]                         : [],
+    tag:    p.get('tags')   ? p.get('tags').split(',').filter(Boolean) : [],
+    q:      p.get('search') ?? '',
+  };
+}
 
 export function useFilterState(roster) {
-  const [f, setF] = useState(EMPTY_FILTER);
-  const [tagMode, setTagMode] = useState('OR');
+  const [f, setF] = useState(readFilterFromUrl);
+  const [tagMode, setTagMode] = useState(() => new URLSearchParams(window.location.search).get('tagLogic') ?? 'OR');
   const toggleTagMode = useCallback(() => setTagMode(m => m === 'OR' ? 'AND' : m === 'AND' ? 'NOT' : 'OR'), []);
+
+  useEffect(() => {
+    const p = new URLSearchParams(window.location.search);
+    if (f.q)           p.set('search',   f.q);           else p.delete('search');
+    if (f.spec.length) p.set('spec',     f.spec[0]);     else p.delete('spec');
+    if (f.era.length)  p.set('era',      f.era[0]);      else p.delete('era');
+    if (f.tag.length)  p.set('tags',     f.tag.join(',')); else p.delete('tags');
+    if (tagMode !== 'OR') p.set('tagLogic', tagMode);    else p.delete('tagLogic');
+    const qs = p.toString();
+    history.replaceState(null, '', qs ? '?' + qs : location.pathname);
+  }, [f, tagMode]);
 
   const toggle = useCallback((key) => (val) => {
     setF(prev => {
