@@ -1,13 +1,9 @@
 const STORAGE_KEY = 'wrd-zoom';
 
-export const ZOOM_PRESETS = [1.0, 1.2, 2.0, 3.0];
+export const ZOOM_PRESETS = [1.0, 1.2, 1.5, 2.0];
 
 function detectDefault() {
-  const w = window.innerWidth;
-  if (w >= 3840) return 3.0;
-  if (w >= 2560) return 2.0;
-  if (w >= 1920) return 1.2;
-  return 1.0;
+  return 1.2;
 }
 
 function readStored() {
