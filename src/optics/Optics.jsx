@@ -133,7 +133,7 @@ function Sidebar({ mode, lock, O, onPickO, S, onPickS, N, setN, C, setC, spotter
         {/* 5 — Noise */}
         <div style={{ marginBottom: 14 }}>
           <div className="sel-hdr">
-            <span className="k">(N) Noise <span style={{ color: 'var(--red)', fontSize: 9, letterSpacing: '.1em' }}>(Broken!)</span></span>
+            <span className="k">(N) Noise</span>
             <span className="mono blue" style={{ fontSize: 12 }}>{N.toFixed(2)}</span>
           </div>
           <input className="slider" type="range" min={1} max={7} step={0.05} value={N} onChange={e => setN(parseFloat(e.target.value))} />

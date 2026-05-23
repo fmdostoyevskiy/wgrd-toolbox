@@ -1,4 +1,6 @@
 import React, { useState } from 'react';
+
+const BASE = import.meta.env.BASE_URL;
 import {
   BROWSER_TOKENS, BMono,
   ALL_NATIONS, PACT_NATIONS, NATION_FLAG_MAP, NATION_CODE_MAP,
@@ -157,9 +159,9 @@ export function DeckSetup({ onStart, onImport }) {
       overflow: 'hidden auto',
       boxSizing: 'border-box',
     }}>
-      <div style={{ fontSize: 16, letterSpacing: '0.28em', fontWeight: 600, marginBottom: 30 }}>
+      <a href={BASE} style={{ fontSize: 16, letterSpacing: '0.28em', fontWeight: 600, marginBottom: 30, textDecoration: 'none', color: 'inherit', display: 'block' }}>
         DECK<span style={{ color: t.accent, marginLeft: 6 }}>BUILDER</span>
-      </div>
+      </a>
 
       <div style={{ maxWidth: 700, width: '100%', padding: '0 24px', boxSizing: 'border-box' }}>
         {/* Side */}

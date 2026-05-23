@@ -140,11 +140,11 @@ export function DecksApp({ data }) {
           display: 'flex', alignItems: 'center', justifyContent: 'space-between',
           flexWrap: 'wrap', gap: 8,
         }}>
-          <div style={{ display: 'flex', alignItems: 'baseline', gap: 6 }}>
+          <a href={BASE} style={{ display: 'flex', alignItems: 'baseline', gap: 6, textDecoration: 'none', color: 'inherit' }}>
             <span style={{ fontWeight: 700, letterSpacing: '0.12em' }}>WRD</span>
             <span style={{ color: t.accent2 }}>·</span>
             <span style={{ fontWeight: 700, letterSpacing: '0.12em' }}>DECKS</span>
-          </div>
+          </a>
           <div style={{ fontSize: 11, letterSpacing: '0.18em', color: t.dim }}>
             // COMMUNITY ROSTER
           </div>
