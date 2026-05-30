@@ -461,6 +461,8 @@ def handle_merge_duplicate_weapons(units, rows, data_dir):
                 w_aim          = w.get('aimTime')
                 base_rng_g     = base.get('rng_g')
                 w_rng_g        = w.get('rng_g')
+                base_suppress  = base.get('suppress')
+                w_suppress     = w.get('suppress')
                 base_tags_orig = set(base.get('tag', []))
                 w_tags_orig    = set(w.get('tag', []))
 
@@ -513,6 +515,22 @@ def handle_merge_duplicate_weapons(units, rows, data_dir):
                         base['rng_gAP'] = w_rng_g
                         base['rng_gHE'] = base_rng_g
                         base.pop('rng_g', None)
+
+                # Split suppress into AP/HE variants when the two weapons differ in
+                # both their AP value and their suppression value.
+                if (base.get('ap') != w.get('ap')
+                        and base_suppress is not None and w_suppress is not None
+                        and base_suppress != w_suppress):
+                    base_is_ap = bool(base_tags_orig & {'KE', 'HEAT'})
+                    w_is_ap    = bool(w_tags_orig    & {'KE', 'HEAT'})
+                    if base_is_ap and not w_is_ap:
+                        base['suppressAP'] = base_suppress
+                        base['suppressHE'] = w_suppress
+                        base.pop('suppress', None)
+                    elif w_is_ap and not base_is_ap:
+                        base['suppressAP'] = w_suppress
+                        base['suppressHE'] = base_suppress
+                        base.pop('suppress', None)
 
                 total_merged += 1
 

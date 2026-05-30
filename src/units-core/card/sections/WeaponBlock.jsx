@@ -148,7 +148,13 @@ export function WeaponBlock({ w, vet, s, sharedTurrets, weaponIdx, onCapture }) 
             s={s} dense />
         )}
 
-        {hide.field('weaponSuppress') && w.suppress != null && w.suppress > 0 && (
+        {hide.field('weaponSuppress') && w.suppressAP != null && (
+          <DotRow label="Suppression AP" value={w.suppressAP} s={s} dense />
+        )}
+        {hide.field('weaponSuppress') && w.suppressHE != null && (
+          <DotRow label="Suppression HE" value={w.suppressHE} s={s} dense />
+        )}
+        {hide.field('weaponSuppress') && w.suppressAP == null && w.suppress != null && w.suppress > 0 && (
           <DotRow label="Suppression" value={w.suppress} s={s} dense />
         )}
 
