@@ -1,6 +1,6 @@
 import React from 'react';
 import { DotRow } from '../primitives/DotRow.jsx';
-import { GREEN, RED, accuracyColor, apColor, heColor, missileSpeedColor } from '../../format/tiers.js';
+import { GREEN, RED, accuracyColor, apColor, heColor, missileSpeedColor, suppressionColor } from '../../format/tiers.js';
 import {
   rofString, isLongRof, formatRearm, formatSupply, heMissileTooltip,
 } from '../../format/weapon.js';
@@ -149,13 +149,13 @@ export function WeaponBlock({ w, vet, s, sharedTurrets, weaponIdx, onCapture }) 
         )}
 
         {hide.field('weaponSuppress') && w.suppressAP != null && (
-          <DotRow label="Suppression AP" value={w.suppressAP} s={s} dense />
+          <DotRow label="Suppression AP" value={w.suppressAP} accent={suppressionColor(w.suppressAP)} s={s} dense />
         )}
         {hide.field('weaponSuppress') && w.suppressHE != null && (
-          <DotRow label="Suppression HE" value={w.suppressHE} s={s} dense />
+          <DotRow label="Suppression HE" value={w.suppressHE} accent={suppressionColor(w.suppressHE)} s={s} dense />
         )}
         {hide.field('weaponSuppress') && w.suppressAP == null && w.suppress != null && w.suppress > 0 && (
-          <DotRow label="Suppression" value={w.suppress} s={s} dense />
+          <DotRow label="Suppression" value={w.suppress} accent={suppressionColor(w.suppress)} s={s} dense />
         )}
 
         {hide.field('weaponDispersion') && w.category === 'Artillery' && w.dispersion != null && (

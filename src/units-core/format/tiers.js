@@ -97,6 +97,13 @@ export const ECM = [
   [-Infinity, RED],
 ];
 
+export const SUPPRESSION = [
+  [430, TEAL],
+  [270, GREEN],
+  [140, ORANGE],
+  [-Infinity, RED],
+];
+
 export const SPEED = {
   Infantry:       [[45,   TEAL], [35,  GREEN], [30,  ORANGE], [-Infinity, RED]],
   Plane:          [[1000, TEAL], [900, GREEN], [750, ORANGE], [-Infinity, RED]],
@@ -153,6 +160,7 @@ export const armorSideRearColor = v => byTier(v, ARMOR_SIDE_REAR)?.color ?? null
 export const accuracyColor    = v => byTier(v, ACCURACY)?.color ?? null;
 export const missileSpeedColor = v => byTier(v, MISSILE_SPEED)?.color ?? null;
 export const ecmColor         = v => byTier(v, ECM, { strict: true })?.color ?? null;
+export const suppressionColor = v => byTier(v, SUPPRESSION)?.color ?? null;
 
 export function autonomyColor(v) {
   if (v == null) return null;
