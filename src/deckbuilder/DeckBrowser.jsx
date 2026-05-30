@@ -85,6 +85,32 @@ export function DeckBrowser({ roster, units, deckState }) {
     return ids;
   }, [roster]);
 
+  const validTransportIds = useMemo(() => {
+    const ids = new Set();
+    for (const u of roster) {
+      if (!transportIds.has(u.id)) continue;
+      if (u.tab !== 'NAV') {
+        if (!nations.includes(u.nation)) continue;
+      } else if (nations.length > 0 && sideOf(u.nation) !== sideOf(nations[0])) {
+        continue;
+      }
+      if (isAlliance && units[u.id]?.prototype) continue;
+      if (config.era === 'B' && u.era !== 'PRE-80' && u.era !== 'PRE-85' && u.era != null) continue;
+      if (config.era === 'C' && u.era !== 'PRE-80') continue;
+      if (config.era === 'B') {
+        const year = units[u.id]?.year ?? 0;
+        if (year > 1985) continue;
+      }
+      if (config.era === 'C') {
+        const year = units[u.id]?.year ?? 0;
+        if (year > 1980) continue;
+      }
+      if (config.spec && !u.specs.some(s => s === config.spec)) continue;
+      ids.add(u.id);
+    }
+    return ids;
+  }, [roster, transportIds, nations, isAlliance, config?.era, config?.spec, units]);
+
   const deckRoster = useMemo(() => {
     return roster.filter(u => {
       if (transportIds.has(u.id)) return false;
@@ -106,8 +132,12 @@ export function DeckBrowser({ roster, units, deckState }) {
       }
       if (config.spec && !u.specs.some(s => s === config.spec)) return false;
       return true;
+    }).map(u => {
+      if (!u.transports?.length) return u;
+      const filtered = u.transports.filter(tr => validTransportIds.has(tr.id));
+      return filtered.length === u.transports.length ? u : { ...u, transports: filtered };
     });
-  }, [roster, nations, isAlliance, config?.era, config?.spec, units]);
+  }, [roster, nations, isAlliance, config?.era, config?.spec, units, validTransportIds]);
 
   // --- Filter state (simplified from useFilterState, no coalition toggle) ---
   const [f, setF] = useState({ nation: [], tab: [], era: [], tag: [], q: '' });
