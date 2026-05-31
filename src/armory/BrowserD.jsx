@@ -40,6 +40,7 @@ const INFANTRY_TAG_GROUPS = [
   ['LAW', 'FLAW', 'ALAW', 'LLAW'],
   ['MG3', 'MINI', 'RPK', 'RPK74', 'GENMG', 'RPD', 'BREN', 'FALO', 'GALIL', 'SHIT'],
   ['MANPD', 'SNIPE', 'RR'],
+  ['2MAN', '5MAN', '10MAN', '15MAN'],
 ];
 const INFANTRY_TAGS_FLAT = new Set(INFANTRY_TAG_GROUPS.flat());
 

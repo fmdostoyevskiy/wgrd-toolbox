@@ -1456,6 +1456,11 @@ def handle_unit_tags(units, rows, data_dir):
         if utype == 'Infantry' and training is not None:
             tags.append(('RESRV', 'REG', 'SHOCK', 'ELITE')[min(training, 3)])
 
+        if utype == 'Infantry':
+            h = unit.get('health')
+            if h is not None:
+                tags.append(f'{int(h)}MAN')
+
         unit['ownTags'] = tags
 
     print(f'  [H29] Unit Tags: computed ownTags for {len(units)} units')
