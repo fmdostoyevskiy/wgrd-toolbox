@@ -852,7 +852,7 @@ def handle_infantry_smalls(units, rows, data_dir):
 
 
 _INF_SUPPORT_TAGS = ('MANPD', 'SNIPE', 'RR', 'LAW', 'FLAW', 'ALAW', 'LLAW',
-                     'GENMG', 'MG3', 'BREN', 'RPD',
+                     'GENMG', 'MG3', 'BREN', 'RPD', 'COLT',
                      'MINI', 'RPK74', 'RPK', 'FALO', 'GALIL', 'SHIT')
 
 def handle_infantry_support(units, rows, data_dir):
@@ -893,6 +893,8 @@ def handle_infantry_support(units, rows, data_dir):
                 count += ensure_weapon_tag(w, 'BREN')
             elif rng_g == 875 and salvo == 10 and reload == 0.8:
                 count += ensure_weapon_tag(w, 'RPD')
+            elif rng_g == 770 and salvo == 10 and reload == 0.8:
+                count += ensure_weapon_tag(w, 'COLT')
             elif rng_g == 770 and salvo == 20 and reload == 0.8:
                 count += ensure_weapon_tag(w, 'MINI')
             elif rng_g == 770 and salvo == 5 and reload == 0.8:

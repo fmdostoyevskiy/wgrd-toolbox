@@ -38,7 +38,7 @@ const INFANTRY_TAG_GROUPS = [
   ['RESRV', 'REG', 'SHOCK', 'ELITE'],
   ['AR', 'BR', 'SMG', 'CAR', 'BA', 'SPEC'],
   ['LAW', 'FLAW', 'ALAW', 'LLAW'],
-  ['MG3', 'MINI', 'RPK', 'RPK74', 'GENMG', 'RPD', 'BREN', 'FALO', 'GALIL', 'SHIT'],
+  ['MG3', 'MINI', 'RPK', 'RPK74', 'GENMG', 'RPD', 'COLT', 'BREN', 'FALO', 'GALIL', 'SHIT'],
   ['MANPD', 'SNIPE', 'RR'],
   ['2MAN', '5MAN', '10MAN', '15MAN'],
 ];
