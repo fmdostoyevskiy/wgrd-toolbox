@@ -30,7 +30,7 @@ function TagColumn({ tags, selected, onToggle, t }) {
   );
 }
 
-export const TagDropdown = React.memo(function TagDropdown({ weaponTags, unitTags, selected, onToggle, tagMode, onTagMode }) {
+export const TagDropdown = React.memo(function TagDropdown({ weaponTags, unitTags, infantryTags = [], selected, onToggle, tagMode, onTagMode }) {
   const t = BROWSER_TOKENS;
   const [open, setOpen] = useState(false);
   const [btnRect, setBtnRect] = useState(null);
@@ -91,9 +91,13 @@ export const TagDropdown = React.memo(function TagDropdown({ weaponTags, unitTag
       </div>
       <div style={{ overflowY: 'auto', flex: 1, minHeight: 0 }}>
         <div style={{ display: 'flex' }}>
-          <TagColumn tags={weaponTags} selected={selected} onToggle={onToggle} t={t} />
+          <TagColumn tags={weaponTags}   selected={selected} onToggle={onToggle} t={t} />
           <div style={{ width: 1, background: t.rule, flexShrink: 0 }} />
-          <TagColumn tags={unitTags}   selected={selected} onToggle={onToggle} t={t} />
+          <TagColumn tags={unitTags}     selected={selected} onToggle={onToggle} t={t} />
+          {infantryTags.length > 0 && <>
+            <div style={{ width: 1, background: t.rule, flexShrink: 0 }} />
+            <TagColumn tags={infantryTags} selected={selected} onToggle={onToggle} t={t} />
+          </>}
         </div>
       </div>
     </div>,

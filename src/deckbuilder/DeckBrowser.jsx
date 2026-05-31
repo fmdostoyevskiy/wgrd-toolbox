@@ -18,7 +18,7 @@ const BASE = import.meta.env.BASE_URL;
 import { classifyDeckChoice } from './deckConstants.js';
 
 const WEAPON_TAG_GROUPS = [
-  ['AL', 'AoE', 'STAT', 'NPLM'],
+  ['AL', 'AoE', 'STAT', 'NPLM', 'SLNT'],
   ['KE', 'HEAT'],
   ['AC', 'MG', 'GL'],
   ['FnF', 'SA', 'GUID'],
@@ -30,10 +30,17 @@ const WEAPON_TAG_GROUPS = [
 
 const UNIT_TAG_GROUPS = [
   ['INF', 'VEH', 'HEL', 'AIR', 'SHIP', 'FOB'],
-  ['RESRV', 'REG', 'SHOCK', 'ELITE'],
   ['TRACK', 'WHEEL', 'TRUCK', 'AMPH'],
-  ['TRANS', 'CMD', 'SUPPL', 'ARMOR', 'RECON'],
+  ['TRANS', 'CMD', 'SUPPL', 'ARMOR', 'RECON', 'PROTO'],
 ];
+
+const INFANTRY_TAG_GROUPS = [
+  ['RESRV', 'REG', 'SHOCK', 'ELITE'],
+  ['AR', 'BR', 'SMG', 'CAR', 'BA', 'SPEC'],
+  ['MG3', 'MINI', 'RPK', 'RPK74', 'GENMG', 'RPD', 'BREN', 'FALO', 'GALIL', 'SHIT'],
+  ['MANPD', 'SNIPE', 'RR', 'LAW'],
+];
+const INFANTRY_TAGS_FLAT = new Set(INFANTRY_TAG_GROUPS.flat());
 
 const MOBILE_BREAKPOINT = 900;
 const SMALL_BREAKPOINT = 600;
@@ -238,7 +245,7 @@ export function DeckBrowser({ roster, units, deckState }) {
     const available = new Set(deckRoster.flatMap(u => u.ownTags));
     const grouped = UNIT_TAG_GROUPS.map(g => g.filter(t => available.has(t))).filter(g => g.length > 0);
     const seen = new Set(grouped.flat());
-    const rest = [...available].filter(t => !seen.has(t)).sort();
+    const rest = [...available].filter(t => !seen.has(t) && !INFANTRY_TAGS_FLAT.has(t)).sort();
     if (rest.length) grouped.push(rest);
     return grouped;
   }, [deckRoster]);
@@ -247,9 +254,14 @@ export function DeckBrowser({ roster, units, deckState }) {
     const available = new Set(deckRoster.flatMap(u => u.unitTags.filter(t => !u.ownTags.includes(t))));
     const grouped = WEAPON_TAG_GROUPS.map(g => g.filter(t => available.has(t))).filter(g => g.length > 0);
     const seen = new Set(grouped.flat());
-    const rest = [...available].filter(t => !seen.has(t)).sort();
+    const rest = [...available].filter(t => !seen.has(t) && !INFANTRY_TAGS_FLAT.has(t)).sort();
     if (rest.length) grouped.push(rest);
     return grouped;
+  }, [deckRoster]);
+
+  const allInfantryTags = useMemo(() => {
+    const available = new Set(deckRoster.flatMap(u => u.unitTags));
+    return INFANTRY_TAG_GROUPS.map(g => g.filter(t => available.has(t))).filter(g => g.length > 0);
   }, [deckRoster]);
 
   const setSearch = useCallback((e) => setQ(e.target.value), [setQ]);
@@ -477,7 +489,7 @@ export function DeckBrowser({ roster, units, deckState }) {
                     flexShrink: 0,
                   }}>
                     <TagDropdown
-                      weaponTags={allWeaponTags} unitTags={allOwnTags}
+                      weaponTags={allWeaponTags} unitTags={allOwnTags} infantryTags={allInfantryTags}
                       selected={f.tag} onToggle={toggle('tag')}
                       tagMode={tagMode} onTagMode={toggleTagMode}
                     />

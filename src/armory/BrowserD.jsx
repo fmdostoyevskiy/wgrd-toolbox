@@ -18,7 +18,7 @@ const NATO_NATIONS = ALL_NATIONS.filter(n => !PACT_NATIONS.has(n));
 const PACT_NATIONS_ORDERED = ALL_NATIONS.filter(n =>  PACT_NATIONS.has(n));
 
 const WEAPON_TAG_GROUPS = [
-  ['AL', 'AoE', 'STAT', 'NPLM'],
+  ['AL', 'AoE', 'STAT', 'NPLM', 'SLNT'],
   ['KE', 'HEAT'],
   ['AC', 'MG', 'GL'],
   ['FnF', 'SA', 'GUID'],
@@ -30,10 +30,17 @@ const WEAPON_TAG_GROUPS = [
 
 const UNIT_TAG_GROUPS = [
   ['INF', 'VEH', 'HEL', 'PLANE', 'SHIP', 'FOB'],
-  ['RESRV', 'REG', 'SHOCK', 'ELITE'],
   ['TRACK', 'WHEEL', 'TRUCK', 'AMPH'],
-  ['TRANS', 'CMD', 'SUPPL', 'ARMOR', 'RECON'],
+  ['TRANS', 'CMD', 'SUPPL', 'ARMOR', 'RECON', 'PROTO'],
 ];
+
+const INFANTRY_TAG_GROUPS = [
+  ['RESRV', 'REG', 'SHOCK', 'ELITE'],
+  ['AR', 'BR', 'SMG', 'CAR', 'BA', 'SPEC'],
+  ['MG3', 'MINI', 'RPK', 'RPK74', 'GENMG', 'RPD', 'BREN', 'FALO', 'GALIL', 'SHIT'],
+  ['MANPD', 'SNIPE', 'RR', 'LAW'],
+];
+const INFANTRY_TAGS_FLAT = new Set(INFANTRY_TAG_GROUPS.flat());
 
 const NATION_OPTIONS = ALL_NATIONS.flatMap((code, i, arr) => {
   const item = { label: code, value: code, flag: NATION_FLAG_MAP[code] };
@@ -82,7 +89,7 @@ export function BrowserD({ roster, units, initialUnit }) {
     const available = new Set(roster.flatMap(u => u.ownTags));
     const grouped = UNIT_TAG_GROUPS.map(g => g.filter(t => available.has(t))).filter(g => g.length > 0);
     const seen = new Set(grouped.flat());
-    const rest = [...available].filter(t => !seen.has(t)).sort();
+    const rest = [...available].filter(t => !seen.has(t) && !INFANTRY_TAGS_FLAT.has(t)).sort();
     if (rest.length) grouped.push(rest);
     return grouped;
   }, [roster]);
@@ -91,9 +98,14 @@ export function BrowserD({ roster, units, initialUnit }) {
     const available = new Set(roster.flatMap(u => u.unitTags.filter(t => !u.ownTags.includes(t))));
     const grouped = WEAPON_TAG_GROUPS.map(g => g.filter(t => available.has(t))).filter(g => g.length > 0);
     const seen = new Set(grouped.flat());
-    const rest = [...available].filter(t => !seen.has(t)).sort();
+    const rest = [...available].filter(t => !seen.has(t) && !INFANTRY_TAGS_FLAT.has(t)).sort();
     if (rest.length) grouped.push(rest);
     return grouped;
+  }, [roster]);
+
+  const allInfantryTags = useMemo(() => {
+    const available = new Set(roster.flatMap(u => u.unitTags));
+    return INFANTRY_TAG_GROUPS.map(g => g.filter(t => available.has(t))).filter(g => g.length > 0);
   }, [roster]);
 
   const setSearch = useCallback((e) => setQ(e.target.value), [setQ]);
@@ -166,6 +178,7 @@ export function BrowserD({ roster, units, initialUnit }) {
               onTag={toggle('tag')}
               weaponTags={allWeaponTags}
               unitTags={allOwnTags}
+              infantryTags={allInfantryTags}
               tagMode={tagMode}
               onTagMode={toggleTagMode}
               filtered={filtered}
@@ -191,6 +204,7 @@ export function BrowserD({ roster, units, initialUnit }) {
             onTag={toggle('tag')}
             weaponTags={allWeaponTags}
             unitTags={allOwnTags}
+            infantryTags={allInfantryTags}
             tagMode={tagMode}
             onTagMode={toggleTagMode}
             filtered={filtered}
@@ -248,7 +262,7 @@ const CoalBtn = React.memo(function CoalBtn({ label, flagSrc, onClick, active, c
 function ListPane({
   listOpen, setListOpen,
   q, setSearch,
-  spec, onSpec, era, onEra, tag, onTag, weaponTags, unitTags, tagMode, onTagMode,
+  spec, onSpec, era, onEra, tag, onTag, weaponTags, unitTags, infantryTags, tagMode, onTagMode,
   filtered, rosterCount,
   selected, pinnedIds, expandedTransports,
   onSelect, onToggleTransports,
@@ -310,7 +324,7 @@ function ListPane({
               items={[['', 'SPEC: ALL'], ...SPECS.map(s => [s, s.toUpperCase()])]} />
             <FilterSelect value={era[0] ?? ''}  active={era.length > 0}  onChange={v => onEra(v || null)}
               items={[['', 'ERA: ALL'], ['PRE-85', 'PRE-85'], ['PRE-80', 'PRE-80']]} />
-            <TagDropdown weaponTags={weaponTags} unitTags={unitTags} selected={tag} onToggle={onTag} tagMode={tagMode} onTagMode={onTagMode} />
+            <TagDropdown weaponTags={weaponTags} unitTags={unitTags} infantryTags={infantryTags} selected={tag} onToggle={onTag} tagMode={tagMode} onTagMode={onTagMode} />
           </div>
 
 

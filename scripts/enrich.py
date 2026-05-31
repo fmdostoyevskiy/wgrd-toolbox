@@ -797,6 +797,112 @@ def handle_gl(units, rows, data_dir):
     return []
 
 
+def handle_slnt(units, rows, data_dir):
+    count = 0
+    for unit in units:
+        for w in unit.get('weapons', []):
+            if (w.get('noise') or 0) <= 1:
+                count += ensure_weapon_tag(w, 'SLNT')
+    save_json(os.path.join(data_dir, 'slnt.json'),
+              [u for u in units if any('SLNT' in w.get('tag', []) for w in u.get('weapons', []))])
+    print(f'  [H32] SLNT: tagged {count} weapon(s)')
+    return []
+
+
+_SPEC_IDS = frozenset({
+    '00000000070000000000000031040000',
+    '000000000000000000000000ad060000',
+    '0000000007000000000000004f040000',
+    '0000000007000000000000000f040000',
+    '0000000001000000000000000b040000',
+    '000000000000000000000000a4040000',
+    '00000000000000000000000016040000',
+})
+
+_BA_CONDITIONS = {0: 40, 1: 50, 2: 80}  # training -> acc threshold for BA
+
+def handle_infantry_smalls(units, rows, data_dir):
+    count = 0
+    for unit in units:
+        if unit.get('type') != 'Infantry':
+            continue
+        weapons = unit.get('weapons', [])
+        if not weapons:
+            continue
+        w = weapons[0]
+        if unit.get('id') in _SPEC_IDS:
+            count += ensure_weapon_tag(w, 'SPEC')
+            continue
+        rng = w.get('rng_g')
+        if rng == 595:
+            acc_thresh = _BA_CONDITIONS.get(unit.get('training'))
+            tag = 'BA' if acc_thresh is not None and w.get('acc') == acc_thresh else 'BR'
+            count += ensure_weapon_tag(w, tag)
+        elif rng == 455:
+            count += ensure_weapon_tag(w, 'SMG')
+        elif rng == 525:
+            tag = 'CAR' if w.get('shotReload') in (2, 1.3) else 'AR'
+            count += ensure_weapon_tag(w, tag)
+    save_json(os.path.join(data_dir, 'infantry_smalls.json'),
+              [u for u in units if u.get('type') == 'Infantry'
+               and any(t in w.get('tag', []) for w in u.get('weapons', [])
+                       for t in ('AR', 'BR', 'SMG', 'CAR', 'BA', 'SPEC'))])
+    print(f'  [H26] Infantry Smalls: tagged {count} weapon(s)')
+    return []
+
+
+_INF_SUPPORT_TAGS = ('MANPD', 'SNIPE', 'RR', 'LAW',
+                     'GENMG', 'MG3', 'BREN', 'RPD',
+                     'MINI', 'RPK74', 'RPK', 'FALO', 'GALIL', 'SHIT')
+
+def handle_infantry_support(units, rows, data_dir):
+    count = 0
+    for unit in units:
+        if unit.get('type') != 'Infantry':
+            continue
+        for w in unit.get('weapons', []):
+            wtags  = w.get('tag', [])
+            rng_g  = w.get('rng_g') or 0
+            rng_h  = w.get('rng_h') or 0
+            salvo  = w.get('salvoLen')
+            reload = w.get('shotReload')
+
+            if rng_h >= 2100:
+                count += ensure_weapon_tag(w, 'MANPD')
+            elif 1050 <= rng_g <= 1750 and 'HEAT' not in wtags and (w.get('dmg') or 0) == 1:
+                count += ensure_weapon_tag(w, 'SNIPE')
+            elif 1050 <= rng_g <= 1750 and 'HEAT' in wtags and 'GUID' not in wtags:
+                count += ensure_weapon_tag(w, 'RR')
+            elif 455 <= rng_g <= 875 and 'HEAT' in wtags:
+                count += ensure_weapon_tag(w, 'LAW')
+            elif rng_g == 875 and salvo == 10 and reload == 1:
+                count += ensure_weapon_tag(w, 'GENMG')
+            elif rng_g == 875 and salvo == 20 and reload == 0.8:
+                count += ensure_weapon_tag(w, 'MG3')
+            elif rng_g == 875 and salvo == 3 and reload == 1:
+                count += ensure_weapon_tag(w, 'BREN')
+            elif rng_g == 875 and salvo == 10 and reload == 0.8:
+                count += ensure_weapon_tag(w, 'RPD')
+            elif rng_g == 770 and salvo == 20 and reload == 0.8:
+                count += ensure_weapon_tag(w, 'MINI')
+            elif rng_g == 770 and salvo == 5 and reload == 0.8:
+                count += ensure_weapon_tag(w, 'RPK74')
+            elif rng_g == 770 and salvo == 8 and reload == 0.8:
+                count += ensure_weapon_tag(w, 'RPK')
+            elif rng_g == 770 and salvo == 3 and reload == 1:
+                count += ensure_weapon_tag(w, 'FALO')
+            elif rng_g == 770 and salvo == 3 and reload == 0.8:
+                count += ensure_weapon_tag(w, 'GALIL')
+            elif rng_g == 770 and salvo == 2 and reload == 1:
+                count += ensure_weapon_tag(w, 'SHIT')
+
+    save_json(os.path.join(data_dir, 'infantry_support.json'),
+              [u for u in units if u.get('type') == 'Infantry'
+               and any(t in w.get('tag', []) for w in u.get('weapons', []) for t in _INF_SUPPORT_TAGS)])
+    print(f'  [H31] Infantry Support: tagged {count} weapon(s)')
+    return []
+
+
 def handle_atgm(units, rows, data_dir):
     dump_dict, unmatched = collect_weapons_from_file(
         units, rows, 'ATGM', 'atgm.json', data_dir, '[H6]')
@@ -1333,6 +1439,9 @@ def handle_unit_tags(units, rows, data_dir):
         if f >= thresh and utype in ('Vehicle', 'Helicopter', 'Plane'):
             tags.append('ARMOR')
 
+        if unit.get('prototype'):
+            tags.append('PROTO')
+
         training = unit.get('training')
         if utype == 'Infantry' and training is not None:
             tags.append(('RESRV', 'REG', 'SHOCK', 'ELITE')[min(training, 3)])
@@ -1384,7 +1493,10 @@ HANDLERS = [
     ('AC',              handle_ac,             None),
     ('MG',              handle_mg,             None),
     ('GL',              handle_gl,             None),
-    ('ATGM Tag',        handle_atgm_tag,       None),
+    ('SLNT',            handle_slnt,           None),
+    ('Infantry Smalls',  handle_infantry_smalls,  None),
+    ('Infantry Support', handle_infantry_support, None),
+    ('ATGM Tag',         handle_atgm_tag,         None),
     ('BOMB Tag',        handle_bomb_tag,       None),
     ('Deck Indices',    handle_deck_indices,   'deck_indices.json'),
     ('Unit Tags',       handle_unit_tags,      None),
