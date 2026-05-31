@@ -851,7 +851,7 @@ def handle_infantry_smalls(units, rows, data_dir):
     return []
 
 
-_INF_SUPPORT_TAGS = ('MANPD', 'SNIPE', 'RR', 'LAW',
+_INF_SUPPORT_TAGS = ('MANPD', 'SNIPE', 'RR', 'LAW', 'FLAW', 'ALAW', 'LLAW',
                      'GENMG', 'MG3', 'BREN', 'RPD',
                      'MINI', 'RPK74', 'RPK', 'FALO', 'GALIL', 'SHIT')
 
@@ -874,7 +874,17 @@ def handle_infantry_support(units, rows, data_dir):
             elif 1050 <= rng_g <= 1750 and 'HEAT' in wtags and 'GUID' not in wtags:
                 count += ensure_weapon_tag(w, 'RR')
             elif 455 <= rng_g <= 875 and 'HEAT' in wtags:
-                count += ensure_weapon_tag(w, 'LAW')
+                is_flaw = w.get('salvoReload') is not None and w['salvoReload'] <= 4
+                is_alaw = (w.get('acc') or 0) >= 60
+                is_llaw = rng_g >= 875
+                if is_flaw:
+                    count += ensure_weapon_tag(w, 'FLAW')
+                if is_alaw:
+                    count += ensure_weapon_tag(w, 'ALAW')
+                if is_llaw:
+                    count += ensure_weapon_tag(w, 'LLAW')
+                if not is_flaw and not is_alaw and not is_llaw:
+                    count += ensure_weapon_tag(w, 'LAW')
             elif rng_g == 875 and salvo == 10 and reload == 1:
                 count += ensure_weapon_tag(w, 'GENMG')
             elif rng_g == 875 and salvo == 20 and reload == 0.8:

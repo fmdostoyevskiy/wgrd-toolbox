@@ -37,8 +37,9 @@ const UNIT_TAG_GROUPS = [
 const INFANTRY_TAG_GROUPS = [
   ['RESRV', 'REG', 'SHOCK', 'ELITE'],
   ['AR', 'BR', 'SMG', 'CAR', 'BA', 'SPEC'],
+  ['LAW', 'FLAW', 'ALAW', 'LLAW'],
   ['MG3', 'MINI', 'RPK', 'RPK74', 'GENMG', 'RPD', 'BREN', 'FALO', 'GALIL', 'SHIT'],
-  ['MANPD', 'SNIPE', 'RR', 'LAW'],
+  ['MANPD', 'SNIPE', 'RR'],
 ];
 const INFANTRY_TAGS_FLAT = new Set(INFANTRY_TAG_GROUPS.flat());
 
