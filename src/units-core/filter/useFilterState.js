@@ -1,15 +1,19 @@
 import { useState, useMemo, useCallback, useEffect } from 'react';
 import { COALITION_NATIONS } from '../constants/coalitions.js';
+import {SORT_OPTIONS} from "@units-core/filter/sort";
 
 function readFilterFromUrl() {
   const p = new URLSearchParams(window.location.search);
+  const sort = p.get('sort');
   return {
     nation: [],
     tab:    [],
-    spec:   p.get('spec')   ? [p.get('spec')]                        : [],
-    era:    p.get('era')    ? [p.get('era')]                         : [],
-    tag:    p.get('tags')   ? p.get('tags').split(',').filter(Boolean) : [],
+    spec:   p.get('spec')               ? [p.get('spec')]                         : [],
+    era:    p.get('era')                ? [p.get('era')]                          : [],
+    tag:    p.get('tags')               ? p.get('tags').split(',').filter(Boolean) : [],
     q:      p.get('search') ?? '',
+    sort:   SORT_OPTIONS.includes(sort) ? sort                                    : 'NAME',
+    sortAsc: p.get('sortAsc')           ? p.get('sortAsc') === 'true'             : true,
   };
 }
 
@@ -25,6 +29,8 @@ export function useFilterState(roster) {
     if (f.era.length)  p.set('era',      f.era[0]);      else p.delete('era');
     if (f.tag.length)  p.set('tags',     f.tag.join(',')); else p.delete('tags');
     if (tagMode !== 'OR') p.set('tagLogic', tagMode);    else p.delete('tagLogic');
+    if (f.sort !== 'NAME') p.set('sort', f.sort);        else p.delete('sort');
+    if (f.sortAsc !== true) p.set('sortAsc', String(f.sortAsc)); else p.delete('sortAsc');
     const qs = p.toString();
     history.replaceState(null, '', qs ? '?' + qs : location.pathname);
   }, [f, tagMode]);
@@ -78,9 +84,19 @@ export function useFilterState(roster) {
 
   const setQ = useCallback((q) => setF(prev => ({ ...prev, q })), []);
 
+  const setSort = useCallback((sort) => {
+    setF(prev => ({ ...prev, sort }));
+  }, []);
+
+  const setSortAsc = useCallback((sortAsc) => {
+    setF(prev => ({ ...prev, sortAsc }));
+  }, []);
+
   const filtered = useMemo(() => {
     const q = f.q.toLowerCase();
-    return roster.filter(u => {
+    const sort = f.sort;
+    const isAscending = f.sortAsc;
+    let filtered = roster.filter(u => {
       if (f.nation.length && !f.nation.includes(u.nation)) return false;
       if (f.spec.length   && !u.specs.some(s => f.spec.includes(s))) return false;
       if (f.tab.length    && !f.tab.includes(u.tab)) return false;
@@ -99,7 +115,20 @@ export function useFilterState(roster) {
       if (q              && !u.name.toLowerCase().includes(q)) return false;
       return true;
     });
+
+    const order = isAscending ? 1 : -1;
+    if (sort === 'NAME') {
+      return filtered.sort((a, b) => a.name.localeCompare(b.name) * order);
+    } else if (sort === 'NATION') {
+      return filtered.sort((a, b) => a.nation.localeCompare(b.nation) * order);
+    } else if (sort === 'COST') {
+      return filtered.sort((a, b) => (a.cost - b.cost) * order);
+    } else if (sort === 'TAB') {
+      return filtered.sort((a, b) => a.tab.localeCompare(b.tab) * order);
+    } else {
+      return filtered;
+    }
   }, [roster, f, tagMode]);
 
-  return { f, setF, setQ, toggle, select, solo, toggleCoalition, toggleSide, filtered, tagMode, toggleTagMode };
+  return { f, setF, setQ, toggle, select, solo, toggleCoalition, toggleSide, filtered, tagMode, toggleTagMode, setSort, setSortAsc };
 }
