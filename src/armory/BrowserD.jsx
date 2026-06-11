@@ -11,6 +11,7 @@ import { useWindowWidth } from './useWindowWidth.js';
 import { Seg } from './Seg.jsx';
 import { TagDropdown } from './TagDropdown.jsx';
 import { CardPane } from './CardPane.jsx';
+import { SortDropdown } from "./SortDropdown.jsx";
 
 const BASE = import.meta.env.BASE_URL;
 
@@ -55,7 +56,7 @@ const SMALL_BREAKPOINT = 600;
 
 export function BrowserD({ roster, units, initialUnit }) {
   const t = BROWSER_TOKENS;
-  const { f, setQ, toggle, select, solo, toggleCoalition, toggleSide, filtered, tagMode, toggleTagMode } = useFilterState(roster);
+  const { f, setQ, toggle, select, solo, toggleCoalition, toggleSide, filtered, tagMode, toggleTagMode, setSort, setSortAsc } = useFilterState(roster);
 
   const [selected, setSelected] = useState(initialUnit ?? null);
   const [pinned,   setPinned]   = useState([]);
@@ -157,7 +158,7 @@ export function BrowserD({ roster, units, initialUnit }) {
         flex: 1, display: 'grid',
         gridTemplateColumns: isSmall
           ? (listOpen ? '1fr' : '32px 1fr')
-          : (listOpen ? '290px 1fr' : '32px 1fr'),
+          : (listOpen ? '360px 1fr' : '32px 1fr'),
         minHeight: 0,
         position: 'relative',
       }}>
@@ -183,6 +184,10 @@ export function BrowserD({ roster, units, initialUnit }) {
               infantryTags={allInfantryTags}
               tagMode={tagMode}
               onTagMode={toggleTagMode}
+              sort={f.sort}
+              onSort={setSort}
+              isAscending={f.sortAsc}
+              onIsAscending={setSortAsc}
               filtered={filtered}
               rosterCount={roster.length}
               selected={selected}
@@ -209,6 +214,10 @@ export function BrowserD({ roster, units, initialUnit }) {
             infantryTags={allInfantryTags}
             tagMode={tagMode}
             onTagMode={toggleTagMode}
+            sort={f.sort}
+            onSort={setSort}
+            isAscending={f.sortAsc}
+            onIsAscending={setSortAsc}
             filtered={filtered}
             rosterCount={roster.length}
             selected={selected}
@@ -265,6 +274,7 @@ function ListPane({
   listOpen, setListOpen,
   q, setSearch,
   spec, onSpec, era, onEra, tag, onTag, weaponTags, unitTags, infantryTags, tagMode, onTagMode,
+  sort, onSort, isAscending, onIsAscending,
   filtered, rosterCount,
   selected, pinnedIds, expandedTransports,
   onSelect, onToggleTransports,
@@ -327,6 +337,7 @@ function ListPane({
             <FilterSelect value={era[0] ?? ''}  active={era.length > 0}  onChange={v => onEra(v || null)}
               items={[['', 'ERA: ALL'], ['PRE-85', 'PRE-85'], ['PRE-80', 'PRE-80']]} />
             <TagDropdown weaponTags={weaponTags} unitTags={unitTags} infantryTags={infantryTags} selected={tag} onToggle={onTag} tagMode={tagMode} onTagMode={onTagMode} />
+            <SortDropdown sort={sort} isAscending={isAscending} onIsAscending={onIsAscending} onSort={onSort} />
           </div>
 
 
