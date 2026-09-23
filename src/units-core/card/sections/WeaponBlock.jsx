@@ -58,6 +58,10 @@ export function WeaponBlock({ w, vet, s, sharedTurrets, weaponIdx, onCapture }) 
   const hasHEAT = tags.includes('HEAT');
   const hasAuto = tags.includes('AUTO');
   const apInlineTag = hasKE ? ' KE' : hasHEAT ? ' HEAT' : '';
+  // Radar autocannons (SPAAGs, ship CIWS) are categorised as missiles in the game data.
+  const isRadarGun  = w.category === 'Missile' && tags.includes('RAD')
+    && !tags.includes('GUID') && !tags.includes('FnF');
+  const heCategory  = isRadarGun ? 'Gun' : w.category;
   const headerTags  = tags.filter(t => !HEADER_TAG_BLACKLIST.has(t));
 
   const modAcc  = w.acc  != null ? vet_accuracy(w.acc, vet.label) : null;
@@ -141,10 +145,10 @@ export function WeaponBlock({ w, vet, s, sharedTurrets, weaponIdx, onCapture }) 
           })()} accent={apColor(w.ap, hasKE)} s={s} dense />
         )}
 
-        {hide.field('weaponHe') && w.dmg > 0 && !(w.category === 'Missile' && w.dmg === 1) && (
+        {hide.field('weaponHe') && w.dmg > 0 && !(heCategory === 'Missile' && w.dmg === 1) && (
           <DotRow label="HE Power" value={w.dmg}
-            accent={heColor(w.dmg, w.category)}
-            tooltip={w.category === 'Missile' ? heMissileTooltip(w.dmg) : null}
+            accent={heColor(w.dmg, heCategory)}
+            tooltip={heCategory === 'Missile' ? heMissileTooltip(w.dmg) : null}
             s={s} dense />
         )}
 
@@ -173,19 +177,20 @@ export function WeaponBlock({ w, vet, s, sharedTurrets, weaponIdx, onCapture }) 
           <DotRow label="Supp Radius" value={`${w.suppRadius} m`} s={s} dense />
         )}
 
-        {hide.field('weaponMissileSpeed') && w.category === 'Missile' && w.missileSpeed != null && (
-          <DotRow
-            label="Missile Speed"
-            value={w.missileSpeed}
-            accent={missileSpeedColor(w.missileSpeed)}
-            s={s} dense />
-        )}
-        {hide.field('weaponMissileAccel') && w.category === 'Missile' && w.missileAccel != null && expert && (
-          <DotRow
-            label="Missile Accel"
-            value={`${w.missileAccel} m/s²`}
-            s={s} dense />
-        )}
+        {hide.field('weaponMissileSpeed') && w.category === 'Missile' && [
+          ['Missile Speed AP', w.missileSpeedAP],
+          ['Missile Speed HE', w.missileSpeedHE],
+          ['Missile Speed',    w.missileSpeed],
+        ].map(([label, v]) => v != null && (
+          <DotRow key={label} label={label} value={v} accent={missileSpeedColor(v)} s={s} dense />
+        ))}
+        {hide.field('weaponMissileAccel') && w.category === 'Missile' && expert && [
+          ['Missile Accel AP', w.missileAccelAP],
+          ['Missile Accel HE', w.missileAccelHE],
+          ['Missile Accel',    w.missileAccel],
+        ].map(([label, v]) => v != null && (
+          <DotRow key={label} label={label} value={`${v} m/s²`} s={s} dense />
+        ))}
 
         {w.category !== 'Bomb' && (
           <>

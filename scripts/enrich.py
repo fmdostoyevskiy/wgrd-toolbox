@@ -457,14 +457,9 @@ def handle_merge_duplicate_weapons(units, rows, data_dir):
                     continue
 
                 # Merge w into base
-                base_aim       = base.get('aimTime')
-                w_aim          = w.get('aimTime')
-                base_rng_g     = base.get('rng_g')
-                w_rng_g        = w.get('rng_g')
-                base_suppress  = base.get('suppress')
-                w_suppress     = w.get('suppress')
-                base_tags_orig = set(base.get('tag', []))
-                w_tags_orig    = set(w.get('tag', []))
+                base_orig  = dict(base)
+                base_is_ap = bool(set(base.get('tag', [])) & {'KE', 'HEAT'})
+                w_is_ap    = bool(set(w.get('tag', []))    & {'KE', 'HEAT'})
 
                 for k, v in w.items():
                     if k == 'tag':
@@ -483,54 +478,33 @@ def handle_merge_duplicate_weapons(units, rows, data_dir):
                         if k not in base or base[k] is None:
                             base[k] = v
 
-                # Split aim time into AP/HE variants when the two weapons differ in
-                # both their AP value (one is AP ammo, the other HE) and aim time.
-                if (base.get('ap') != w.get('ap')
-                        and base_aim is not None and w_aim is not None
-                        and base_aim != w_aim):
-                    base_is_ap = bool(base_tags_orig & {'KE', 'HEAT'})
-                    w_is_ap    = bool(w_tags_orig    & {'KE', 'HEAT'})
+                def split_ap_he(field):
+                    """Replace `field` with <field>AP / <field>HE when the AP and
+                    HE variants carried different values for it."""
+                    base_v, w_v = base_orig.get(field), w.get(field)
+                    if base_v is None or w_v is None or base_v == w_v:
+                        return
                     if base_is_ap and not w_is_ap:
-                        base['aimTimeAP'] = base_aim
-                        base['aimTimeHE'] = w_aim
-                        base.pop('aimTime', None)
+                        base[f'{field}AP'], base[f'{field}HE'] = base_v, w_v
                     elif w_is_ap and not base_is_ap:
-                        base['aimTimeAP'] = w_aim
-                        base['aimTimeHE'] = base_aim
-                        base.pop('aimTime', None)
+                        base[f'{field}AP'], base[f'{field}HE'] = w_v, base_v
+                    else:
+                        return
+                    base.pop(field, None)
 
-                # Split rng_g into AP/HE variants for Gun weapons when the two
-                # weapons differ in both their AP value and their ground range.
-                if (base.get('ap') != w.get('ap')
-                        and base.get('category') == 'Gun'
-                        and base_rng_g is not None and w_rng_g is not None
-                        and base_rng_g != w_rng_g):
-                    base_is_ap = bool(base_tags_orig & {'KE', 'HEAT'})
-                    w_is_ap    = bool(w_tags_orig    & {'KE', 'HEAT'})
-                    if base_is_ap and not w_is_ap:
-                        base['rng_gAP'] = base_rng_g
-                        base['rng_gHE'] = w_rng_g
-                        base.pop('rng_g', None)
-                    elif w_is_ap and not base_is_ap:
-                        base['rng_gAP'] = w_rng_g
-                        base['rng_gHE'] = base_rng_g
-                        base.pop('rng_g', None)
+                if base_orig.get('ap') != w.get('ap'):
+                    # Aim time, suppression and missile flight stats differ between
+                    # the AP (e.g. ground ATGM) and HE (e.g. AA) variants of
+                    # dual-purpose weapons like ADATS and Starstreak.
+                    split_ap_he('aimTime')
+                    split_ap_he('suppress')
+                    split_ap_he('missileSpeed')
+                    split_ap_he('missileAccel')
 
-                # Split suppress into AP/HE variants when the two weapons differ in
-                # both their AP value and their suppression value.
-                if (base.get('ap') != w.get('ap')
-                        and base_suppress is not None and w_suppress is not None
-                        and base_suppress != w_suppress):
-                    base_is_ap = bool(base_tags_orig & {'KE', 'HEAT'})
-                    w_is_ap    = bool(w_tags_orig    & {'KE', 'HEAT'})
-                    if base_is_ap and not w_is_ap:
-                        base['suppressAP'] = base_suppress
-                        base['suppressHE'] = w_suppress
-                        base.pop('suppress', None)
-                    elif w_is_ap and not base_is_ap:
-                        base['suppressAP'] = w_suppress
-                        base['suppressHE'] = base_suppress
-                        base.pop('suppress', None)
+                    # Split rng_g into AP/HE variants for Gun weapons when the two
+                    # weapons differ in their ground range.
+                    if base.get('category') == 'Gun':
+                        split_ap_he('rng_g')
 
                 total_merged += 1
 
