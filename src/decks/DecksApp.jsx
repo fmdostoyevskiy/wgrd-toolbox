@@ -1,6 +1,6 @@
 import React, { useMemo, useCallback, useState } from 'react';
 import {
-  BROWSER_TOKENS, BMono,
+  BROWSER_TOKENS, BMono, ZoomControls,
   COALITION_CODE_MAP, COALITION_NATIONS, COALITION_FLAG_MAP,
   ALL_NATIONS, PACT_NATIONS, NATION_FLAG_MAP, sideOf,
   SPECS,
@@ -140,11 +140,14 @@ export function DecksApp({ data }) {
           display: 'flex', alignItems: 'center', justifyContent: 'space-between',
           flexWrap: 'wrap', gap: 8,
         }}>
-          <a href={BASE} style={{ display: 'flex', alignItems: 'baseline', gap: 6, textDecoration: 'none', color: 'inherit' }}>
-            <span style={{ fontWeight: 700, letterSpacing: '0.12em' }}>WRD</span>
-            <span style={{ color: t.accent2 }}>·</span>
-            <span style={{ fontWeight: 700, letterSpacing: '0.12em' }}>DECKS</span>
-          </a>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+            <a href={BASE} style={{ display: 'flex', alignItems: 'baseline', gap: 6, textDecoration: 'none', color: 'inherit' }}>
+              <span style={{ fontWeight: 700, letterSpacing: '0.12em' }}>WRD</span>
+              <span style={{ color: t.accent2 }}>·</span>
+              <span style={{ fontWeight: 700, letterSpacing: '0.12em' }}>DECKS</span>
+            </a>
+            <ZoomControls />
+          </div>
           <div style={{ fontSize: 11, letterSpacing: '0.18em', color: t.dim }}>
             // COMMUNITY ROSTER
           </div>

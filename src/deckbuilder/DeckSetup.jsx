@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 
 const BASE = import.meta.env.BASE_URL;
 import {
-  BROWSER_TOKENS, BMono,
+  BROWSER_TOKENS, BMono, ZoomControls,
   ALL_NATIONS, PACT_NATIONS, NATION_FLAG_MAP, NATION_CODE_MAP,
   COALITIONS, COALITION_NATIONS, COALITION_FLAG_MAP, COALITION_CODE_MAP,
   SPEC_VET_BONUS,
@@ -159,9 +159,12 @@ export function DeckSetup({ onStart, onImport }) {
       overflow: 'hidden auto',
       boxSizing: 'border-box',
     }}>
-      <a href={BASE} style={{ fontSize: 16, letterSpacing: '0.28em', fontWeight: 600, marginBottom: 30, textDecoration: 'none', color: 'inherit', display: 'block' }}>
-        DECK<span style={{ color: t.accent, marginLeft: 6 }}>BUILDER</span>
-      </a>
+      <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 30 }}>
+        <a href={BASE} style={{ fontSize: 16, letterSpacing: '0.28em', fontWeight: 600, textDecoration: 'none', color: 'inherit', display: 'block' }}>
+          DECK<span style={{ color: t.accent, marginLeft: 6 }}>BUILDER</span>
+        </a>
+        <ZoomControls />
+      </div>
 
       <div style={{ maxWidth: 700, width: '100%', padding: '0 24px', boxSizing: 'border-box' }}>
         {/* Side */}

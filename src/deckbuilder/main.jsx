@@ -3,7 +3,7 @@ import ReactDOM from 'react-dom/client';
 import '../index.css';
 import './layout.css';
 import '@units-core/zoom/zoomStore.js';
-import { loadData, BROWSER_TOKENS, BMono, ZoomControls } from '@units-core';
+import { loadData, BROWSER_TOKENS, BMono } from '@units-core';
 import { DeckBuilder } from './DeckBuilder.jsx';
 
 function LoadingScreen({ message }) {
@@ -43,7 +43,6 @@ async function init() {
 
   root.render(
     <div style={{ width: '100%', height: '100%' }}>
-      <ZoomControls />
       <DeckBuilder roster={roster} units={units} initialCode={initialCode} />
     </div>
   );

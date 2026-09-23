@@ -1,10 +1,13 @@
 import React, { useState, useEffect } from 'react';
-import { createPortal } from 'react-dom';
 import { ZOOM_PRESETS, getZoom, setZoom } from './zoomStore.js';
+import { BROWSER_TOKENS, BMono } from '../constants/theme.js';
 
 const MOBILE = 900;
 
-export function ZoomControls() {
+// Small inline button that cycles through ZOOM_PRESETS. Place it right after
+// a tool's logo. Hidden below the breakpoint where #root zoom is disabled.
+export function ZoomControls({ style }) {
+  const t = BROWSER_TOKENS;
   const [active, setActive] = useState(getZoom);
   const [wide, setWide] = useState(() => window.innerWidth >= MOBILE);
 
@@ -16,30 +19,22 @@ export function ZoomControls() {
 
   if (!wide) return null;
 
-  function pick(v) {
-    setZoom(v);
-    setActive(v);
+  function cycle() {
+    const next = ZOOM_PRESETS[(ZOOM_PRESETS.indexOf(active) + 1) % ZOOM_PRESETS.length];
+    setZoom(next);
+    setActive(next);
   }
 
-  const pill = (
-    <div style={{
-      position: 'fixed', bottom: 12, right: 12, zIndex: 99999,
-      display: 'flex', gap: 1, borderRadius: 6, overflow: 'hidden',
-      background: 'rgba(15,17,21,0.85)', border: '1px solid #252b38',
-      fontFamily: 'var(--wrd-mono)', fontSize: 12,
+  return (
+    <button onClick={cycle} title="UI scale — click to cycle" style={{
+      ...BMono, flexShrink: 0, cursor: 'pointer',
+      padding: '2px 5px', fontSize: 10, lineHeight: 1.2, fontWeight: 600,
+      letterSpacing: '0.04em', fontVariantNumeric: 'tabular-nums',
+      background: 'transparent', color: t.dim,
+      border: `1px solid ${t.rule}`, borderRadius: 3,
+      ...style,
     }}>
-      {ZOOM_PRESETS.map(v => (
-        <button key={v} onClick={() => pick(v)} style={{
-          border: 'none', cursor: 'pointer', padding: '6px 10px',
-          background: v === active ? '#e8a852' : 'transparent',
-          color: v === active ? '#0f1115' : '#7a8296',
-          fontFamily: 'inherit', fontSize: 'inherit', fontWeight: 600,
-        }}>
-          {Math.round(v * 100)}%
-        </button>
-      ))}
-    </div>
+      {Math.round(active * 100)}%
+    </button>
   );
-
-  return createPortal(pill, document.body);
 }

@@ -1,6 +1,6 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import {
-  BROWSER_TOKENS, BMono,
+  BROWSER_TOKENS, BMono, ZoomControls,
   NATION_FLAG_MAP, COALITION_FLAG_MAP,
   TABS,
   UnitList, V2Card, sideOf, SPEC_VET_BONUS, FlagImg,
@@ -365,6 +365,7 @@ export function DeckBrowser({ roster, units, deckState }) {
           <a href={BASE} style={{ fontSize: 13, letterSpacing: '0.24em', fontWeight: 600, flexShrink: 0, textDecoration: 'none', color: 'inherit' }}>
             DECK<span style={{ color: t.accent, marginLeft: 4 }}>BUILDER</span>
           </a>
+          <ZoomControls style={{ marginLeft: -6 }} />
           <div style={{ width: 1, alignSelf: 'stretch', background: t.rule, flexShrink: 0, margin: '4px 0' }} />
           <span style={{ fontSize: 10, color: t.dimmer, letterSpacing: '0.1em' }}>
             {config.choice}

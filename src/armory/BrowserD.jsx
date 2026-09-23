@@ -1,6 +1,6 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import {
-  BROWSER_TOKENS, BMono,
+  BROWSER_TOKENS, BMono, ZoomControls,
   ALL_NATIONS, PACT_NATIONS, NATION_FLAG_MAP,
   COALITIONS, COALITION_NATIONS, COALITION_FLAG_MAP,
   SPECS, TABS,
@@ -135,6 +135,7 @@ export function BrowserD({ roster, units, initialUnit }) {
             <a href={BASE} style={{ fontSize: 13, letterSpacing: '0.24em', color: t.ink, fontWeight: 600, flexShrink: 0, textDecoration: 'none' }}>
               ARMORY<span style={{ color: t.accent, marginLeft: 4 }}>/WRD</span>
             </a>
+            <ZoomControls style={{ marginLeft: -6 }} />
             <div style={{ width: 1, alignSelf: 'stretch', background: t.rule, flexShrink: 0, margin: '4px 0' }} />
             <CoalBtn label="ALL"  flagSrc={null}                          onClick={() => toggleCoalition(null)}            active={f.nation.length === 0} color={t.accent}  />
             <CoalBtn label="NATO" flagSrc={COALITION_FLAG_MAP['NATO']}    onClick={() => toggleSide(NATO_NATIONS)}         active={natoActive}            color={t.natoTag} />
