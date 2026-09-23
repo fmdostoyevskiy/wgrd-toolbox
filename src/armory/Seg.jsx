@@ -12,7 +12,7 @@ export const Seg = React.memo(function Seg({ label, options, selected, onToggle,
       <div style={{
         width: 68, flexShrink: 0, padding: '6px 12px',
         borderRight: `1px solid ${t.rule}`,
-        background: `color-mix(in srgb, ${t.surface} 80%, black)`,
+        background: `color-mix(in srgb, ${t.surface} 80%, ${t.shade})`,
         display: 'flex', alignItems: 'center',
         fontSize: 9.5, color: t.dim, letterSpacing: '0.22em',
       }}>{label}</div>

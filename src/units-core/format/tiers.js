@@ -1,9 +1,10 @@
-// Single source of truth for tier color palette and thresholds.
+// Single source of truth for tier thresholds. The colors are CSS variables
+// (dark and light values in src/index.css).
 
-export const TEAL   = '#2dd4bf';
-export const GREEN  = '#4ade80';
-export const ORANGE = '#e8a852';
-export const RED    = '#f87171';
+export const TEAL   = 'var(--wrd-tier-teal)';
+export const GREEN  = 'var(--wrd-tier-green)';
+export const ORANGE = 'var(--wrd-tier-orange)';
+export const RED    = 'var(--wrd-tier-red)';
 
 export function byTier(value, thresholds, { strict = false } = {}) {
   if (value == null) return null;

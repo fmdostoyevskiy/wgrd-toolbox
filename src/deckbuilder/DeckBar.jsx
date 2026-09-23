@@ -56,7 +56,7 @@ export function DeckBar({ deckCode, usedAP, totalAP, onClear, onReset }) {
         display: 'flex', alignItems: 'baseline', gap: 4,
       }}>
         <span style={{ color: t.accent, fontWeight: 600 }}>AP</span>
-        <span style={{ color: remaining < 0 ? '#e55' : t.ink }}>
+        <span style={{ color: remaining < 0 ? t.danger : t.ink }}>
           {usedAP}
         </span>
         <span style={{ color: t.dimmer }}>/</span>

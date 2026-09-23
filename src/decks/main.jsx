@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import ReactDOM from 'react-dom/client';
 import '../index.css';
 import '@units-core/zoom/zoomStore.js';
+import '@units-core/theme/themeStore.js';
 import { BROWSER_TOKENS, BMono } from '@units-core';
 import { DecksApp } from './DecksApp.jsx';
 

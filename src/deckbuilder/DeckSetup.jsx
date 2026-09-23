@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 
 const BASE = import.meta.env.BASE_URL;
 import {
-  BROWSER_TOKENS, BMono, ZoomControls,
+  BROWSER_TOKENS, BMono, UiControls,
   ALL_NATIONS, PACT_NATIONS, NATION_FLAG_MAP, NATION_CODE_MAP,
   COALITIONS, COALITION_NATIONS, COALITION_FLAG_MAP, COALITION_CODE_MAP,
   SPEC_VET_BONUS,
@@ -56,7 +56,7 @@ function BonusPanel({ spec, era, choice }) {
         <div style={{ display: 'flex', gap: 16 }}>
           {restricted && <span style={{ color: t.dimmer, letterSpacing: '0.08em', fontSize: 10 }}>NO SLOTS</span>}
           {slotBonus > 0 && <span><span style={{ color: t.accent }}>+{slotBonus} slots</span><span style={{ color: t.dimmer }}> · {slotTotal} total</span></span>}
-          {vetBonus > 0 && <span style={{ color: '#ffd166' }}>+{vetBonus} vet</span>}
+          {vetBonus > 0 && <span style={{ color: t.star }}>+{vetBonus} vet</span>}
         </div>
       ),
     })),
@@ -163,7 +163,7 @@ export function DeckSetup({ onStart, onImport }) {
         <a href={BASE} style={{ fontSize: 16, letterSpacing: '0.28em', fontWeight: 600, textDecoration: 'none', color: 'inherit', display: 'block' }}>
           DECK<span style={{ color: t.accent, marginLeft: 6 }}>BUILDER</span>
         </a>
-        <ZoomControls />
+        <UiControls />
       </div>
 
       <div style={{ maxWidth: 700, width: '100%', padding: '0 24px', boxSizing: 'border-box' }}>
@@ -316,7 +316,7 @@ export function DeckSetup({ onStart, onImport }) {
                 ...BMono,
                 background: t.bg,
                 color: t.text,
-                border: `1px solid ${importError ? '#e05' : t.rule}`,
+                border: `1px solid ${importError ? t.danger : t.rule}`,
                 padding: '10px 12px', fontSize: 12,
                 outline: 'none',
               }}

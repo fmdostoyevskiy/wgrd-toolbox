@@ -9,7 +9,9 @@
 :root {
   --wrd-mono: "JetBrains Mono", "IBM Plex Mono", ui-monospace, Menlo, monospace;
 
-  /* Browser chrome tokens (mirror BROWSER_TOKENS in src/units-core/constants/theme.js) */
+  /* Browser chrome tokens (BROWSER_TOKENS in src/units-core/constants/theme.js
+     reads these). Dark is the default; [data-theme="light"] overrides below. */
+  --wrd-page:         #0a0c10;
   --wrd-bg:           #0f1115;
   --wrd-surface:      #151922;
   --wrd-surface2:     #1c2230;
@@ -23,6 +25,89 @@
   --wrd-ok:           #72d6a8;
   --wrd-nato:         #7fb4d8;
   --wrd-pact:         #e07a6c;
+  --wrd-shade:        black;
+  --wrd-star:         #ffd166;
+  --wrd-danger:       #ee5555;
+  --wrd-rule-thin:    rgba(120, 160, 210, 0.18);
+  --wrd-scroll:       #2a3040;
+  --wrd-scroll-hover: #3a4050;
+
+  /* Stat tier colors (TEAL/GREEN/ORANGE/RED in src/units-core/format/tiers.js) */
+  --wrd-tier-teal:    #2dd4bf;
+  --wrd-tier-green:   #4ade80;
+  --wrd-tier-orange:  #e8a852;
+  --wrd-tier-red:     #f87171;
+
+  /* Unit card palettes (V2_THEMES): signal = PACT, tactical = NATO */
+  --v2s-bg:           #130608;
+  --v2s-paper:        rgba(255,255,255,0.02);
+  --v2s-ink:          #f0e6e6;
+  --v2s-dim:          #7d6a6a;
+  --v2s-rule:         #241c1e;
+  --v2s-rule-strong:  #3d2e32;
+  --v2s-accent:       #ff3d48;
+  --v2s-blueprint:    #ff8a6b;
+  --v2s-ok:           #e8a852;
+
+  --v2t-bg:           #080e18;
+  --v2t-paper:        rgba(255,255,255,0.02);
+  --v2t-ink:          #d8e8f8;
+  --v2t-dim:          #5a7090;
+  --v2t-rule:         #101e30;
+  --v2t-rule-strong:  #1e3450;
+  --v2t-accent:       #4d9fff;
+  --v2t-blueprint:    #7fd4ff;
+  --v2t-ok:           #72d6a8;
+
+}
+
+:root[data-theme="light"] {
+  --wrd-page:         #e2e5ea;
+  --wrd-bg:           #eceef2;
+  --wrd-surface:      #f7f8fa;
+  --wrd-surface2:     #e3e7ed;
+  --wrd-rule:         #d3d8e0;
+  --wrd-rule-strong:  #b5bdca;
+  --wrd-ink:          #1a1f28;
+  --wrd-dim:          #596273;
+  --wrd-dimmer:       #8a93a3;
+  --wrd-accent:       #b0680c;
+  --wrd-accent-2:     #2e6aa3;
+  --wrd-ok:           #1b8a5f;
+  --wrd-nato:         #2e6aa3;
+  --wrd-pact:         #bf4436;
+  --wrd-shade:        #5e6878;
+  --wrd-star:         #c98f00;
+  --wrd-danger:       #d12f2f;
+  --wrd-rule-thin:    rgba(50, 80, 120, 0.2);
+  --wrd-scroll:       #c3c9d3;
+  --wrd-scroll-hover: #a8b0bd;
+
+  --wrd-tier-teal:    #0d9488;
+  --wrd-tier-green:   #17963f;
+  --wrd-tier-orange:  #b8720c;
+  --wrd-tier-red:     #d63a3a;
+
+  --v2s-bg:           #fbf5f5;
+  --v2s-paper:        rgba(0,0,0,0.025);
+  --v2s-ink:          #2b1719;
+  --v2s-dim:          #87696b;
+  --v2s-rule:         #ecdfe0;
+  --v2s-rule-strong:  #d8c3c5;
+  --v2s-accent:       #d1232e;
+  --v2s-blueprint:    #c4502f;
+  --v2s-ok:           #b0680c;
+
+  --v2t-bg:           #f4f7fc;
+  --v2t-paper:        rgba(0,0,0,0.025);
+  --v2t-ink:          #122238;
+  --v2t-dim:          #5a7090;
+  --v2t-rule:         #dce5f0;
+  --v2t-rule-strong:  #c0cfe3;
+  --v2t-accent:       #1d6bd6;
+  --v2t-blueprint:    #1685b5;
+  --v2t-ok:           #1b8a5f;
+
 }
 
 html, body {
@@ -30,7 +115,7 @@ html, body {
   padding: 0;
   height: 100%;
   width: 100%;
-  background: #0a0c10;
+  background: var(--wrd-page);
   overflow: hidden;
 }
 
@@ -64,8 +149,8 @@ html, body {
 
 ::-webkit-scrollbar         { width: 8px; height: 8px; }
 ::-webkit-scrollbar-track   { background: transparent; }
-::-webkit-scrollbar-thumb   { background: #2a3040; border-radius: 4px; }
-::-webkit-scrollbar-thumb:hover { background: #3a4050; }
+::-webkit-scrollbar-thumb   { background: var(--wrd-scroll); border-radius: 4px; }
+::-webkit-scrollbar-thumb:hover { background: var(--wrd-scroll-hover); }
 
 /* Cards drop the trailing border on the last DotRow of each section. */
 .sr > .dr:last-child { border-bottom: none !important; }

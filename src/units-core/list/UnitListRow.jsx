@@ -60,7 +60,7 @@ export const UnitListRow = React.memo(function UnitListRow({
           fontSize: 11.5,
           color: t.ink, cursor: 'pointer',
         }}>
-        <span style={{ fontSize: 9.5, letterSpacing: deckMode ? 0 : '0.12em', color: packsFull ? '#e55' : active ? sideColor : t.dimmer, fontWeight: 500, fontVariantNumeric: 'tabular-nums' }}>
+        <span style={{ fontSize: 9.5, letterSpacing: deckMode ? 0 : '0.12em', color: packsFull ? t.danger : active ? sideColor : t.dimmer, fontWeight: 500, fontVariantNumeric: 'tabular-nums' }}>
           {deckMode ? `${packCount}/${u.maxPacks ?? '?'}` : u.tab}
         </span>
         <span style={{ whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
@@ -134,7 +134,7 @@ function TransportRow({ tr, active, compact, onSelect, parentId, packCount = nul
         outline: active ? `1px solid color-mix(in srgb, ${color} 35%, transparent)` : 'none',
         outlineOffset: -1,
       }}>
-      <span style={{ fontSize: 8.5, letterSpacing: deckMode ? 0 : '0.1em', color: packsFull ? '#e55' : active ? color : t.dimmer, fontWeight: active ? 700 : 500, fontVariantNumeric: 'tabular-nums' }}>
+      <span style={{ fontSize: 8.5, letterSpacing: deckMode ? 0 : '0.1em', color: packsFull ? t.danger : active ? color : t.dimmer, fontWeight: active ? 700 : 500, fontVariantNumeric: 'tabular-nums' }}>
         {deckMode ? `${packCount}/${tr.maxPacks ?? '?'}` : tr.tab}
       </span>
       <span style={{ whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', color: active ? color : t.ink, fontWeight: active ? 600 : 400 }}>

@@ -78,7 +78,7 @@ export function WeaponBlock({ w, vet, s, sharedTurrets, weaponIdx, onCapture }) 
     <div data-weapon-idx={weaponIdx} style={{ margin: '10px 0 12px', border: `1px solid ${s.rule}`, background: s.paper }}>
       <div style={{
         padding: '8px 12px', borderBottom: `1px solid ${s.rule}`,
-        background: 'rgba(255,255,255,0.02)',
+        background: s.paper,
       }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', gap: 8 }}>
           <div style={{

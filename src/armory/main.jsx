@@ -3,6 +3,7 @@ import ReactDOM from 'react-dom/client';
 import '../index.css';
 import './layout.css';
 import '@units-core/zoom/zoomStore.js';
+import '@units-core/theme/themeStore.js';
 import { loadData, readUnitFromUrl, BROWSER_TOKENS, BMono } from '@units-core';
 import { BrowserD } from './BrowserD.jsx';
 

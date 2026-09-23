@@ -29,3 +29,7 @@ export { VET_TIERS, VET_TOOLTIPS } from './constants/veterancy.js';
 
 export { ZoomControls } from './zoom/ZoomControls.jsx';
 export { getZoom, setZoom, ZOOM_PRESETS } from './zoom/zoomStore.js';
+export { UiControls } from './zoom/UiControls.jsx';
+
+export { ThemeToggle } from './theme/ThemeToggle.jsx';
+export { getTheme, setTheme, THEMES } from './theme/themeStore.js';

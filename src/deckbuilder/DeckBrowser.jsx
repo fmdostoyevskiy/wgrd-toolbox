@@ -1,6 +1,6 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import {
-  BROWSER_TOKENS, BMono, ZoomControls,
+  BROWSER_TOKENS, BMono, UiControls,
   NATION_FLAG_MAP, COALITION_FLAG_MAP,
   TABS,
   UnitList, V2Card, sideOf, SPEC_VET_BONUS, FlagImg,
@@ -365,7 +365,7 @@ export function DeckBrowser({ roster, units, deckState }) {
           <a href={BASE} style={{ fontSize: 13, letterSpacing: '0.24em', fontWeight: 600, flexShrink: 0, textDecoration: 'none', color: 'inherit' }}>
             DECK<span style={{ color: t.accent, marginLeft: 4 }}>BUILDER</span>
           </a>
-          <ZoomControls style={{ marginLeft: -6 }} />
+          <UiControls style={{ marginLeft: -6 }} />
           <div style={{ width: 1, alignSelf: 'stretch', background: t.rule, flexShrink: 0, margin: '4px 0' }} />
           <span style={{ fontSize: 10, color: t.dimmer, letterSpacing: '0.1em' }}>
             {config.choice}
@@ -488,7 +488,7 @@ export function DeckBrowser({ roster, units, deckState }) {
                   <div style={{
                     display: 'flex', alignItems: 'stretch', justifyContent: 'flex-end',
                     borderBottom: `1px solid ${t.rule}`,
-                    background: `color-mix(in srgb, ${t.surface} 80%, black)`,
+                    background: `color-mix(in srgb, ${t.surface} 80%, ${t.shade})`,
                     flexShrink: 0,
                   }}>
                     <TagDropdown
@@ -622,7 +622,7 @@ function DeckCardSlot({ unit, cardUnit, avail, vet, onVetAdd, specForCard, tabSl
       {tabFull && (
         <div style={{
           padding: '4px 10px', textAlign: 'center',
-          fontSize: 10, color: '#e55', letterSpacing: '0.12em',
+          fontSize: 10, color: t.danger, letterSpacing: '0.12em',
           borderTop: `1px solid ${t.rule}`,
         }}>
           {unit.tab} TAB FULL
@@ -632,7 +632,7 @@ function DeckCardSlot({ unit, cardUnit, avail, vet, onVetAdd, specForCard, tabSl
         <button onClick={onTogglePin} style={{
           ...BMono,
           position: 'absolute', top: 8, right: 8, zIndex: 2,
-          background: 'rgba(0,0,0,0.4)', color: t.dim,
+          background: `color-mix(in srgb, ${t.bg} 60%, transparent)`, color: t.dim,
           border: `1px solid ${t.rule}`,
           padding: '2px 6px', fontSize: 10, letterSpacing: '0.1em',
           cursor: 'pointer',
@@ -662,7 +662,7 @@ function DeckListRow({ card, units, onRemove, onSelect }) {
         <span style={{ display: 'inline-flex', gap: 0 }}>
           {Array.from({ length: 5 }, (_, i) => (
             <span key={i} style={{
-              color: i <= card.vet ? '#ffd166' : 'rgba(255,209,102,0.18)',
+              color: i <= card.vet ? t.star : `color-mix(in srgb, ${t.star} 18%, transparent)`,
               fontSize: 8, lineHeight: 1, width: 5, textAlign: 'center',
             }}>›</span>
           ))}

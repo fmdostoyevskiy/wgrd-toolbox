@@ -157,7 +157,7 @@ export function CardSlot({ unitId, units, isPinned, onTogglePin, selectedSpec })
         <button onClick={onTogglePin} style={{
           ...BMono,
           position: 'absolute', top: 8, right: 8, zIndex: 2,
-          background: 'rgba(0,0,0,0.4)', color: t.dim,
+          background: `color-mix(in srgb, ${t.bg} 60%, transparent)`, color: t.dim,
           border: `1px solid ${t.rule}`,
           padding: '2px 6px', fontSize: 10, letterSpacing: '0.1em',
           cursor: 'pointer', fontFamily: 'inherit',

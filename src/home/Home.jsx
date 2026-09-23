@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { BROWSER_TOKENS, BMono, ZoomControls } from '@units-core';
+import { BROWSER_TOKENS, BMono, UiControls } from '@units-core';
 import { CATEGORIES } from '../spreadsheet/categories.js';
 import { useWindowWidth } from '../armory/useWindowWidth.js';
 
@@ -73,7 +73,7 @@ export function Home() {
               <div style={{ fontSize: isSmall ? 36 : 56, fontWeight: 600, lineHeight: 1, letterSpacing: '0.04em' }}>
                 WRD <span style={{ color: t.accent2 }}>/</span> TOOLS
               </div>
-              <ZoomControls />
+              <UiControls />
             </div>
             <div style={{ fontSize: 13, letterSpacing: '0.22em', color: t.dim }}>
               WARGAME : RED DRAGON — OPERATOR TOOLBOX

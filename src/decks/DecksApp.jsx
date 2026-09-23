@@ -1,6 +1,6 @@
 import React, { useMemo, useCallback, useState } from 'react';
 import {
-  BROWSER_TOKENS, BMono, ZoomControls,
+  BROWSER_TOKENS, BMono, UiControls,
   COALITION_CODE_MAP, COALITION_NATIONS, COALITION_FLAG_MAP,
   ALL_NATIONS, PACT_NATIONS, NATION_FLAG_MAP, sideOf,
   SPECS,
@@ -85,7 +85,7 @@ function useToggle() {
   return { selected, toggle, solo };
 }
 
-const RULE_THIN = 'rgba(120, 160, 210, 0.18)';
+const RULE_THIN = 'var(--wrd-rule-thin)';
 
 function deckFlag(nation) {
   if (NATION_FLAG_MAP[nation]) return NATION_FLAG_MAP[nation];
@@ -146,7 +146,7 @@ export function DecksApp({ data }) {
               <span style={{ color: t.accent2 }}>·</span>
               <span style={{ fontWeight: 700, letterSpacing: '0.12em' }}>DECKS</span>
             </a>
-            <ZoomControls />
+            <UiControls />
           </div>
           <div style={{ fontSize: 11, letterSpacing: '0.18em', color: t.dim }}>
             // COMMUNITY ROSTER

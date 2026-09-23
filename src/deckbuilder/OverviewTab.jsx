@@ -29,11 +29,12 @@ const TAB_FULL_NAMES = {
 };
 
 function VetChevrons({ vet }) {
+  const t = BROWSER_TOKENS;
   return (
     <span style={{ display: 'inline-flex', gap: 0 }}>
       {Array.from({ length: 5 }, (_, i) => (
         <span key={i} style={{
-          color: i <= vet ? '#ffd166' : 'rgba(255,209,102,0.18)',
+          color: i <= vet ? t.star : `color-mix(in srgb, ${t.star} 18%, transparent)`,
           fontSize: 8, lineHeight: 1, width: 5,
           textAlign: 'center',
         }}>›</span>

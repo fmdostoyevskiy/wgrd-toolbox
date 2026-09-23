@@ -10,10 +10,10 @@
   --fg-low: var(--wrd-dimmer);
   --mono:   var(--wrd-mono);
   /* Functional tier colors — stat-card palette */
-  --red:   #f87171;
-  --green: #4ade80;
-  --amber: #e8a852;
-  --teal:  #2dd4bf;
+  --red:   var(--wrd-tier-red);
+  --green: var(--wrd-tier-green);
+  --amber: var(--wrd-tier-orange);
+  --teal:  var(--wrd-tier-teal);
   /* Interactive selection highlight */
   --blue:  #5a9eff;
 }

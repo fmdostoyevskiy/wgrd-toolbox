@@ -3,7 +3,7 @@ import {
   GROUND_OPTICS, STEALTH, STEALTH_AIR, COVER, AIR_OPTICS,
   calcRange, arcColor, heatBg, HEAT_LEGEND, fmt0,
 } from './optics-core.js';
-import { ZoomControls } from '@units-core';
+import { UiControls } from '@units-core';
 
 const BASE = import.meta.env.BASE_URL;
 
@@ -38,7 +38,7 @@ function Topbar({ mode, setMode, view, setView }) {
       <a href={BASE} className="brand" style={{ marginRight: 28 }}>
         OPTICS<span className="slash"> / </span><span className="sub">WRD</span>
       </a>
-      <ZoomControls style={{ marginLeft: -18, marginRight: 28 }} />
+      <UiControls style={{ marginLeft: -18, marginRight: 28 }} />
       <div className="tabs" style={{ borderRight: '1px solid var(--line)', paddingRight: 24, marginRight: 24 }}>
         <div className={`tab ${mode === 'ground' ? 'active' : ''}`} onClick={() => setMode('ground')}>Ground</div>
         <div className={`tab ${mode === 'air' ? 'active' : ''}`} onClick={() => setMode('air')}>Air</div>
