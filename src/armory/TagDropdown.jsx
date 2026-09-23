@@ -1,6 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import ReactDOM from 'react-dom';
 import { BROWSER_TOKENS, BMono } from '@units-core';
+import { FilterCell } from './FilterCell.jsx';
 
 function TagColumn({ tags, selected, onToggle, t }) {
   return (
@@ -30,7 +31,7 @@ function TagColumn({ tags, selected, onToggle, t }) {
   );
 }
 
-export const TagDropdown = React.memo(function TagDropdown({ weaponTags, unitTags, infantryTags = [], selected, onToggle, tagMode, onTagMode }) {
+export const TagDropdown = React.memo(function TagDropdown({ weaponTags, unitTags, infantryTags = [], selected, onToggle, tagMode, onTagMode, stacked = false }) {
   const t = BROWSER_TOKENS;
   const [open, setOpen] = useState(false);
   const [btnRect, setBtnRect] = useState(null);
@@ -53,7 +54,6 @@ export const TagDropdown = React.memo(function TagDropdown({ weaponTags, unitTag
   };
 
   const active = selected.length > 0;
-  const label  = active ? `TAG: ${selected.length}` : 'TAG: ALL';
 
   const panel = open && btnRect && ReactDOM.createPortal(
     <div ref={panelRef} style={{
@@ -105,23 +105,10 @@ export const TagDropdown = React.memo(function TagDropdown({ weaponTags, unitTag
   );
 
   return (
-    <div style={{ alignSelf: 'stretch', display: 'flex', alignItems: 'stretch' }}>
-      <button ref={btnRef} onClick={handleToggle} style={{
-        ...BMono,
-        background: 'transparent',
-        color: active ? t.accent : t.dim,
-        border: 'none',
-        borderLeft: `1px solid ${t.rule}`,
-        padding: '0 10px',
-        fontSize: 10.5,
-        letterSpacing: '0.14em',
-        cursor: 'pointer',
-        outline: 'none',
-        alignSelf: 'stretch',
-        borderBottom: `2px solid ${active ? t.accent : 'transparent'}`,
-        borderTop: '2px solid transparent',
-        whiteSpace: 'nowrap',
-      }}>{label}</button>
+    <div style={{ display: 'flex', alignItems: 'stretch', minWidth: 0 }}>
+      <FilterCell ref={btnRef} onClick={handleToggle} stacked={stacked}
+        label="TAG" value={active ? `${selected.length} ${tagMode}` : 'ALL'} active={active}
+        title={active ? selected.join(', ') : undefined} />
       {panel}
     </div>
   );

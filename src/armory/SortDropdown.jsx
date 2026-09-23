@@ -2,6 +2,7 @@ import React, {useState, useRef, useEffect} from 'react';
 import ReactDOM from 'react-dom';
 import {BROWSER_TOKENS, BMono} from '@units-core';
 import {SORT_OPTIONS} from '@units-core/filter/sort';
+import {FilterCell} from './FilterCell.jsx';
 
 function SortColumn({ selected, onToggle, t }) {
   return (
@@ -52,7 +53,6 @@ export const SortDropdown = React.memo(function SortDropdown({sort, isAscending,
     onIsAscending(!isAscending);
   }
 
-  const label = `SORT: ${sort}`;
   const panel = open && btnRect && ReactDOM.createPortal(
     <div ref={panelRef} style={{
       position: 'fixed',
@@ -85,24 +85,9 @@ export const SortDropdown = React.memo(function SortDropdown({sort, isAscending,
   );
 
   return (
-    <div style={{alignSelf: 'stretch', display: 'flex', alignItems: 'stretch', flex: '0 0 88px', minWidth: 88}}>
-      <button ref={btnRef} onClick={handleToggle} style={{
-        ...BMono,
-        background: 'transparent',
-        color: t.dim,
-        border: 'none',
-        borderLeft: `1px solid ${t.rule}`,
-        padding: '0 10px',
-        width: '100%',
-        fontSize: 10.5,
-        letterSpacing: '0.14em',
-        cursor: 'pointer',
-        outline: 'none',
-        alignSelf: 'stretch',
-        borderBottom: `2px solid ${'transparent'}`,
-        borderTop: '2px solid transparent',
-        whiteSpace: 'nowrap',
-      }}>{label}</button>
+    <div style={{ display: 'flex', alignItems: 'stretch', minWidth: 0 }}>
+      <FilterCell ref={btnRef} onClick={handleToggle} stacked
+        label="SORT" value={`${sort} ${isAscending ? '↑' : '↓'}`} active={false} />
       {panel}
     </div>
   );

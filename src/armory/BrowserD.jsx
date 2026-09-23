@@ -12,6 +12,7 @@ import { Seg } from './Seg.jsx';
 import { TagDropdown } from './TagDropdown.jsx';
 import { CardPane } from './CardPane.jsx';
 import { SortDropdown } from "./SortDropdown.jsx";
+import { FilterCell } from "./FilterCell.jsx";
 
 const BASE = import.meta.env.BASE_URL;
 
@@ -328,16 +329,18 @@ function ListPane({
       {listOpen && (
         <>
           <div style={{
-            display: 'flex', alignItems: 'stretch',
+            display: 'grid', gridTemplateColumns: 'repeat(4, minmax(0, 1fr))',
             borderBottom: `1px solid ${t.rule}`,
             background: `color-mix(in srgb, ${t.surface} 80%, ${t.shade})`,
             flexShrink: 0,
           }}>
-            <FilterSelect value={spec[0] ?? ''} active={spec.length > 0} onChange={v => onSpec(v || null)}
-              items={[['', 'SPEC: ALL'], ...SPECS.map(s => [s, s.toUpperCase()])]} />
-            <FilterSelect value={era[0] ?? ''}  active={era.length > 0}  onChange={v => onEra(v || null)}
-              items={[['', 'ERA: ALL'], ['PRE-85', 'PRE-85'], ['PRE-80', 'PRE-80']]} />
-            <TagDropdown weaponTags={weaponTags} unitTags={unitTags} infantryTags={infantryTags} selected={tag} onToggle={onTag} tagMode={tagMode} onTagMode={onTagMode} />
+            <FilterCell first stacked label="SPEC" value={spec[0]?.toUpperCase() ?? 'ALL'} active={spec.length > 0}
+              select={{ value: spec[0] ?? '', onChange: v => onSpec(v || null),
+                items: [['', 'ALL'], ...SPECS.map(s => [s, s.toUpperCase()])] }} />
+            <FilterCell stacked label="ERA" value={era[0] ?? 'ALL'} active={era.length > 0}
+              select={{ value: era[0] ?? '', onChange: v => onEra(v || null),
+                items: [['', 'ALL'], ['PRE-85', 'PRE-85'], ['PRE-80', 'PRE-80']] }} />
+            <TagDropdown stacked weaponTags={weaponTags} unitTags={unitTags} infantryTags={infantryTags} selected={tag} onToggle={onTag} tagMode={tagMode} onTagMode={onTagMode} />
             <SortDropdown sort={sort} isAscending={isAscending} onIsAscending={onIsAscending} onSort={onSort} />
           </div>
 
@@ -362,35 +365,5 @@ function ListPane({
         </>
       )}
     </div>
-  );
-}
-
-const FILTER_SELECT_BASE = {
-  ...BMono,
-  flex: 1,
-  background: 'transparent',
-  border: 'none',
-  padding: '4px 6px',
-  fontSize: 10,
-  letterSpacing: '0.12em',
-  cursor: 'pointer',
-  outline: 'none',
-};
-
-function FilterSelect({ value, active, onChange, items }) {
-  const t = BROWSER_TOKENS;
-  return (
-    <select
-      value={value}
-      onChange={e => onChange(e.target.value)}
-      style={{
-        ...FILTER_SELECT_BASE,
-        color: active ? t.accent : t.dim,
-        borderRight: `1px solid ${t.rule}`,
-        borderBottom: `2px solid ${active ? t.accent : 'transparent'}`,
-        borderTop: '2px solid transparent',
-      }}>
-      {items.map(([v, label]) => <option key={label} value={v}>{label}</option>)}
-    </select>
   );
 }
