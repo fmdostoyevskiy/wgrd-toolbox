@@ -42,12 +42,38 @@ function rangeRows(w, s) {
   }
 }
 
-function vet_accuracy(base, level) {
-  const M = { RKI: 1.0, TRN: 1.1, HRD: 1.2, VET: 1.4, ELI: 1.6 }[level];
-  if (M == null) return base;
-  const decimal = base / 100;
-  const result = decimal * (1 + (M - 1) * (1 - decimal * decimal));
-  return Math.ceil(result * 100);
+const TWO_OVER_SQRT_PI = 2 / Math.sqrt(Math.PI);
+
+// erf(x) = 2/sqrt(pi) * e^(-x^2) * sum 2^n x^(2n+1) / (1*3*...*(2n+1)).
+// All terms are positive, so there's no cancellation at large x.
+function erf(x) {
+  if (x < 0) return -erf(-x);
+  if (x > 6) return 1;
+  let term = x, sum = x;
+  for (let n = 1; term > sum * 1e-17; n++) {
+    term *= 2 * x * x / (2 * n + 1);
+    sum += term;
+  }
+  return TWO_OVER_SQRT_PI * Math.exp(-x * x) * sum;
+}
+
+// Newton iteration on erf; y is in [0, 1).
+function erfinv(y) {
+  let x = y < 0.9 ? y : Math.sqrt(-Math.log(1 - y));
+  for (let i = 0; i < 50; i++) {
+    const step = (erf(x) - y) / (TWO_OVER_SQRT_PI * Math.exp(-x * x));
+    x -= step;
+    if (Math.abs(step) < 1e-12) break;
+  }
+  return x;
+}
+
+// Game formula: hit = erf(accMul * erfinv(base) * maxRange / range), shown floored.
+// On the card range = maxRange. Fitted to in-game hit-chance measurements.
+function vet_accuracy(base, accMul) {
+  if (base <= 0) return 0;
+  if (base >= 100) return 100;
+  return Math.floor(100 * erf(accMul * erfinv(base / 100)) + 1e-9);
 }
 
 export function WeaponBlock({ w, vet, s, sharedTurrets, weaponIdx, onCapture }) {
@@ -64,8 +90,8 @@ export function WeaponBlock({ w, vet, s, sharedTurrets, weaponIdx, onCapture }) 
   const heCategory  = isRadarGun ? 'Gun' : w.category;
   const headerTags  = tags.filter(t => !HEADER_TAG_BLACKLIST.has(t));
 
-  const modAcc  = w.acc  != null ? vet_accuracy(w.acc, vet.label) : null;
-  const modStab = w.stab != null ? vet_accuracy(w.stab, vet.label) : null;
+  const modAcc  = w.acc  != null ? vet_accuracy(w.acc, vet.accMul) : null;
+  const modStab = w.stab != null ? vet_accuracy(w.stab, vet.accMul) : null;
   const longRof = isLongRof(w);
 
   const accValue = w.acc != null && (

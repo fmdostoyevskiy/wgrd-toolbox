@@ -72,7 +72,7 @@ function VetSelector({ vetIdx, setVetIdx, avail, s, deckMode, maxPacksReached, h
         })}
       </div>
       <span style={{ fontSize: 10, color: s.dim, fontVariantNumeric: 'tabular-nums', minWidth: 42, textAlign: 'right' }}>
-        ×{VET_TIERS[displayIdx].accMul.toFixed(1)}
+        ×{VET_TIERS[displayIdx].accMul.toFixed(2)}
       </span>
     </div>
   );
