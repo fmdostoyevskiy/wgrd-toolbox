@@ -23,6 +23,8 @@ export default defineConfig({
         apdamage:    path.resolve(__dirname, 'apdamage/index.html'),
         decks:       path.resolve(__dirname, 'decks/index.html'),
         optics:      path.resolve(__dirname, 'optics/index.html'),
+        accuracy:    path.resolve(__dirname, 'accuracy/index.html'),
+        combat:      path.resolve(__dirname, 'combat/index.html'),
       },
     },
   },

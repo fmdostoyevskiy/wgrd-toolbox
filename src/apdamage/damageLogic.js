@@ -1,29 +1,4 @@
-// HEAT damage: AP and armor only
-export function calcHeatDamage(AP, armor) {
-  if (armor === 0) return AP * 2;
-  if (armor === 1) return AP;
-  if (armor >= AP) return 1;
-  const diff = AP - armor;
-  const base = diff >= 10 ? diff - 4 : diff * 0.5 + 1; // reaches 6 at diff=10, then +1 per point
-  return armor >= 21 && diff > 5 ? base + 0.5 : base;
-}
-
-// KE damage: AP, armor, max range and distance
-export function calcKeDamage(AP, armor, maxRange, distance) {
-  const bonus = Math.floor((maxRange - distance) / 175);
-  const effectiveAP = Math.min(AP + bonus, 30);
-  let damage;
-  if (armor === 0) {
-    damage = effectiveAP * 2;
-  } else if (armor === 1) {
-    damage = effectiveAP;
-  } else if (armor > effectiveAP) {
-    damage = 0;
-  } else {
-    damage = 1 + (effectiveAP - armor) * 0.5;
-  }
-  return damage;
-}
+export { calcHeatDamage, calcKeDamage } from '@units-core/combat/damage.js';
 
 // Map a damage value to a "shots to kill 10HP" tier 0..8
 function damageTier(dmg) {

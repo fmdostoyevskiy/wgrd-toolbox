@@ -39,3 +39,21 @@ export function heMissileTooltip(val) {
   if (val >= 4) return 'Will two-shot most helos.';
   return 'Will require 4 hits to kill a plane.';
 }
+
+// Radar autocannons (SPAAGs, ship CIWS) are categorised as missiles in the game
+// data; guided radar missiles carry GUID, SA or FnF on top of RAD.
+export function isRadarGun(w) {
+  const tags = w.tag ?? [];
+  return w.category === 'Missile' && tags.includes('RAD')
+    && !tags.includes('GUID') && !tags.includes('SA') && !tags.includes('FnF');
+}
+
+// The category HE power is judged by: radar guns count as guns.
+export function heCategory(w) {
+  return isRadarGun(w) ? 'Gun' : w.category;
+}
+
+// A missile with HE power 1 has no HE warhead (and can't engage infantry).
+export function hasHE(w) {
+  return w.dmg > 0 && !(heCategory(w) === 'Missile' && w.dmg === 1);
+}

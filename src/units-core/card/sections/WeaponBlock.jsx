@@ -3,80 +3,63 @@ import { DotRow } from '../primitives/DotRow.jsx';
 import { GREEN, RED, accuracyColor, apColor, heColor, missileSpeedColor, suppressionColor } from '../../format/tiers.js';
 import {
   rofString, isLongRof, formatRearm, formatSupply, heMissileTooltip,
+  heCategory as weaponHeCategory, hasHE,
 } from '../../format/weapon.js';
+import { vetAccuracy } from '../../format/accuracy.js';
 import { useHide } from '../HideContext.js';
 import { useExpertMode } from '../ExpertModeContext.js';
 import { CaptureButton } from '../primitives/CaptureButton.jsx';
 
 const HEADER_TAG_BLACKLIST = new Set(['KE', 'HEAT', 'STAT', 'AUTO']);
 
-function rangeRows(w, s) {
+// activeRange is the label of the range row to mark (e.g. 'Range G AP'); when
+// it's set, the other range values are greyed out. onRange makes the rows
+// clickable.
+function rangeRows(w, s, activeRange, onRange) {
+  const row = (label, v) => (
+    <DotRow key={label} label={label} value={v} active={label === activeRange}
+      accent={activeRange && label !== activeRange ? s.dim : undefined}
+      onClick={onRange && (() => onRange(label))} clickTitle={onRange && `Use ${label.toLowerCase()}`}
+      s={s} dense />
+  );
   const rng = (label, max) => {
     if (max == null || max <= 0) return null;
-    const v = w.minRange ? `${w.minRange} – ${max} m` : `${max} m`;
-    return <DotRow key={label} label={label} value={v} s={s} dense />;
+    return row(label, w.minRange ? `${w.minRange} – ${max} m` : `${max} m`);
   };
 
   switch (w.category) {
     case 'Gun':
       return [
         w.rng_gAP != null
-          ? <DotRow key="rg-ap" label="Range G AP" value={`${w.rng_gAP} m`} s={s} dense />
-          : (w.rng_g > 0 && <DotRow key="rg" label="Range G" value={`${w.rng_g} m`} s={s} dense />),
-        w.rng_gHE != null && <DotRow key="rg-he" label="Range G HE" value={`${w.rng_gHE} m`} s={s} dense />,
-        w.rng_h > 0 && <DotRow key="rh" label="Range H" value={`${w.rng_h} m`} s={s} dense />,
-        w.rng_a > 0 && <DotRow key="ra" label="Range A" value={`${w.rng_a} m`} s={s} dense />,
+          ? row('Range G AP', `${w.rng_gAP} m`)
+          : (w.rng_g > 0 && row('Range G', `${w.rng_g} m`)),
+        w.rng_gHE != null && row('Range G HE', `${w.rng_gHE} m`),
+        w.rng_h > 0 && row('Range H', `${w.rng_h} m`),
+        w.rng_a > 0 && row('Range A', `${w.rng_a} m`),
       ];
     case 'Missile':
       return [rng('Range G', w.rng_g), rng('Range H', w.rng_h), rng('Range A', w.rng_a)];
     case 'Artillery':
-      return [
-        <DotRow key="ra" label="Range" value={w.minRange ? `${w.minRange} – ${w.maxRange} m` : `${w.maxRange} m`} s={s} dense />
-      ];
+      return [row('Range', w.minRange ? `${w.minRange} – ${w.maxRange} m` : `${w.maxRange} m`)];
     case 'Bomb':
-      return w.rng_g != null
-        ? [<DotRow key="rg" label="Range G" value={`${w.rng_g} m`} s={s} dense />]
-        : [];
+      return w.rng_g != null ? [row('Range G', `${w.rng_g} m`)] : [];
     default:
       return [];
   }
 }
 
-const TWO_OVER_SQRT_PI = 2 / Math.sqrt(Math.PI);
-
-// erf(x) = 2/sqrt(pi) * e^(-x^2) * sum 2^n x^(2n+1) / (1*3*...*(2n+1)).
-// All terms are positive, so there's no cancellation at large x.
-function erf(x) {
-  if (x < 0) return -erf(-x);
-  if (x > 6) return 1;
-  let term = x, sum = x;
-  for (let n = 1; term > sum * 1e-17; n++) {
-    term *= 2 * x * x / (2 * n + 1);
-    sum += term;
-  }
-  return TWO_OVER_SQRT_PI * Math.exp(-x * x) * sum;
-}
-
-// Newton iteration on erf; y is in [0, 1).
-function erfinv(y) {
-  let x = y < 0.9 ? y : Math.sqrt(-Math.log(1 - y));
-  for (let i = 0; i < 50; i++) {
-    const step = (erf(x) - y) / (TWO_OVER_SQRT_PI * Math.exp(-x * x));
-    x -= step;
-    if (Math.abs(step) < 1e-12) break;
-  }
-  return x;
-}
-
-// Game formula: hit = erf(accMul * erfinv(base) * maxRange / range), shown floored.
-// On the card range = maxRange. Fitted to in-game hit-chance measurements.
-function vet_accuracy(base, accMul) {
-  if (base <= 0) return 0;
-  if (base >= 100) return 100;
-  return Math.floor(100 * erf(accMul * erfinv(base / 100)) + 1e-9);
-}
-
-export function WeaponBlock({ w, vet, s, sharedTurrets, weaponIdx, onCapture }) {
+// activeRange, onRange, accMode and onAccMode are for tools that compute hit
+// chance: they mark the range row and the accuracy/stabilizer row in use, and
+// make those rows clickable. activeDamage ('AP' or 'HE') marks the damage and aim time rows
+// in use and greys the others. effectiveAp replaces the AP value (KE AP at the
+// current distance), with apNote as its tooltip. vetAccuracyOnly drops the
+// base value from the accuracy and stabilizer rows. With onToggle, the
+// header collapses the rows (open = false).
+export function WeaponBlock({
+  w, vet, s, sharedTurrets, weaponIdx, onCapture,
+  activeRange, onRange, accMode, onAccMode, activeDamage, effectiveAp, apNote, vetAccuracyOnly,
+  open = true, onToggle,
+}) {
   const hide = useHide();
   const { expert } = useExpertMode();
   const tags    = w.tag ?? [];
@@ -84,32 +67,45 @@ export function WeaponBlock({ w, vet, s, sharedTurrets, weaponIdx, onCapture }) 
   const hasHEAT = tags.includes('HEAT');
   const hasAuto = tags.includes('AUTO');
   const apInlineTag = hasKE ? ' KE' : hasHEAT ? ' HEAT' : '';
-  // Radar autocannons (SPAAGs, ship CIWS) are categorised as missiles in the game data.
-  const isRadarGun  = w.category === 'Missile' && tags.includes('RAD')
-    && !tags.includes('GUID') && !tags.includes('FnF');
-  const heCategory  = isRadarGun ? 'Gun' : w.category;
+  const heCategory  = weaponHeCategory(w);
   const headerTags  = tags.filter(t => !HEADER_TAG_BLACKLIST.has(t));
 
-  const modAcc  = w.acc  != null ? vet_accuracy(w.acc, vet.accMul) : null;
-  const modStab = w.stab != null ? vet_accuracy(w.stab, vet.accMul) : null;
+  const modAcc  = w.acc  != null ? vetAccuracy(w.acc, vet.accMul) : null;
+  const modStab = w.stab != null ? vetAccuracy(w.stab, vet.accMul) : null;
   const longRof = isLongRof(w);
 
-  const accValue = w.acc != null && (
+  const accValue = w.acc != null && (vetAccuracyOnly ? `${modAcc}%` : (
     <>{w.acc}%{'  →  '}<span title="Accuracy with the veterancy bonus applied." style={{ cursor: 'help' }}>{modAcc}%</span></>
-  );
-  const stabValue = w.stab != null && w.stab !== 0 && (
+  ));
+  const stabValue = w.stab != null && w.stab !== 0 && (vetAccuracyOnly ? `${modStab}%` : (
     <>{w.stab}%{'  →  '}<span title="Stabilizer with the veterancy bonus applied." style={{ cursor: 'help' }}>{modStab}%</span></>
-  );
+  ));
+
+  const accRow = (mode, title) => onAccMode
+    ? { active: accMode === mode, onClick: () => onAccMode(mode), clickTitle: title }
+    : {};
+  const dmgRow = (kind, accent) => activeDamage
+    ? { active: activeDamage === kind, accent: activeDamage === kind ? accent : s.dim }
+    : { accent };
 
   const rearm = w.rearmTime  != null ? formatRearm(w)  : null;
   const supply = (w.supplyPerShot != null && w.supplyPerShot > 0) ? formatSupply(w) : null;
 
   return (
     <div data-weapon-idx={weaponIdx} style={{ margin: '10px 0 12px', border: `1px solid ${s.rule}`, background: s.paper }}>
-      <div style={{
-        padding: '8px 12px', borderBottom: `1px solid ${s.rule}`,
-        background: s.paper,
-      }}>
+      <div
+        {...(onToggle && {
+          role: 'button', tabIndex: 0, 'aria-expanded': open,
+          title: open ? 'Hide the weapon details' : 'Show the weapon details',
+          onClick: e => { if (!e.target.closest('button')) onToggle(); },
+          onKeyDown: e => {
+            if (e.target === e.currentTarget && (e.key === 'Enter' || e.key === ' ')) { e.preventDefault(); onToggle(); }
+          },
+        })}
+        style={{
+          padding: '8px 12px', borderBottom: open ? `1px solid ${s.rule}` : 'none',
+          background: s.paper, cursor: onToggle ? 'pointer' : undefined,
+        }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', gap: 8 }}>
           <div style={{
             fontSize: 13.5, fontWeight: 600, minWidth: 0,
@@ -128,25 +124,33 @@ export function WeaponBlock({ w, vet, s, sharedTurrets, weaponIdx, onCapture }) 
           <div style={{ fontSize: 11, color: s.dim }}>
             {w.caliber != null ? `${w.caliber} × ${w.ammo}` : `× ${w.ammo}`}
           </div>
-          <CaptureButton onCapture={onCapture} s={s} />
+          <span style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+            <CaptureButton onCapture={onCapture} s={s} />
+            {onToggle && <span style={{ fontSize: 11, letterSpacing: '0.14em', color: s.dim }}>{open ? '▾ HIDE' : '▸ DETAILS'}</span>}
+          </span>
         </div>
       </div>
 
-      <div className="sr" style={{ padding: '6px 12px 8px' }}>
-        {hide.field('weaponRange') && rangeRows(w, s)}
+      {open && <div className="sr" style={{ padding: '6px 12px 8px' }}>
+        {hide.field('weaponRange') && rangeRows(w, s, activeRange, onRange)}
 
         {hide.field('weaponRange') && w.rng_s != null && (
-          <DotRow label="Range S" value={w.minRange ? `${w.minRange} – ${w.rng_s} m` : `${w.rng_s} m`} s={s} dense />
+          <DotRow label="Range S" value={w.minRange ? `${w.minRange} – ${w.rng_s} m` : `${w.rng_s} m`}
+            active={activeRange === 'Range S'}
+            accent={activeRange && activeRange !== 'Range S' ? s.dim : undefined}
+            onClick={onRange && (() => onRange('Range S'))} clickTitle={onRange && 'Use range s'} s={s} dense />
         )}
 
         {hide.field('weaponAccuracy') && accValue && w.category !== 'Artillery' && (
-          <DotRow label="Accuracy" value={accValue} accent={accuracyColor(w.acc)} s={s} dense />
+          <DotRow label="Accuracy" value={accValue} accent={accuracyColor(vetAccuracyOnly ? modAcc : w.acc)}
+            {...accRow('acc', 'Use accuracy (firing while stopped)')} s={s} dense />
         )}
 
         {hide.field('weaponStabilizer') && (w.category === 'Gun' || w.category === 'Missile') && w.stab != null && (
           <DotRow label="Stabilizer"
             value={w.stab === 0 ? '—' : stabValue}
-            accent={w.stab === 0 ? null : accuracyColor(w.stab)}
+            accent={w.stab === 0 ? null : accuracyColor(vetAccuracyOnly ? modStab : w.stab)}
+            {...accRow('stab', 'Use stabilizer (firing on the move)')}
             s={s} dense />
         )}
 
@@ -163,17 +167,18 @@ export function WeaponBlock({ w, vet, s, sharedTurrets, weaponIdx, onCapture }) 
 
         {hide.field('weaponAp') && w.ap != null && w.category !== 'Artillery' && (
           <DotRow label="AP Power" value={(() => {
-            if (!hasKE && !hasHEAT) return `${w.ap}${apInlineTag}`;
+            const ap = effectiveAp ?? w.ap;
+            if (!hasKE && !hasHEAT) return `${ap}${apInlineTag}`;
             const params = new URLSearchParams({ aps: w.ap });
             if (hasKE) params.set('mode', 'KE');
             const href = `${import.meta.env.BASE_URL}apdamage/?${params}`;
-            return <><a href={href} style={{ color: 'inherit', textDecoration: 'underline dotted', textUnderlineOffset: 3 }}>{w.ap}</a>{apInlineTag}</>;
-          })()} accent={apColor(w.ap, hasKE)} s={s} dense />
+            return <><a href={href} style={{ color: 'inherit', textDecoration: 'underline dotted', textUnderlineOffset: 3 }}>{ap}</a>{apInlineTag}</>;
+          })()} tooltip={apNote} {...dmgRow('AP', apColor(effectiveAp ?? w.ap, hasKE))} s={s} dense />
         )}
 
-        {hide.field('weaponHe') && w.dmg > 0 && !(heCategory === 'Missile' && w.dmg === 1) && (
+        {hide.field('weaponHe') && hasHE(w) && (
           <DotRow label="HE Power" value={w.dmg}
-            accent={heColor(w.dmg, heCategory)}
+            {...dmgRow('HE', heColor(w.dmg, heCategory))}
             tooltip={heCategory === 'Missile' ? heMissileTooltip(w.dmg) : null}
             s={s} dense />
         )}
@@ -220,8 +225,8 @@ export function WeaponBlock({ w, vet, s, sharedTurrets, weaponIdx, onCapture }) 
 
         {w.category !== 'Bomb' && (
           <>
-            {hide.field('weaponAimTime') && w.aimTimeAP != null && <DotRow label="Aim Time AP" value={`${w.aimTimeAP} s`} s={s} dense />}
-            {hide.field('weaponAimTime') && w.aimTimeHE != null && <DotRow label="Aim Time HE" value={`${w.aimTimeHE} s`} s={s} dense />}
+            {hide.field('weaponAimTime') && w.aimTimeAP != null && <DotRow label="Aim Time AP" value={`${w.aimTimeAP} s`} {...dmgRow('AP')} s={s} dense />}
+            {hide.field('weaponAimTime') && w.aimTimeHE != null && <DotRow label="Aim Time HE" value={`${w.aimTimeHE} s`} {...dmgRow('HE')} s={s} dense />}
             {hide.field('weaponAimTime') && w.aimTime != null && <DotRow label="Aim Time" value={`${w.aimTime} s`} s={s} dense />}
             {hide.field('weaponRof') && (
               <DotRow
@@ -245,7 +250,7 @@ export function WeaponBlock({ w, vet, s, sharedTurrets, weaponIdx, onCapture }) 
 
         {hide.field('weaponRearm') && rearm && <DotRow label="Rearm Time" value={rearm.value} tooltip={rearm.tooltip} s={s} dense />}
         {hide.field('weaponSupply') && supply && <DotRow label="Supply"     value={supply.value} tooltip={supply.tooltip} s={s} dense />}
-      </div>
+      </div>}
     </div>
   );
 }

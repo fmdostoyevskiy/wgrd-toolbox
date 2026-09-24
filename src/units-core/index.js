@@ -13,6 +13,7 @@ export { FlagImg } from './list/FlagImg.jsx';
 export { V2Card } from './card/V2Card.jsx';
 export { SECTION_IDS, FIELD_IDS, HideContext, makeHide, useHide } from './card/HideContext.js';
 export { ExpertModeContext, useExpertMode } from './card/ExpertModeContext.js';
+export { WeaponBlock } from './card/sections/WeaponBlock.jsx';
 
 export {
   BROWSER_TOKENS, BMono, V2_THEMES,
@@ -26,6 +27,27 @@ export {
 export { SPECS, SPEC_VET_BONUS, SPEC_CODE_MAP } from './constants/specs.js';
 export { TABS } from './constants/tabs.js';
 export { VET_TIERS, VET_TOOLTIPS } from './constants/veterancy.js';
+
+export { erf, erfinv, scaledAccuracy, vetAccuracy } from './format/accuracy.js';
+export { accuracyColor, sizeInfo, ecmColor, TEAL, GREEN, ORANGE, RED } from './format/tiers.js';
+export { isRadarGun, heCategory, hasHE } from './format/weapon.js';
+
+export { MORALE, lowestVet } from './combat/conditions.js';
+export { targetDomain, rangeAgainst, targetModifiers, canEngage } from './combat/targeting.js';
+export { hitChance } from './combat/hit.js';
+export {
+  calcHeatDamage, calcKeDamage, keEffectiveAP, FACINGS, hasArmor, HE_MAX_ARMOR, HE_ARMOR_MUL, isInfantryArms, COVER, coverOf, damagePerHit,
+} from './combat/damage.js';
+export { aimTime, shotTimes } from './combat/fire.js';
+export { damageOutcome, WORST_Q, BEST_Q } from './combat/outcome.js';
+export { canDamage, engagement } from './combat/engagement.js';
+
+export { UnitPicker } from './compare/UnitPicker.jsx';
+export { SeriesChart, DistanceChart, VerticalSlider } from './compare/SeriesChart.jsx';
+export { CompareHeader, LevelMeter, CrewControls, SquarePicker, ArmorPicker, ControlRow, WeaponTabs, CalcSteps } from './compare/controls.jsx';
+export {
+  themeOf, TYPE_LABELS, distanceScale, effectiveWeapon, clampInt, hitColor, hitText,
+} from './compare/helpers.js';
 
 export { ZoomControls } from './zoom/ZoomControls.jsx';
 export { getZoom, setZoom, ZOOM_PRESETS } from './zoom/zoomStore.js';

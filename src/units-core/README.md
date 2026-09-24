@@ -166,3 +166,41 @@ if (!hide.field('mything')) return null;
 ## Sizing notes
 
 `units-core` is sizing-agnostic. The card and list use raw `px` values that look correct at 100% browser zoom. If your app wants a larger UI, apply `zoom: <factor>` (or equivalent) on its root container — see `src/armory/layout.css` for an example. The card itself does not enforce any aspect ratio; if you want one (e.g. the armory's 8.5:10 cap), wrap the card in a sized container.
+
+## Weapon block and accuracy math
+
+`WeaponBlock` (one weapon's card block, as used inside `V2Card`'s armament section) is exported for tools that show a single weapon. Wrap it in `<HideContext.Provider value={makeHide({ fields })}>` to trim rows. Optional props for hit-chance tools:
+
+| prop | notes |
+|---|---|
+| `activeRange` | label of the range row to mark with ▸ (`'Range'`, `'Range G'`, `'Range G AP'`, `'Range G HE'`, `'Range H'`, `'Range A'`, `'Range S'`); the other range values are greyed out |
+| `onRange` | `(label) => void`; makes the range rows clickable |
+| `activeDamage` | `'AP'` or `'HE'`, marks the damage and aim time rows in use and greys the others |
+| `accMode` | `'acc'` or `'stab'`, marks the accuracy or stabilizer row |
+| `onAccMode` | `(mode) => void`; makes the accuracy and stabilizer rows clickable |
+| `vetAccuracyOnly` | show only the veterancy-adjusted accuracy and stabilizer, without the base value |
+| `effectiveAp`, `apNote` | AP value to show instead of `w.ap` (e.g. KE AP at a distance), and its tooltip |
+| `open`, `onToggle` | with `onToggle`, clicking the header shows or hides the rows (`open`, default true) |
+
+`format/accuracy.js` holds the game's accuracy formula, `hit = erf(accMul * erfinv(base) * maxRange / range)`:
+
+- `erf(x)`, `erfinv(y)`
+- `scaledAccuracy(basePct, accMul, rangeMul = 1)` → hit fraction; `rangeMul` is `maxRange / distance`
+- `vetAccuracy(basePct, accMul)` → the floored percentage the card shows at max range
+
+## Combat
+
+`combat/` is the shared engagement model for the accuracy and combat tools. Each step takes a weapon, a target unit and (where it applies) the firing conditions:
+
+- `targeting.js`: `targetDomain(unit)` (GROUND / HELO / AIR / SHIP), `rangeAgainst(w, target)` → `{ range, label }`, `targetModifiers(unit)` → `{ size, ecm }`, `canEngage(w, target)` → `{ ok, reason, range, rangeLabel, domain }`. A weapon can't engage a domain it has no range for, and infantry can't be engaged without HE (`hasHE` in `format/weapon.js`).
+- `hit.js`: `hitChance(w, target, { distance, vetIdx, morale, mode })` → `{ ok, reason, hit, frac, range, rangeLabel, steps }`. `steps` is the per-modifier breakdown.
+- `conditions.js`: `MORALE` multipliers, `lowestVet(unit)`.
+- `damage.js`: `calcKeDamage`, `calcHeatDamage`, `keEffectiveAP` (AP damage per hit against an armor value; also used by the AP damage tool). `FACINGS` (front, side, rear; top armor isn't hit by direct fire), `hasArmor(unit)` (vehicles and ships), `COVER` (open, forest, building: infantry takes ×1, ×0.6, ×0.3 damage) and `coverOf(target, key)` (open for anything but infantry), `damagePerHit(w, target, { facing, cover, distance, range })` → `{ ok, reason, kind: 'KE' | 'HEAT' | 'HE', dmg, ap, armor, cover, armorMul }`. Helicopters, planes and infantry take HE; against armor, weapons with AP use it and weapons without AP can only damage armor up to `HE_MAX_ARMOR` (2), doing `HE_ARMOR_MUL` (×0.6) at exactly 2. `isInfantryArms(w)` (infantry rifle and MG tags) marks weapons that can't damage any armor above 0.
+- `fire.js`: `aimTime(w, kind)`, `shotTimes(w, seconds, kind)` → the times of the shots fired in the first `seconds` (aim time, then the card's RoF, capped at ammo).
+- `outcome.js`: `damageOutcome({ shots, p, dmg, hp })` → binomial damage distribution capped at `hp`: `{ mean, worst, best (10th / 90th percentile), kill, … }`.
+- `engagement.js`: `canDamage(w, target, facing)` (engage + armor check), `engagement(w, target, { ...hitConditions, facing, cover, seconds })` → `{ ok, reason, hit, damage, times, outcome }`.
+
+## Compare UI
+
+`compare/` holds the pieces the accuracy and combat tools share: `UnitPicker` (the selected unit, which turns into a search box with the unit list dropdown when clicked; `beside` puts e.g. the weapon tabs on the same row), `SeriesChart` (0–100% per series along an x axis, with optional dotted low/high lines, that doubles as the control for x; `aside` puts a node such as a `VerticalSlider` beside the plot) and its distance preset `DistanceChart`, `CompareHeader`, `CrewControls` (veterancy and morale gauges, built on `LevelMeter`), `SquarePicker` (a row of small squares, name over a colored value) and `ArmorPicker` (armor squares with pickable facings), `ControlRow`, `WeaponTabs` (`max` caps the tabs, the last one opening a menu of the rest), `CalcSteps` and helpers (`themeOf`, `distanceScale`, `effectiveWeapon`, …). Tools that use them import `@units-core/compare/compare.css` in their `main.jsx`.
+
