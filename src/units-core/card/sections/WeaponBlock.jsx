@@ -52,12 +52,12 @@ function rangeRows(w, s, activeRange, onRange) {
 // chance: they mark the range row and the accuracy/stabilizer row in use, and
 // make those rows clickable. activeDamage ('AP' or 'HE') marks the damage and aim time rows
 // in use and greys the others. effectiveAp replaces the AP value (KE AP at the
-// current distance), with apNote as its tooltip. vetAccuracyOnly drops the
-// base value from the accuracy and stabilizer rows. With onToggle, the
+// current distance), with apNote as its tooltip. baseAccuracyOnly drops the
+// veterancy-adjusted value from the accuracy and stabilizer rows. With onToggle, the
 // header collapses the rows (open = false).
 export function WeaponBlock({
   w, vet, s, sharedTurrets, weaponIdx, onCapture,
-  activeRange, onRange, accMode, onAccMode, activeDamage, effectiveAp, apNote, vetAccuracyOnly,
+  activeRange, onRange, accMode, onAccMode, activeDamage, effectiveAp, apNote, baseAccuracyOnly,
   open = true, onToggle,
 }) {
   const hide = useHide();
@@ -74,10 +74,10 @@ export function WeaponBlock({
   const modStab = w.stab != null ? vetAccuracy(w.stab, vet.accMul) : null;
   const longRof = isLongRof(w);
 
-  const accValue = w.acc != null && (vetAccuracyOnly ? `${modAcc}%` : (
+  const accValue = w.acc != null && (baseAccuracyOnly ? `${w.acc}%` : (
     <>{w.acc}%{'  →  '}<span title="Accuracy with the veterancy bonus applied." style={{ cursor: 'help' }}>{modAcc}%</span></>
   ));
-  const stabValue = w.stab != null && w.stab !== 0 && (vetAccuracyOnly ? `${modStab}%` : (
+  const stabValue = w.stab != null && w.stab !== 0 && (baseAccuracyOnly ? `${w.stab}%` : (
     <>{w.stab}%{'  →  '}<span title="Stabilizer with the veterancy bonus applied." style={{ cursor: 'help' }}>{modStab}%</span></>
   ));
 
@@ -142,14 +142,14 @@ export function WeaponBlock({
         )}
 
         {hide.field('weaponAccuracy') && accValue && w.category !== 'Artillery' && (
-          <DotRow label="Accuracy" value={accValue} accent={accuracyColor(vetAccuracyOnly ? modAcc : w.acc)}
+          <DotRow label="Accuracy" value={accValue} accent={accuracyColor(w.acc)}
             {...accRow('acc', 'Use accuracy (firing while stopped)')} s={s} dense />
         )}
 
         {hide.field('weaponStabilizer') && (w.category === 'Gun' || w.category === 'Missile') && w.stab != null && (
           <DotRow label="Stabilizer"
             value={w.stab === 0 ? '—' : stabValue}
-            accent={w.stab === 0 ? null : accuracyColor(vetAccuracyOnly ? modStab : w.stab)}
+            accent={w.stab === 0 ? null : accuracyColor(w.stab)}
             {...accRow('stab', 'Use stabilizer (firing on the move)')}
             s={s} dense />
         )}

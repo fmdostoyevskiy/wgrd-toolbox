@@ -41,10 +41,11 @@ export {
 export { aimTime, shotTimes } from './combat/fire.js';
 export { damageOutcome, WORST_Q, BEST_Q } from './combat/outcome.js';
 export { canDamage, engagement } from './combat/engagement.js';
+export { turretGroups, effectiveSelection, shownWeapon, volley } from './combat/volley.js';
 
 export { UnitPicker } from './compare/UnitPicker.jsx';
-export { SeriesChart, DistanceChart, VerticalSlider } from './compare/SeriesChart.jsx';
-export { CompareHeader, LevelMeter, CrewControls, SquarePicker, ArmorPicker, ControlRow, WeaponTabs, CalcSteps } from './compare/controls.jsx';
+export { SeriesChart, DistanceChart, VerticalSlider, useAxisControl, AxisScale } from './compare/SeriesChart.jsx';
+export { CompareHeader, LevelMeter, CrewControls, SquarePicker, ArmorPicker, ControlRow, WeaponTabs, WeaponGroups, CalcSteps } from './compare/controls.jsx';
 export {
   themeOf, TYPE_LABELS, distanceScale, effectiveWeapon, clampInt, hitColor, hitText,
 } from './compare/helpers.js';

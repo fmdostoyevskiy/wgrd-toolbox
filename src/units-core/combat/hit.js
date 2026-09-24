@@ -9,12 +9,13 @@ const pct1 = f => `${(Math.min(1, Math.max(0, f)) * 100).toFixed(1)}%`;
 // Hit chance of one shot from weapon w at the target unit.
 //   hit = erf(vet * erfinv(base) * maxRange / distance) * morale * (1 - ecm) * (1 + size)
 // Base accuracy is the hit chance at max range, so closing in only raises it.
-// Shots at planes get no range bonus.
+// Shots at planes, and shots from planes, get no range bonus.
 //
-// cond: { distance, vetIdx, morale (index into MORALE), mode: 'acc' | 'stab' }
+// cond: { distance, vetIdx, morale (index into MORALE), mode: 'acc' | 'stab',
+//         shooter (the firing unit, optional) }
 // Returns { ok, reason, hit (floored %), frac, range, rangeLabel, steps }, where
 // each step is { label, val: the modifier, res: the running hit chance }.
-export function hitChance(w, target, { distance, vetIdx, morale, mode }) {
+export function hitChance(w, target, { distance, vetIdx, morale, mode, shooter }) {
   const eng = canEngage(w, target);
   const { range, rangeLabel } = eng;
   const steps = [];
@@ -34,11 +35,11 @@ export function hitChance(w, target, { distance, vetIdx, morale, mode }) {
   const vet = VET_TIERS[vetIdx];
   step(`VETERANCY ${vet.name}`, `×${vet.accMul.toFixed(2)}`, scaledAccuracy(base, vet.accMul));
 
-  const air = eng.domain === 'AIR';
-  const rangeMul = air ? 1 : range / Math.max(distance, 1);
+  const air = eng.domain === 'AIR', fromPlane = shooter?.type === 'Plane';
+  const rangeMul = air || fromPlane ? 1 : range / Math.max(distance, 1);
   let frac = scaledAccuracy(base, vet.accMul, rangeMul);
   step(
-    air ? 'RANGE (AIR TARGET)' : `RANGE ${distance} / ${range} m`,
+    air ? 'RANGE (AIR TARGET)' : fromPlane ? 'RANGE (FROM PLANE)' : `RANGE ${distance} / ${range} m`,
     `×${rangeMul >= 100 ? rangeMul.toFixed(0) : rangeMul.toFixed(2)}`,
     frac,
   );

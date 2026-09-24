@@ -44,6 +44,85 @@ const LineKey = ({ color, dash, width = 16 }) => (
 
 const hitPct = r => `${r.hit}%`;
 
+// Click-or-drag x control over a plot, with hover tracking and arrow keys:
+// snaps to `snap`, Shift+arrows and PageUp/Down move by `bigStep`, x stays in
+// xMin..xMax. Spread `props` (it carries the ref) on the plot element.
+export function useAxisControl({ xMin = 0, xMax, value, onChange, snap, bigStep }) {
+  const ref = useRef(null);
+  const [hoverX, setHoverX] = useState(null);
+  const [dragging, setDragging] = useState(false);
+
+  const clamp = x => Math.min(xMax, Math.max(xMin, x));
+  // To a whole number of snaps, without float drift (0.2 × 7 is 1.4, not 1.4000000000000001).
+  const snapped = x => clamp(Number((Math.round(x / snap) * snap).toFixed(6)));
+  const toX = e => {
+    const rect = ref.current.getBoundingClientRect();
+    const f = Math.min(1, Math.max(0, (e.clientX - rect.left) / rect.width));
+    return snapped(f * xMax);
+  };
+  const props = {
+    ref, role: 'slider', tabIndex: 0,
+    'aria-valuemin': xMin, 'aria-valuemax': xMax, 'aria-valuenow': value,
+    onPointerDown: e => {
+      if (e.button !== 0) return;
+      e.currentTarget.setPointerCapture(e.pointerId);
+      setDragging(true);
+      onChange(toX(e));
+    },
+    onPointerMove: e => {
+      const x = toX(e);
+      setHoverX(x);
+      if (dragging) onChange(x);
+    },
+    onPointerUp: () => setDragging(false),
+    onPointerCancel: () => setDragging(false),
+    onPointerLeave: () => setHoverX(null),
+    onKeyDown: e => {
+      const step = e.shiftKey ? bigStep : snap;
+      const next = {
+        ArrowLeft: value - step, ArrowDown: value - step,
+        ArrowRight: value + step, ArrowUp: value + step,
+        PageDown: value - bigStep, PageUp: value + bigStep,
+        Home: xMin, End: xMax,
+      }[e.key];
+      if (next == null) return;
+      e.preventDefault();
+      onChange(snapped(next));
+    },
+  };
+  // The hover position, when not dragging.
+  return { props, dragging, hoverX: dragging ? null : hoverX };
+}
+
+// Tick marks and labels under a plot. scale: { ticks: [{ d, major }], labels: [{ d, text }] }.
+// Takes two grid cells (ticks, labels); `lead` fills the cell left of each.
+export function AxisScale({ scale, xMax, lead = true }) {
+  const t = BROWSER_TOKENS;
+  const pct = x => `${x / xMax * 100}%`;
+  return (
+    <>
+      {lead && <div />}
+      <div style={{ position: 'relative', height: 8, marginTop: 10 }}>
+        {scale.ticks.map(tk => (
+          <div key={tk.d} style={{
+            position: 'absolute', top: 0, left: pct(tk.d),
+            width: 1, height: tk.major ? 8 : 4, background: tk.major ? t.dim : t.ruleStrong,
+          }} />
+        ))}
+      </div>
+      {lead && <div />}
+      <div style={{ position: 'relative', height: 14, marginTop: 4, fontSize: 11, color: t.dimmer }}>
+        {scale.labels.map(l => (
+          <span key={l.d} style={{
+            position: 'absolute', left: pct(l.d), whiteSpace: 'nowrap',
+            transform: `translateX(${l.d === 0 ? '0' : l.d === xMax ? '-100%' : '-50%'})`,
+          }}>{l.text}</span>
+        ))}
+      </div>
+    </>
+  );
+}
+
 // A 0–100% value per series along an x axis (distance, time), doubling as the
 // control for x: click or drag on the plot, or use the arrow keys.
 // series:    [{ key, name, color, dash, fn: x → { ok, frac, reason, lo?, hi?, … } }]
@@ -62,45 +141,12 @@ export function SeriesChart({
   caption, valueText = hitPct, samples = 200, aside, readout,
 }) {
   const t = BROWSER_TOKENS;
-  const plotRef = useRef(null);
-  const [hoverX, setHoverX] = useState(null);
-  const [dragging, setDragging] = useState(false);
-
+  const { props: axis, dragging, hoverX } = useAxisControl({ xMin, xMax, value, onChange, snap, bigStep });
   const pct = x => `${x / xMax * 100}%`;
-  const clamp = x => Math.min(xMax, Math.max(xMin, x));
-  const toX = e => {
-    const rect = plotRef.current.getBoundingClientRect();
-    const f = Math.min(1, Math.max(0, (e.clientX - rect.left) / rect.width));
-    return clamp(Math.round(f * xMax / snap) * snap);
-  };
-
-  const onPointerDown = e => {
-    if (e.button !== 0) return;
-    e.currentTarget.setPointerCapture(e.pointerId);
-    setDragging(true);
-    onChange(toX(e));
-  };
-  const onPointerMove = e => {
-    const x = toX(e);
-    setHoverX(x);
-    if (dragging) onChange(x);
-  };
-  const onKeyDown = e => {
-    const step = e.shiftKey ? bigStep : snap;
-    const next = {
-      ArrowLeft: value - step, ArrowDown: value - step,
-      ArrowRight: value + step, ArrowUp: value + step,
-      PageDown: value - bigStep, PageUp: value + bigStep,
-      Home: xMin, End: xMax,
-    }[e.key];
-    if (next == null) return;
-    e.preventDefault();
-    onChange(clamp(next));
-  };
 
   const drawn = series.map(sr => ({ ...sr, runs: sampleRuns(sr.fn, xMax, samples) }));
   const at = series.map(sr => ({ ...sr, r: sr.fn(value) }));
-  const hover = hoverX != null && !dragging ? series.map(sr => ({ ...sr, r: sr.fn(hoverX) })) : null;
+  const hover = hoverX != null ? series.map(sr => ({ ...sr, r: sr.fn(hoverX) })) : null;
   const hoverPct = hoverX != null ? hoverX / xMax * 100 : 0;
 
   return (
@@ -134,16 +180,8 @@ export function SeriesChart({
         </div>
 
         <div
-          ref={plotRef}
-          role="slider" tabIndex={0}
-          aria-label={label} aria-valuemin={xMin} aria-valuemax={xMax} aria-valuenow={value}
-          aria-valuetext={`${value} ${unit}`}
-          onPointerDown={onPointerDown}
-          onPointerMove={onPointerMove}
-          onPointerUp={() => setDragging(false)}
-          onPointerCancel={() => setDragging(false)}
-          onPointerLeave={() => setHoverX(null)}
-          onKeyDown={onKeyDown}
+          {...axis}
+          aria-label={label} aria-valuetext={`${value} ${unit}`}
           className="cmp-plot"
           style={{
             position: 'relative', height: PLOT_H, minWidth: 0,
@@ -219,25 +257,7 @@ export function SeriesChart({
 
         {aside && <div style={{ height: PLOT_H, gridRow: 'span 3' }}>{aside}</div>}
 
-        {/* Axis scale */}
-        <div />
-        <div style={{ position: 'relative', height: 8, marginTop: 10 }}>
-          {scale.ticks.map(tk => (
-            <div key={tk.d} style={{
-              position: 'absolute', top: 0, left: pct(tk.d),
-              width: 1, height: tk.major ? 8 : 4, background: tk.major ? t.dim : t.ruleStrong,
-            }} />
-          ))}
-        </div>
-        <div />
-        <div style={{ position: 'relative', height: 14, marginTop: 4, fontSize: 11, color: t.dimmer }}>
-          {scale.labels.map(l => (
-            <span key={l.d} style={{
-              position: 'absolute', left: pct(l.d), whiteSpace: 'nowrap',
-              transform: `translateX(${l.d === 0 ? '0' : l.d === xMax ? '-100%' : '-50%'})`,
-            }}>{l.text}</span>
-          ))}
-        </div>
+        <AxisScale scale={scale} xMax={xMax} />
       </div>
     </div>
   );

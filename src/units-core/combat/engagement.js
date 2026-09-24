@@ -14,7 +14,7 @@ export function canDamage(w, target, facing) {
 }
 
 // One weapon firing at the target for `seconds` at a fixed distance.
-// cond: hitChance's { distance, vetIdx, morale, mode } plus { facing, cover, seconds }.
+// cond: hitChance's { distance, vetIdx, morale, mode, shooter } plus { facing, cover, seconds }.
 // Returns { ok, reason, hit (hitChance result), damage (damagePerHit result),
 // times (shot times), outcome (damageOutcome result) }.
 export function engagement(w, target, cond) {

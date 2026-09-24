@@ -3,6 +3,7 @@ import { BROWSER_TOKENS } from '../constants/theme.js';
 import { UiControls } from '../zoom/UiControls.jsx';
 import { VET_TIERS, VET_TOOLTIPS } from '../constants/veterancy.js';
 import { MORALE, lowestVet } from '../combat/conditions.js';
+import { shownWeapon } from '../combat/volley.js';
 import {
   TEAL, GREEN, ORANGE, RED, armorColor, armorSideRearColor, armorTopColor,
 } from '../format/tiers.js';
@@ -173,14 +174,7 @@ function WeaponTab({ w, i, st, usable, on, onClick, s, label, menuOpen }) {
 export function WeaponTabs({ weapons, stats, usable, value, onChange, s, max = Infinity }) {
   const [menu, setMenu] = useState(false);
   const menuRef = useRef(null);
-  useEffect(() => {
-    if (!menu) return;
-    const onDown = e => { if (!menuRef.current?.contains(e.target)) setMenu(false); };
-    const onKey = e => { if (e.key === 'Escape') setMenu(false); };
-    document.addEventListener('mousedown', onDown);
-    document.addEventListener('keydown', onKey);
-    return () => { document.removeEventListener('mousedown', onDown); document.removeEventListener('keydown', onKey); };
-  }, [menu]);
+  useDismiss(menu, menuRef, () => setMenu(false));
 
   const split = weapons.length > max ? max - 1 : weapons.length;
   const rest = weapons.map((w, i) => i).slice(split);
@@ -225,6 +219,126 @@ export function WeaponTabs({ weapons, stats, usable, value, onChange, s, max = I
           )}
         </div>
       )}
+    </div>
+  );
+}
+
+// Closes a popup on a click outside `ref` or Escape, while `open`.
+function useDismiss(open, ref, close) {
+  useEffect(() => {
+    if (!open) return;
+    const onDown = e => { if (!ref.current?.contains(e.target)) close(); };
+    const onKey = e => { if (e.key === 'Escape') close(); };
+    document.addEventListener('mousedown', onDown);
+    document.addEventListener('keydown', onKey);
+    return () => { document.removeEventListener('mousedown', onDown); document.removeEventListener('keydown', onKey); };
+  }, [open]);
+}
+
+// One turret group: a toggle for its weapon, a checkbox for showing its
+// details (one turret at a time), and a menu of the others when there are several.
+function TurretBox({ g, n, weapons, stats, usable, value, onToggle, swatch, info, onInfo, s }) {
+  const [menu, setMenu] = useState(false);
+  const ref = useRef(null);
+  useDismiss(menu, ref, () => setMenu(false));
+
+  const picked = g.idx.find(i => value.includes(i));
+  const on = picked != null;
+  const shown = shownWeapon(g, value, usable);
+  const ok = usable[shown];
+  const st = stats[shown];
+  const many = g.idx.length > 1;
+  const tint = `color-mix(in srgb, ${s.accent} 12%, transparent)`;
+
+  return (
+    <div ref={ref} role="group" aria-label={`Turret ${n}`} style={{
+      position: 'relative', minWidth: 0, display: 'flex',
+      border: `1px solid ${on || menu ? s.accent : s.rule}`, background: on ? tint : 'transparent',
+    }}>
+      {on && swatch[shown] != null && (
+        <span style={{ position: 'absolute', left: -1, top: -1, bottom: -1, width: 4, background: s.accent, opacity: swatch[shown] }} />
+      )}
+      <button role="checkbox" aria-checked={on} disabled={!ok} onClick={() => onToggle(shown)}
+        title={`Turret ${n}: ${weapons[shown].name}${st.reason ? ` — ${st.reason}` : on ? ' — click to hold fire' : ' — click to fire'}`} style={{
+        fontFamily: 'inherit', textAlign: 'left', padding: '9px 9px 9px 11px', flex: 1, minWidth: 0,
+        display: 'flex', flexDirection: 'column', gap: 4, background: 'transparent', border: 'none',
+        cursor: ok ? 'pointer' : 'not-allowed', opacity: ok ? 1 : 0.35,
+      }}>
+        {/* Header row: fire state and number (the details checkbox sits at
+            its right); content row: name and damage. */}
+        <span style={{ fontSize: 11, letterSpacing: '0.12em', color: on ? s.accent : s.dim, whiteSpace: 'nowrap', lineHeight: '15px' }}>
+          {on ? '■' : '□'} WPN {shown + 1}
+        </span>
+        <span style={{ display: 'flex', alignItems: 'baseline', gap: 8, width: '100%', minWidth: 0 }}>
+          <span style={{
+            fontSize: 13, color: on ? s.ink : s.dim, flex: 1, minWidth: 0,
+            overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
+          }}>{weapons[shown].name}</span>
+          <span style={{ fontSize: 14, fontWeight: 700, flexShrink: 0, color: on ? st.color : s.dim }}>{st.text}</span>
+        </span>
+      </button>
+      {onInfo && (
+        <button role="radio" aria-checked={info} onClick={() => onInfo(g.turret)}
+          title={info ? `${weapons[shown].name}'s details are shown below` : `Show ${weapons[shown].name}'s details below`} style={{
+          position: 'absolute', right: many ? 31 : 9, top: 9, width: 15, height: 15, padding: 0,
+          fontFamily: 'inherit', fontSize: 10, fontWeight: 700, lineHeight: '13px', textAlign: 'center', cursor: 'pointer',
+          border: `1px solid ${info ? s.accent : s.dim}`, background: info ? s.accent : 'transparent', color: info ? s.bg : s.dim,
+        }}>i</button>
+      )}
+      {many && (
+        <button onClick={() => setMenu(m => !m)} aria-haspopup="menu" aria-expanded={menu}
+          title={`Turret ${n} has ${g.idx.length} weapons; only one fires at a time`} style={{
+          fontFamily: 'inherit', fontSize: 12, color: menu ? s.accent : s.dim, width: 22, flexShrink: 0, padding: 0,
+          background: 'transparent', border: 'none', borderLeft: `1px solid ${s.rule}`, cursor: 'pointer',
+        }}>▾</button>
+      )}
+      {menu && (
+        <div role="menu" style={{
+          position: 'absolute', top: '100%', right: -1, marginTop: 4, zIndex: 20, minWidth: 'calc(100% + 2px)', width: 260,
+          background: 'var(--wrd-surface)', border: `1px solid ${s.accent}`, boxShadow: '0 8px 24px rgba(0,0,0,0.35)',
+        }}>
+          <div style={{ fontSize: 10, letterSpacing: '0.14em', color: s.dim, padding: '6px 10px', borderBottom: `1px solid ${s.rule}` }}>
+            TURRET {n} · ONE AT A TIME
+          </div>
+          {g.idx.map(i => {
+            const off = !usable[i], cur = i === picked;
+            return (
+              <button key={i} role="menuitemradio" aria-checked={cur} disabled={off}
+                title={stats[i].reason ? `${weapons[i].name} — ${stats[i].reason}` : weapons[i].name}
+                onClick={() => { if (!cur) onToggle(i); setMenu(false); }} style={{
+                fontFamily: 'inherit', fontSize: 13, width: '100%', padding: '7px 10px', textAlign: 'left',
+                display: 'grid', gridTemplateColumns: 'auto minmax(0, 1fr) auto', gap: 10, alignItems: 'baseline',
+                cursor: off ? 'not-allowed' : 'pointer', opacity: off ? 0.35 : 1, border: 'none',
+                borderBottom: `1px solid ${s.rule}`, background: cur ? tint : 'transparent',
+              }}>
+                <span style={{ fontSize: 11, letterSpacing: '0.12em', color: cur ? s.accent : s.dim }}>WPN {i + 1}</span>
+                <span style={{ color: cur ? s.ink : s.dim, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{weapons[i].name}</span>
+                <span style={{ fontWeight: 700, color: stats[i].color }}>{stats[i].text}</span>
+              </button>
+            );
+          })}
+        </div>
+      )}
+    </div>
+  );
+}
+
+// Weapon selector for several weapons at once, one box per turret group (see
+// turretGroups), three to a row: each box turns its turret's weapon on or
+// off, and a turret with several weapons picks which one from a menu.
+// value: the selected weapon indices; onToggle(i) turns weapon i on (in place
+// of the rest of its group) or off. stats[i]: { text, color, reason }; weapons
+// that aren't usable are greyed out, with the reason in the tooltip.
+// swatch[i]: the fill opacity of a selected weapon's key in a chart.
+// info: the turret (group key) whose details are shown; onInfo(turret)
+// picks another, and without it there are no details checkboxes.
+export function WeaponGroups({ weapons, groups, stats, usable, value, onToggle, swatch = {}, info, onInfo, s }) {
+  return (
+    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, minmax(0, 1fr))', gap: 6, height: '100%' }}>
+      {groups.map((g, gi) => (
+        <TurretBox key={g.turret} g={g} n={gi + 1} weapons={weapons} stats={stats} usable={usable}
+          value={value} onToggle={onToggle} swatch={swatch} info={info === g.turret} onInfo={onInfo} s={s} />
+      ))}
     </div>
   );
 }

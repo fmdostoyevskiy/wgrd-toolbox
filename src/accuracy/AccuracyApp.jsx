@@ -99,7 +99,7 @@ export function AccuracyApp({ roster, units, defaultUnit }) {
   const maxD = Math.ceil(longest / HEX) * HEX;
   const dist = Math.min(st.distance, maxD);
 
-  const opts = d => ({ distance: d, vetIdx: vet, morale: st.morale, mode: st.mode });
+  const opts = d => ({ distance: d, vetIdx: vet, morale: st.morale, mode: st.mode, shooter: unit });
   const results = weapons.map((wp, i) => hitChance(wp, targets[i], opts(dist)));
   const r = results[idx] ?? hitChance(null, CLASSES.g.unit, opts(dist));
   const stats = results.map(res => ({ text: hitText(res), color: hitColor(res), reason: res.reason }));
@@ -156,7 +156,7 @@ export function AccuracyApp({ roster, units, defaultUnit }) {
                   <WeaponBlock w={w} vet={VET_TIERS[vet]} s={s} weaponIdx={idx}
                     activeRange={r.rangeLabel} onRange={label => update({ target: RANGE_CLASS[label] ?? 'g' })}
                     accMode={st.mode} onAccMode={mode => update({ mode })}
-                    vetAccuracyOnly />
+                    baseAccuracyOnly />
                 </div>
               </HideContext.Provider>
               <CalcSteps title="HIT CALCULATION" steps={r.steps} s={s}
@@ -167,7 +167,7 @@ export function AccuracyApp({ roster, units, defaultUnit }) {
 
         <div style={{ fontSize: 11, lineHeight: 1.7, color: t.dimmer, letterSpacing: '0.04em' }}>
           hit = erf(vet × erfinv(accuracy) × max range / distance) × morale. Base accuracy is the hit chance
-          at max range; it rises as the target gets closer, except against planes. The target's size and
+          at max range; it rises as the target gets closer, except for shots at or from planes. The target's size and
           ECM also multiply the hit chance; the combat tool counts them.
           Click a range row on the weapon card to pick what's being shot at, and the accuracy or
           stabilizer row to switch between firing stopped and on the move.

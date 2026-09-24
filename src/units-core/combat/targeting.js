@@ -35,6 +35,17 @@ export function targetModifiers(unit) {
   return { size, ecm: unit.ecm ?? 0 };
 }
 
+// A direct-fire weapon with only AP ammo (KE or HEAT), like most infantry AT
+// launchers. Their HE value comes with the AP round and isn't used against
+// infantry; weapons that can fire at infantry have a separate HE ammo, merged
+// in by enrich.py and tagged AoE. Heavy machine guns (KPVT and its AA
+// mounts) are tagged AC and have only KE ammo, but still fire at infantry.
+const apOnly = w => {
+  const tags = w.tag ?? [];
+  return (w.category === 'Gun' || w.category === 'Missile')
+    && (tags.includes('KE') || tags.includes('HEAT')) && !tags.includes('AoE') && !tags.includes('AC');
+};
+
 // Whether the weapon can fire at the target at all, at any distance.
 // Returns { ok, reason, range, rangeLabel, domain }.
 export function canEngage(w, target) {
@@ -43,6 +54,7 @@ export function canEngage(w, target) {
   const { range, label } = rangeAgainst(w, target);
   const out = { ok: true, reason: null, range, rangeLabel: label, domain };
   if (!range) return { ...out, ok: false, reason: `CAN'T TARGET ${domain}` };
+  if (target.type === 'Infantry' && apOnly(w)) return { ...out, ok: false, reason: 'AT ONLY' };
   if (target.type === 'Infantry' && !hasHE(w)) return { ...out, ok: false, reason: 'NO HE VS INFANTRY' };
   return out;
 }
