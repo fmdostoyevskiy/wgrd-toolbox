@@ -165,7 +165,7 @@ export function WeaponBlock({
           <DotRow label="Turret Group" value={w.turret_index} tooltip="Weapons with the same turret group can't fire at the same time." s={s} dense />
         )}
 
-        {hide.field('weaponAp') && w.ap != null && w.category !== 'Artillery' && (
+        {hide.field('weaponAp') && w.ap != null && (w.category !== 'Artillery' || tags.includes('CLUS')) && (
           <DotRow label="AP Power" value={(() => {
             const ap = effectiveAp ?? w.ap;
             if (!hasKE && !hasHEAT) return `${ap}${apInlineTag}`;

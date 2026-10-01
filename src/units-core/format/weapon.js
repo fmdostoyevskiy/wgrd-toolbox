@@ -54,6 +54,8 @@ export function heCategory(w) {
 }
 
 // A missile with HE power 1 has no HE warhead (and can't engage infantry).
+// Cluster weapons (CLUS) carry a placeholder HE of 1; only their AP counts.
 export function hasHE(w) {
+  if (w.tag?.includes('CLUS')) return false;
   return w.dmg > 0 && !(heCategory(w) === 'Missile' && w.dmg === 1);
 }
