@@ -71,4 +71,16 @@ See all that in the corresponding spreadsheets. Features filtering (including cu
 
 Inspired by, but not based on u/notMegatron's [spreadsheet collection](https://www.reddit.com/r/wargame/comments/ngt60q/wargame_repository/).
 ## [Community Decks](https://fmdostoyevskiy.github.io/wgrd-toolbox/decks/)
-Curated list of community decks by yours truly, as well as other wargamers. Feel free to submit your own decks if you would like them featured here.
+Curated list of community decks by yours truly, as well as other wargamers. Feel free to submit your own decks via pull request if you would like them featured here.
+
+## [Accuracy Calculator](https://fmdostoyevskiy.github.io/wgrd-toolbox/accuracy/)
+<img width="1358" height="1026" alt="image" src="https://github.com/user-attachments/assets/08ec11c1-2ffc-4005-bbec-97d0329851d0" />
+
+A tool to calculate a unit's accuracy, given range, morale, and veterancy.
+
+100% of the work to assemble and verify accurate information on all the accuracy factors was done by Karol Chądzyński. I take no credit for any part of this, except in designing the tool based on the information provided by him.
+
+## [Combat Simulator](https://fmdostoyevskiy.github.io/wgrd-toolbox/combat/) (BETA)
+<img width="1213" height="1100" alt="image" src="https://github.com/user-attachments/assets/668a859f-cf79-45fd-94d9-9a19103acc2d" />
+
+A tool to approximate how well two units would do well against each other in head-to-head combat. Please note: the tool is not fully finished, and may not be 100% accurate as of yet.
