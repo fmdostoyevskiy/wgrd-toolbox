@@ -1,6 +1,7 @@
 import React from 'react';
+import { CaptureButton } from './CaptureButton.jsx';
 
-export function SectionHeader({ title, s }) {
+export function SectionHeader({ title, s, onCapture }) {
   return (
     <div style={{
       margin: '14px 0 2px', display: 'flex', alignItems: 'baseline', gap: 8,
@@ -8,8 +9,9 @@ export function SectionHeader({ title, s }) {
     }}>
       <div style={{
         fontSize: 12, color: s.ink, letterSpacing: '0.16em',
-        textTransform: 'uppercase', fontWeight: 600,
+        textTransform: 'uppercase', fontWeight: 600, flex: 1,
       }}>{title}</div>
+      <CaptureButton onCapture={onCapture} s={s} style={{ flexShrink: 0 }} />
     </div>
   );
 }

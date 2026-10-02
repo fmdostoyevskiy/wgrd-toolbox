@@ -1,12 +1,12 @@
 import React from 'react';
 import { SectionHeader } from '../primitives/SectionHeader.jsx';
-import { armorColor, armorTopColor, armorSideRearColor } from '../../format/tiers.js';
-import { useHide } from '../HideContext.js';
+import { useVisibleRows } from '../FieldRows.jsx';
+import { ARMOR_FIELDS } from '../fields/armor.js';
 
 const AP_DAMAGE_URL = `${import.meta.env.BASE_URL}apdamage/`;
 
-function ArmorCell({ label, v, s, colorFn = armorColor }) {
-  const c = colorFn(v) ?? s.accent;
+function ArmorCell({ label, v, accent, s }) {
+  const c = accent ?? s.accent;
   const href = `${AP_DAMAGE_URL}?armors=${v}`;
   return (
     <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 3 }}>
@@ -22,22 +22,15 @@ function ArmorCell({ label, v, s, colorFn = armorColor }) {
   );
 }
 
-export function ArmorSection({ armor, s }) {
-  const hide = useHide();
-  const cells = [
-    hide.field('armorFront') && <ArmorCell key="F" label="FRONT ↑" v={armor.F} s={s} />,
-    hide.field('armorSide')  && <ArmorCell key="S" label="SIDE →"  v={armor.S} s={s} colorFn={armorSideRearColor} />,
-    hide.field('armorRear')  && <ArmorCell key="R" label="REAR ↓"  v={armor.R} s={s} colorFn={armorSideRearColor} />,
-    hide.field('armorTop')   && <ArmorCell key="T" label="TOP ◉"   v={armor.T} s={s} colorFn={armorTopColor} />,
-  ].filter(Boolean);
-
+export function ArmorSection({ unit, s }) {
+  const cells = useVisibleRows(ARMOR_FIELDS, unit, { s });
   if (cells.length === 0) return null;
 
   return (
     <>
       <SectionHeader title="Armor" s={s} />
       <div style={{ padding: '8px 0 4px', display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
-        {cells}
+        {cells.map(c => <ArmorCell key={c.id} label={c.label} v={c.value} accent={c.accent} s={s} />)}
       </div>
     </>
   );

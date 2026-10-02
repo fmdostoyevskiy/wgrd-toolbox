@@ -1,6 +1,8 @@
 // Single source of truth for tier thresholds. The colors are CSS variables
 // (dark and light values in src/index.css).
 
+import { motionOf } from '../card/rules.js';
+
 export const TEAL   = 'var(--wrd-tier-teal)';
 export const GREEN  = 'var(--wrd-tier-green)';
 export const ORANGE = 'var(--wrd-tier-orange)';
@@ -197,10 +199,8 @@ export function speedColor(unit, v = unit?.speed) {
     return RED;
   }
   if (unit.type === 'Vehicle') {
-    const table = unit.motionType === 'wheeled' ? SPEED.VehicleWheeled
-                : unit.motionType === 'truck'   ? SPEED.VehicleTruck
-                : SPEED.VehicleTracked;
-    return byTier(v, table)?.color ?? null;
+    const table = { wheeled: SPEED.VehicleWheeled, truck: SPEED.VehicleTruck, tracked: SPEED.VehicleTracked };
+    return byTier(v, table[motionOf(unit)])?.color ?? null;
   }
   return null;
 }

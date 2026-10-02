@@ -128,10 +128,24 @@ Hiding `vet` is the supported way to render a static, vet-locked card.
 Removing a field id hides that single row (or armor cell). If hiding fields leaves a section empty, the section auto-collapses (no header rendered). Valid ids — exported as `FIELD_IDS`:
 
 - **General**: `health`, `size`, `training`, `ecm`, `ciws`, `supply`, `transport`, `prototype`, `command`, `era`
-- **Mobility**: `speed`, `forestSpeed`, `swimSpeed`, `roadSpeed`, `autonomy`, `fuel`, `refuelTime`, `altitude`, `turnRadius`, `accelDecel`, `sailing`
+- **Mobility**: `speed`, `forestSpeed`, `swimSpeed`, `roadSpeed`, `autonomy`, `fuel`, `refuelTime`, `altitude`, `turnRadius`, `turningTime`, `accelDecel`, `sailing`
 - **Optics**: `stealth`, `optics`, `seaOptics`, `airStealth`, `airOptics`
 - **Armor**: `armorFront`, `armorSide`, `armorRear`, `armorTop`
-- **Armament** (per-weapon row inside each weapon block): `weaponRange`, `weaponAccuracy`, `weaponStabilizer`, `weaponAp`, `weaponHe`, `weaponSuppress`, `weaponDispersion`, `weaponDmgRadius`, `weaponSuppRadius`, `weaponMissileSpeed`, `weaponAimTime`, `weaponRof`, `weaponSalvoSize`, `weaponNoise`, `weaponRearm`, `weaponSupply`
+- **Armament** (per-weapon row inside each weapon block): `weaponRange`, `weaponAccuracy`, `weaponStabilizer`, `weaponTurreted`, `weaponTurretIndex`, `weaponAp`, `weaponHe`, `weaponSuppress`, `weaponDispersion`, `weaponDmgRadius`, `weaponSuppRadius`, `weaponMissileSpeed`, `weaponMissileAccel`, `weaponAimTime`, `weaponRof`, `weaponSalvoSize`, `weaponNoise`, `weaponRearm`, `weaponSupply`
+
+Some ids cover several rows: `weaponRange` all range rows, `weaponSuppress` the AP/HE/plain suppression rows, `weaponAimTime` the AP/HE/plain aim time rows, `weaponMissileSpeed`/`weaponMissileAccel` their AP/HE/plain variants.
+
+Expert-only rows (shown when `ExpertModeContext` has `expert: true`): `turningTime`, `accelDecel`, `weaponMissileAccel`, `weaponNoise`, and `weaponDmgRadius`/`weaponSuppRadius` for anything but artillery and bombs.
+
+### How the card decides what to show
+
+Every row passes three independent checks: the `hide.fields` deny-list, expert mode, and the row's own data rule. They're applied in one place, `useVisibleRows` in `card/FieldRows.jsx`, from declarative specs:
+
+- `card/fields/{general,mobility,optics,armor}.js` and `card/fields/weapon.jsx`: one ordered array of row specs per section. A spec has the hide `id`, `label`, `value`, `accent` (colour), `tooltip`, `href`, a `when(subject, ctx)` data rule and an `expert` flag; any of them may be a constant or a function of the unit (or weapon). `rows(subject, ctx)` expands a spec into several rows, as the per-category range rows do. Weapon specs can also declare the interaction role WeaponBlock's hit-chance props act on (`range`, `accMode`, `damage`). The comment at the top of `FieldRows.jsx` documents the shape.
+- `card/rules.js`: the named unit and weapon predicates the specs are written in (`isFob`, `isPlane`, `motionOf`, `showsAp`, `isAreaWeapon`, …), and the whole-section rules (`showsArmor`, `showsArmament`, …) that `V2Card`'s `SECTIONS` table uses.
+- `FIELD_IDS` is derived from the specs, so adding a row there adds its id.
+
+To add a row, add a spec at the right place in the section's array. A section whose rows are all hidden renders nothing.
 
 ### Examples
 

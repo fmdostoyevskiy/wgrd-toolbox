@@ -2,11 +2,12 @@ import React, { useEffect, useMemo, useState } from 'react';
 import { VET_TIERS, VET_TOOLTIPS } from '../constants/veterancy.js';
 import { V2_THEMES } from '../constants/theme.js';
 import { NATION_FLAG_MAP } from '../constants/nations.js';
-import { GeneralSection } from './sections/GeneralSection.jsx';
-import { MobilitySection, hasMobility } from './sections/MobilitySection.jsx';
-import { OpticsSection, hasOptics } from './sections/OpticsSection.jsx';
+import { RowSection } from './sections/RowSection.jsx';
 import { ArmorSection } from './sections/ArmorSection.jsx';
 import { ArmamentSection } from './sections/ArmamentSection.jsx';
+import { TagChip } from './primitives/TagChip.jsx';
+import { GENERAL_FIELDS, MOBILITY_FIELDS, OPTICS_FIELDS } from './fields/index.js';
+import { showsMobility, showsOptics, showsArmor, showsArmament } from './rules.js';
 import { HideContext, makeHide } from './HideContext.js';
 import { useExpertMode } from './ExpertModeContext.js';
 
@@ -113,6 +114,38 @@ function TitleBlock({ unit, s }) {
   );
 }
 
+function OwnTags({ unit, s }) {
+  return (
+    <div style={{ display: 'flex', flexWrap: 'wrap', gap: 4, padding: '2px 0 4px' }}>
+      {unit.ownTags.map(tag => <TagChip key={tag} tag={tag} s={s} />)}
+    </div>
+  );
+}
+
+// The card's sections in order. `when` holds the whole-section rules (see
+// rules.js); the rows inside each section decide for themselves (fields/*), and
+// a section with no visible rows renders nothing.
+const SECTIONS = [
+  { id: 'general',
+    render: ({ unit, s, onCaptureGeneral }) => (
+      <RowSection title="General" specs={GENERAL_FIELDS} unit={unit} s={s}
+        lead={unit.ownTags?.length > 0 ? <OwnTags unit={unit} s={s} /> : null}
+        onCapture={onCaptureGeneral} />
+    ) },
+  { id: 'mobility', when: showsMobility,
+    render: ({ unit, s }) => <RowSection title="Mobility" specs={MOBILITY_FIELDS} unit={unit} s={s} /> },
+  { id: 'optics', when: showsOptics,
+    render: ({ unit, s }) => <RowSection title="Optics" specs={OPTICS_FIELDS} unit={unit} s={s} /> },
+  { id: 'armor', when: showsArmor,
+    render: ({ unit, s }) => <ArmorSection unit={unit} s={s} /> },
+  { id: 'armament', when: showsArmament,
+    render: ({ unit, s, vet, onCaptureWeapon }) => (
+      <div data-section="armament">
+        <ArmamentSection weapons={unit.weapons} vet={vet} s={s} onCaptureWeapon={onCaptureWeapon} />
+      </div>
+    ) },
+];
+
 function ExpertModeFooter({ s }) {
   const { expert, toggleExpert } = useExpertMode();
   return (
@@ -139,12 +172,7 @@ export function V2Card({ unit, avail: availProp, vetIdx, setVetIdx, theme = 'tac
   const vet = VET_TIERS[hoveredVet ?? vetIdx];
 
   const hideCtx = useMemo(() => makeHide(hide), [hide]);
-
-  const isFob       = unit.type === 'FOB';
-  const isAirUnit   = unit.type === 'Plane' || unit.type === 'Helicopter';
-  const showArmor   = unit.armor != null && unit.type !== 'Infantry' && !isFob
-    && (!isAirUnit || (unit.armor?.F ?? 0) >= 1);
-  const showWeapons = unit.weapons?.length > 0 && !isFob;
+  const sectionProps = { unit, s, vet, onCaptureGeneral, onCaptureWeapon };
 
   return (
     <HideContext.Provider value={hideCtx}>
@@ -168,15 +196,9 @@ export function V2Card({ unit, avail: availProp, vetIdx, setVetIdx, theme = 'tac
             </div>
           )}
 
-          {hideCtx.section('general')  && <GeneralSection unit={unit} s={s} onCapture={onCaptureGeneral} />}
-          {hideCtx.section('mobility') && !isFob && hasMobility(unit) && <MobilitySection unit={unit} s={s} />}
-          {hideCtx.section('optics')   && !isFob && hasOptics(unit)   && <OpticsSection   unit={unit} s={s} />}
-          {hideCtx.section('armor')    && showArmor   && <ArmorSection    armor={unit.armor} s={s} />}
-          {hideCtx.section('armament') && showWeapons && (
-            <div data-section="armament">
-              <ArmamentSection weapons={unit.weapons} vet={vet} s={s} onCaptureWeapon={onCaptureWeapon} />
-            </div>
-          )}
+          {SECTIONS
+            .filter(sec => hideCtx.section(sec.id) && (!sec.when || sec.when(unit)))
+            .map(sec => <React.Fragment key={sec.id}>{sec.render(sectionProps)}</React.Fragment>)}
           <div data-section="expert"><ExpertModeFooter s={s} /></div>
         </div>
       </div>

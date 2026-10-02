@@ -28,22 +28,4 @@ export const SECTION_IDS = [
   'title', 'vet', 'general', 'mobility', 'optics', 'armor', 'armament',
 ];
 
-export const FIELD_IDS = [
-  // General
-  'health', 'size', 'training', 'ecm', 'ciws', 'supply',
-  'transport', 'prototype', 'command', 'era',
-  // Mobility
-  'speed', 'forestSpeed', 'swimSpeed', 'roadSpeed',
-  'autonomy', 'fuel', 'refuelTime', 'altitude', 'turnRadius',
-  'turningTime', 'accelDecel', 'sailing',
-  // Optics
-  'stealth', 'optics', 'seaOptics', 'airStealth', 'airOptics',
-  // Armor
-  'armorFront', 'armorSide', 'armorRear', 'armorTop',
-  // Armament (per weapon)
-  'weaponRange', 'weaponAccuracy', 'weaponStabilizer',
-  'weaponAp', 'weaponHe', 'weaponSuppress', 'weaponDispersion',
-  'weaponDmgRadius', 'weaponSuppRadius', 'weaponMissileSpeed',
-  'weaponAimTime', 'weaponRof', 'weaponSalvoSize', 'weaponNoise', 'weaponMissileAccel',
-  'weaponRearm', 'weaponSupply', 'weaponTurreted', 'weaponTurretIndex',
-];
+// FIELD_IDS is derived from the field specs, in fields/index.js.
