@@ -1,10 +1,16 @@
+// Past this salvo reload, a rounds-per-minute figure is meaningless, so it's omitted.
+const MAX_RPM_RELOAD = 45;
+
 export function rofString(w) {
+  const showRpm = w.salvoReload <= MAX_RPM_RELOAD;
   if (w.salvoLen === 1 || w.shotReload == null || w.shotReload === w.salvoReload) {
-    const rpm = Math.round(60 / w.salvoReload);
-    return `${w.salvoReload} s (${rpm} r/m)`;
+    const rpm = showRpm ? ` (${Math.round(60 / w.salvoReload)} r/m)` : '';
+    return `${w.salvoReload} s${rpm}`;
   }
-  const rpm = Math.round(w.salvoLen * 60 / (w.shotReload * w.salvoLen + w.salvoReload));
-  return `${w.salvoLen}×${w.shotReload}s ↺ ${w.salvoReload}s (${rpm} r/m)`;
+  const rpm = showRpm
+    ? ` (${Math.round(w.salvoLen * 60 / (w.shotReload * w.salvoLen + w.salvoReload))} r/m)`
+    : '';
+  return `${w.salvoLen}×${w.shotReload}s ↺ ${w.salvoReload}s${rpm}`;
 }
 
 export function isLongRof(w) {
