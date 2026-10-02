@@ -531,7 +531,9 @@ def extract_ap_and_arme_tags(arme_val):
 # ---------------------------------------------------------------------------
 
 def infer_unit_type(unit_obj: dict, instances: dict) -> str:
-    if unit_obj["_class"] == "TModularUnitDescriptor":
+    # FOBs are plain TUniteDescriptors with no MouvementHandler; the Building
+    # module is what sets them apart (no other unit has one).
+    if get_module(unit_obj, instances, "Building") is not None:
         return "FOB"
 
     mouv_mod = get_module(unit_obj, instances, "MouvementHandler")
@@ -1172,7 +1174,8 @@ def _cleanup_unit(unit: dict) -> dict:
     elif unit_type == "Infantry":
         unit.pop("armor", None)
     elif unit_type == "FOB":
-        for f in ("weapons", "specs", "prototype"):
+        # Keep specs: the deck builder and spec filters need them.
+        for f in ("weapons", "prototype"):
             unit.pop(f, None)
     elif unit_type == "Ship":
         for f in ("motionType", "amphibious", "training", "size", "transports", "isTransport"):
