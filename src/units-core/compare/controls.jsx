@@ -8,21 +8,28 @@ import {
   TEAL, GREEN, ORANGE, RED, armorColor, armorSideRearColor, armorTopColor,
 } from '../format/tiers.js';
 
-// Tool header: logo linking home, zoom/theme controls and a subtitle.
-export function CompareHeader({ name, subtitle }) {
+// Tool header: logo linking home, zoom/theme controls and a subtitle. badge
+// (e.g. 'BETA') sits beside the logo; credit is a line of attribution under it.
+export function CompareHeader({ name, subtitle, badge, credit }) {
   const t = BROWSER_TOKENS;
   return (
-    <div style={{
-      display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 16, flexWrap: 'wrap',
-      borderBottom: `2px solid ${t.ruleStrong}`, paddingBottom: 10,
-    }}>
-      <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
-        <a href={import.meta.env.BASE_URL} style={{ fontSize: 18, fontWeight: 700, letterSpacing: '0.18em', color: t.ink, textDecoration: 'none' }}>
-          {name} <span style={{ color: t.dimmer, fontWeight: 300 }}>/</span> <span style={{ color: t.dim }}>WRD</span>
-        </a>
-        <UiControls />
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 6, borderBottom: `2px solid ${t.ruleStrong}`, paddingBottom: 10 }}>
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 16, flexWrap: 'wrap' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
+          <a href={import.meta.env.BASE_URL} style={{ fontSize: 18, fontWeight: 700, letterSpacing: '0.18em', color: t.ink, textDecoration: 'none' }}>
+            {name} <span style={{ color: t.dimmer, fontWeight: 300 }}>/</span> <span style={{ color: t.dim }}>WRD</span>
+          </a>
+          {badge && (
+            <span style={{
+              fontSize: 10, fontWeight: 700, letterSpacing: '0.18em', padding: '2px 6px',
+              border: `1px solid ${ORANGE}`, color: ORANGE,
+            }}>{badge}</span>
+          )}
+          <UiControls />
+        </div>
+        <div style={{ fontSize: 12, letterSpacing: '0.12em', color: t.dimmer }}>{subtitle}</div>
       </div>
-      <div style={{ fontSize: 12, letterSpacing: '0.12em', color: t.dimmer }}>{subtitle}</div>
+      {credit && <div style={{ fontSize: 11, letterSpacing: '0.04em', lineHeight: 1.6, color: t.dimmer }}>{credit}</div>}
     </div>
   );
 }

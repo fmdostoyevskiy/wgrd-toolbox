@@ -14,7 +14,7 @@ const MODULES = [
   { id: '05', name: 'SPREADSHEETS', desc: 'REFERENCE TABLES',   tag: 'ARCHIVE',  href: null           },
   { id: '06', name: 'DECKS',        desc: 'COMMUNITY ROSTER', tag: 'EXTERNAL', href: 'decks/'       },
   { id: '07', name: 'ACCURACY',     desc: 'HIT CHANCE CALC',  tag: 'EXTERNAL', href: 'accuracy/'    },
-  { id: '08', name: 'COMBAT',       desc: 'DAMAGE OVER TIME', tag: 'EXTERNAL', href: 'combat/'      },
+  { id: '08', name: 'COMBAT',       desc: 'DAMAGE OVER TIME', tag: 'BETA',     href: 'combat/'      },
 ];
 
 export function Home() {

@@ -412,7 +412,8 @@ export function CombatApp({ roster, units, defaultA, defaultB }) {
     <div style={{ ...BMono, width: '100%', height: '100%', overflowY: 'auto', background: t.bg, color: t.ink }}>
       <div className="cmp-page" style={{ maxWidth: 1240, margin: '0 auto', display: 'flex', flexDirection: 'column', gap: 20 }}>
 
-        <CompareHeader name="COMBAT" subtitle="AVERAGE DAMAGE DEALT · ESTIMATE" />
+        <CompareHeader name="COMBAT" subtitle="AVERAGE DAMAGE DEALT · ESTIMATE" badge="BETA"
+          credit="Beta: not fully finished, and results may not be accurate yet. Accuracy factors researched and verified by Karol Chądzyński." />
 
         {/* Head to head: average damage each side deals to the other in the time */}
         <div style={{ ...panel, padding: '16px 20px', display: 'flex', flexDirection: 'column', gap: 12 }}>

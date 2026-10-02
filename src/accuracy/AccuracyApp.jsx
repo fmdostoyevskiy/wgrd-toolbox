@@ -111,7 +111,8 @@ export function AccuracyApp({ roster, units, defaultUnit }) {
     <div style={{ ...BMono, width: '100%', height: '100%', overflowY: 'auto', background: t.bg, color: t.ink }}>
       <div className="cmp-page" style={{ maxWidth: 1240, margin: '0 auto', display: 'flex', flexDirection: 'column', gap: 20 }}>
 
-        <CompareHeader name="ACCURACY" subtitle="HIT CHANCE PER SHOT · ESTIMATE" />
+        <CompareHeader name="ACCURACY" subtitle="HIT CHANCE PER SHOT · ESTIMATE"
+          credit="All research and verification of the accuracy factors by Karol Chądzyński." />
 
         <DistanceChart series={series} maxD={maxD} distance={dist} scale={distanceScale(maxD)}
           onChange={d => update({ distance: d })} />
