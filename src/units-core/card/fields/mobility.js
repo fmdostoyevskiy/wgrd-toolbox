@@ -1,4 +1,4 @@
-import { speedColor, autonomyColor, turnRadiusColor } from '../../format/tiers.js';
+import { speedColor, autonomyColor, planeAutonomyColor, turnRadiusColor } from '../../format/tiers.js';
 import { motionOf, isPlane } from '../rules.js';
 
 const FOREST_TOOLTIPS = {
@@ -39,7 +39,7 @@ export const MOBILITY_FIELDS = [
     label:   u => (isPlane(u) ? 'Time Over Target' : 'Autonomy'),
     when:    u => u.autonomy != null,
     value:   u => `${u.autonomy} s`,
-    accent:  u => autonomyColor(u.autonomy),
+    accent:  u => (isPlane(u) ? planeAutonomyColor : autonomyColor)(u.autonomy),
     tooltip: 'Autonomy is the seconds a unit can be on the move.' },
   { id: 'fuel',       label: 'Fuel',        when: u => u.fuel != null,       value: u => `${u.fuel} L` },
   { id: 'refuelTime', label: 'Refuel Time', when: u => u.refuelTime != null, value: u => `${u.refuelTime} s` },

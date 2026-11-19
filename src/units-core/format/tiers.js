@@ -183,6 +183,16 @@ export function autonomyColor(v) {
   return RED;
 }
 
+// Plane time over target in seconds. Planes range 60-195 s, far below the
+// ground scale above, so they get their own tiers.
+export function planeAutonomyColor(v) {
+  if (v == null) return null;
+  if (v >= 165) return TEAL;
+  if (v >= 120) return GREEN;
+  if (v >= 90)  return ORANGE;
+  return RED;
+}
+
 export function apColor(val, isKE) {
   return byTier(val, isKE ? AP_KE : AP_HEAT)?.color ?? null;
 }
