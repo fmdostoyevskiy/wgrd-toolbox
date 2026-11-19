@@ -142,6 +142,7 @@ export const AIR_STEALTH = [
 export const AIR_OPTICS = [
   [900, TEAL,   'Exceptional++'],
   [450, TEAL,   'Exceptional'],
+  [300, GREEN,  'V. Good'],
   [150, GREEN,  'Good'],
   [80,  ORANGE, 'Medium'],
   [40,  RED,    'Poor'],
