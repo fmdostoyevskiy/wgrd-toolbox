@@ -166,6 +166,15 @@ export const missileSpeedColor = v => byTier(v, MISSILE_SPEED)?.color ?? null;
 export const ecmColor         = v => byTier(v, ECM, { strict: true })?.color ?? null;
 export const suppressionColor = v => byTier(v, SUPPRESSION)?.color ?? null;
 
+// Plane turn radius in metres; smaller is better.
+export function turnRadiusColor(v) {
+  if (v == null) return null;
+  if (v < 300) return TEAL;
+  if (v < 400) return GREEN;
+  if (v < 500) return ORANGE;
+  return RED;
+}
+
 export function autonomyColor(v) {
   if (v == null) return null;
   if (v >= 700) return TEAL;

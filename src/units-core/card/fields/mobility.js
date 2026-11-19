@@ -1,4 +1,4 @@
-import { speedColor, autonomyColor } from '../../format/tiers.js';
+import { speedColor, autonomyColor, turnRadiusColor } from '../../format/tiers.js';
 import { motionOf, isPlane } from '../rules.js';
 
 const FOREST_TOOLTIPS = {
@@ -44,7 +44,10 @@ export const MOBILITY_FIELDS = [
   { id: 'fuel',       label: 'Fuel',        when: u => u.fuel != null,       value: u => `${u.fuel} L` },
   { id: 'refuelTime', label: 'Refuel Time', when: u => u.refuelTime != null, value: u => `${u.refuelTime} s` },
   { id: 'altitude',   label: 'Altitude',    when: u => u.altitude != null,   value: u => `${u.altitude} m` },
-  { id: 'turnRadius', label: 'Turn Radius', when: u => u.turnRadius != null, value: u => `${u.turnRadius} m` },
+  { id: 'turnRadius', label: 'Turn Radius',
+    when:   u => u.turnRadius != null,
+    value:  u => `${u.turnRadius} m`,
+    accent: u => turnRadiusColor(u.turnRadius) },
   { id: 'turningTime', label: 'Turning Time', expert: true,
     when: u => u.turningTime != null, value: u => `${u.turningTime} s` },
   { id: 'accelDecel', expert: true,
