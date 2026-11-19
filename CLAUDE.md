@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## What this is
 
-A set of static, client-only tools for Wargame: Red Dragon (armory, deck builder, AP damage, optics, spreadsheets, community decks). It's deployed to GitHub Pages at `/wgrd-toolbox/` and has no backend. All unit data is precomputed JSON served from `public/`.
+DOA (Dostoyevsky's Online Armory) is a set of static, client-only tools for Wargame: Red Dragon (armory, deck builder, AP damage, optics, spreadsheets, community decks). It's deployed to GitHub Pages at `/wgrd-toolbox/` (the repo and URL keep the old `wgrd-toolbox` name so shared links stay valid) and has no backend. All unit data is precomputed JSON served from `public/`.
 
 ## Commands
 

@@ -69,16 +69,16 @@ export function Home() {
         <div style={{ display: 'flex', flexDirection: isSmall ? 'column' : 'row', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 32 }}>
           <div>
             <div style={{ fontSize: 11, letterSpacing: '0.3em', color: t.dim, marginBottom: 10 }}>
-              DOC. № WRD-TLBX-2026-001
+              DOC. № DOA-2026-001
             </div>
             <div style={{ display: 'flex', alignItems: 'center', gap: 16, marginBottom: 12 }}>
               <div style={{ fontSize: isSmall ? 36 : 56, fontWeight: 600, lineHeight: 1, letterSpacing: '0.04em' }}>
-                WRD <span style={{ color: t.accent2 }}>/</span> TOOLS
+                DOA <span style={{ color: t.accent2 }}>/</span> ARMORY
               </div>
               <UiControls />
             </div>
             <div style={{ fontSize: 13, letterSpacing: '0.22em', color: t.dim }}>
-              WARGAME : RED DRAGON — OPERATOR TOOLBOX
+              DOSTOYEVSKY'S ONLINE ARMORY — WARGAME : RED DRAGON
             </div>
           </div>
           {!isSmall && (
