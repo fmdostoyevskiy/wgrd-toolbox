@@ -1069,9 +1069,12 @@ def _extract_unit_mobility(unit_obj: dict, instances: dict, unit: dict):
         flying_alt = prop(mouv_mod, "FlyingAltitude")
         if flying_alt is not None:
             unit["altitude"] = to_meters_dist(flying_alt)
-        giration_raw = prop(mouv_mod, "GirationRadius")
-        if giration_raw is not None:
-            unit["turnRadius"] = to_meters_dist(giration_raw)
+        # Armory "TURN RADIUS" (token TRATETURN) shows PhysicsConfiguration.AgilityRadiusInMeter
+        # unscaled: it is already in metres, unlike the movement handler's distance units.
+        physics = resolve_ref(instances, prop(mouv_mod, "PhysicsConfiguration"))
+        turn_radius = prop(physics, "AgilityRadiusInMeter")
+        if turn_radius is not None:
+            unit["turnRadius"] = round(turn_radius)
 
 
 def _extract_unit_sensors(unit_obj: dict, instances: dict, unit: dict):

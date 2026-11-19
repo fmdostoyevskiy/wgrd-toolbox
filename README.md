@@ -32,8 +32,6 @@ This tool can answer all those questions. I wanted to make something that:
 
 This accomplishes all that. In fact, it shows several values the armory tool did not ([true ASM AP](https://fmdostoyevskiy.github.io/wgrd-toolbox/armory/?unit=000000000100000000000000e8030000), [ship sailing and CIWS](https://fmdostoyevskiy.github.io/wgrd-toolbox/armory/?unit=00000000000000000000000031080000), autoloader on [AMX-13s](https://fmdostoyevskiy.github.io/wgrd-toolbox/armory/?unit=0000000000000000000000000c040000) and [Nana Shikis](https://fmdostoyevskiy.github.io/wgrd-toolbox/armory/?unit=00000000000000000000000084070000), absence of turrets on tanks such as the [Strv 103](https://fmdostoyevskiy.github.io/wgrd-toolbox/armory/?unit=00000000030000000000000014040000) series and presence of turrets on helicopters such as the [Mi-24 VP](https://fmdostoyevskiy.github.io/wgrd-toolbox/armory/?unit=000000000000000000000000aa080000)).
 
-The only stat that I was not able to add was turning radius on planes, due to its absence in the armory and their quantity being too numerous to add manually.
-
 Works on mobile.
 ## [Deck Builder](https://fmdostoyevskiy.github.io/wgrd-toolbox/deckbuilder/)
 <img width="1185" height="902" alt="image" src="https://github.com/user-attachments/assets/eb123d1b-859b-4606-9c49-c8a754c2c919" />
